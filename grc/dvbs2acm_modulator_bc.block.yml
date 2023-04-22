@@ -1,5 +1,5 @@
-id: dvbs2acm_interleaver_bb
-label: interleaver_bb
+id: dvbs2acm_modulator_bc
+label: modulator_bc
 category: '[DVB]/DVB-S2 ACM'
 
 inputs:
@@ -8,10 +8,10 @@ inputs:
 
 outputs:
 - domain: stream
-  dtype: byte
+  dtype: complex
 
 templates:
   imports: from gnuradio import dvbs2acm
-  make: dvbs2acm.interleaver_bb()
+  make: dvbs2acm.modulator_bc()
 
 file_format: 1
