@@ -1,5 +1,5 @@
 id: dvbs2acm_bch_encoder_bb
-label: bch_encoder_bb
+label: BCH Encoder
 category: '[DVB]/DVB-S2 ACM/Transmitter'
 
 inputs:

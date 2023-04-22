@@ -34,7 +34,7 @@ list(APPEND dvbs2acm_python_files
     interleaver_bb_python.cc
     modulator_bc_python.cc
     physical_cc_python.cc
-    python_bindings.cc)
+    rotator_cc_python.cc python_bindings.cc)
 
 GR_PYBIND_MAKE_OOT(dvbs2acm
    ../../..

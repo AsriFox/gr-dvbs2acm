@@ -1,5 +1,5 @@
 id: dvbs2acm_physical_cc
-label: physical_cc
+label: PL Framer
 category: '[DVB]/DVB-S2 ACM/Transmitter'
 
 parameters:

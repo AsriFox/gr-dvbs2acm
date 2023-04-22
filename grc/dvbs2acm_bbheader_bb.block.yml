@@ -1,5 +1,5 @@
 id: dvbs2acm_bbheader_bb
-label: BB Header ACM
+label: BB Header
 category: '[DVB]/DVB-S2 ACM/Transmitter'
 
 parameters:

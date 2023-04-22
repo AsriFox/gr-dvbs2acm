@@ -1,5 +1,5 @@
 id: dvbs2acm_bbscrambler_bb
-label: BB Scrambler ACM
+label: BB Scrambler
 category: '[DVB]/DVB-S2 ACM/Transmitter'
 
 inputs:

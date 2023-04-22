@@ -1,5 +1,5 @@
 id: dvbs2acm_interleaver_bb
-label: interleaver_bb
+label: Interleaver
 category: '[DVB]/DVB-S2 ACM/Transmitter'
 
 inputs:
