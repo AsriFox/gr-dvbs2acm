@@ -13,8 +13,8 @@
 /* If manual edits are made, the following tags should be modified accordingly.    */
 /* BINDTOOL_GEN_AUTOMATIC(0)                                                       */
 /* BINDTOOL_USE_PYGCCXML(0)                                                        */
-/* BINDTOOL_HEADER_FILE(bch_bb.h)                                        */
-/* BINDTOOL_HEADER_FILE_HASH(b9d3671b082a165163b9ad1657703c86)                     */
+/* BINDTOOL_HEADER_FILE(bch_encoder_bb.h)                                        */
+/* BINDTOOL_HEADER_FILE_HASH(e141c03381cc791b05e3745a351f9943)                     */
 /***********************************************************************************/
 
 #include <pybind11/complex.h>
@@ -23,21 +23,21 @@
 
 namespace py = pybind11;
 
-#include <gnuradio/dvbs2acm/bch_bb.h>
+#include <gnuradio/dvbs2acm/bch_encoder_bb.h>
 // pydoc.h is automatically generated in the build directory
-#include <bch_bb_pydoc.h>
+#include <bch_encoder_bb_pydoc.h>
 
-void bind_bch_bb(py::module& m)
+void bind_bch_encoder_bb(py::module& m)
 {
 
-    using bch_bb    = gr::dvbs2acm::bch_bb;
+    using bch_encoder_bb    = gr::dvbs2acm::bch_encoder_bb;
 
 
-    py::class_<bch_bb, gr::block, gr::basic_block,
-        std::shared_ptr<bch_bb>>(m, "bch_bb", D(bch_bb))
+    py::class_<bch_encoder_bb, gr::block, gr::basic_block,
+        std::shared_ptr<bch_encoder_bb>>(m, "bch_encoder_bb", D(bch_encoder_bb))
 
-        .def(py::init(&bch_bb::make),
-           D(bch_bb,make)
+        .def(py::init(&bch_encoder_bb::make),
+           D(bch_encoder_bb,make)
         )
         
 

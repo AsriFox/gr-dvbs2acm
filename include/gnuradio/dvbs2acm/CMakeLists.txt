@@ -13,8 +13,9 @@ install(FILES
     api.h
     bbheader_bb.h
     bbscrambler_bb.h
-    bch_bb.h
+    bch_encoder_bb.h
     interleaver_bb.h
     modulator_bc.h
-    physical_cc.h DESTINATION include/gnuradio/dvbs2acm
+    physical_cc.h
+    DESTINATION include/gnuradio/dvbs2acm
 )

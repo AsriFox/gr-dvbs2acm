@@ -16,12 +16,12 @@
 
 
  
- static const char *__doc_gr_dvbs2acm_bch_bb = R"doc()doc";
+ static const char *__doc_gr_dvbs2acm_bch_encoder_bb = R"doc()doc";
 
 
- static const char *__doc_gr_dvbs2acm_bch_bb_bch_bb = R"doc()doc";
+ static const char *__doc_gr_dvbs2acm_bch_encoder_bb_bch_encoder_bb = R"doc()doc";
 
 
- static const char *__doc_gr_dvbs2acm_bch_bb_make = R"doc()doc";
+ static const char *__doc_gr_dvbs2acm_bch_encoder_bb_make = R"doc()doc";
 
   

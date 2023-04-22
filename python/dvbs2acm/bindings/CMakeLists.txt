@@ -30,10 +30,11 @@ include(GrPybind)
 list(APPEND dvbs2acm_python_files
     bbheader_bb_python.cc
     bbscrambler_bb_python.cc
-    bch_bb_python.cc
+    bch_encoder_bb_python.cc
     interleaver_bb_python.cc
     modulator_bc_python.cc
-    physical_cc_python.cc python_bindings.cc)
+    physical_cc_python.cc
+    python_bindings.cc)
 
 GR_PYBIND_MAKE_OOT(dvbs2acm
    ../../..

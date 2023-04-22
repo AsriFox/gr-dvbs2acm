@@ -19,7 +19,7 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "bch_bb_impl.h"
+#include "bch_encoder_bb_impl.h"
 #include "ldpc_standard.h"
 #include <gnuradio/io_signature.h>
 #include <pmt/pmt.h>
@@ -29,14 +29,14 @@ namespace gr {
 namespace dvbs2acm {
 using input_type = unsigned char;
 using output_type = unsigned char;
-bch_bb::sptr bch_bb::make() { return gnuradio::make_block_sptr<bch_bb_impl>(); }
+bch_encoder_bb::sptr bch_encoder_bb::make() { return gnuradio::make_block_sptr<bch_encoder_bb_impl>(); }
 
 
 /*
  * The private constructor
  */
-bch_bb_impl::bch_bb_impl()
-    : gr::block("bch_bb",
+bch_encoder_bb_impl::bch_encoder_bb_impl()
+    : gr::block("bch_encoder_bb",
                 gr::io_signature::make(1, 1, sizeof(input_type)),
                 gr::io_signature::make(1, 1, sizeof(output_type)))
 {
@@ -45,9 +45,9 @@ bch_bb_impl::bch_bb_impl()
 /*
  * Our virtual destructor.
  */
-bch_bb_impl::~bch_bb_impl() {}
+bch_encoder_bb_impl::~bch_encoder_bb_impl() {}
 
-void bch_bb_impl::forecast(int noutput_items, gr_vector_int& ninput_items_required)
+void bch_encoder_bb_impl::forecast(int noutput_items, gr_vector_int& ninput_items_required)
 {
     ninput_items_required[0] = noutput_items;
 }
@@ -56,7 +56,7 @@ void bch_bb_impl::forecast(int noutput_items, gr_vector_int& ninput_items_requir
  * Polynomial calculation routines
  * multiply polynomials
  */
-int bch_bb_impl::poly_mult(const int* ina, int lena, const int* inb, int lenb, int* out)
+int bch_encoder_bb_impl::poly_mult(const int* ina, int lena, const int* inb, int lenb, int* out)
 {
     memset(out, 0, sizeof(int) * (lena + lenb));
 
@@ -81,7 +81,7 @@ int bch_bb_impl::poly_mult(const int* ina, int lena, const int* inb, int lenb, i
 /*
  * Pack the polynomial into a 32 bit array
  */
-void bch_bb_impl::poly_pack(const int* pin, unsigned int* pout, int len)
+void bch_encoder_bb_impl::poly_pack(const int* pin, unsigned int* pout, int len)
 {
     int lw = len / 32;
     int ptr = 0;
@@ -102,7 +102,7 @@ void bch_bb_impl::poly_pack(const int* pin, unsigned int* pout, int len)
     }
 }
 
-void bch_bb_impl::poly_reverse(int* pin, int* pout, int len)
+void bch_encoder_bb_impl::poly_reverse(int* pin, int* pout, int len)
 {
     int c;
     c = len - 1;
@@ -115,7 +115,7 @@ void bch_bb_impl::poly_reverse(int* pin, int* pout, int len)
 /*
  *Shift a 128 bit register
  */
-inline void bch_bb_impl::reg_4_shift(unsigned int* sr)
+inline void bch_encoder_bb_impl::reg_4_shift(unsigned int* sr)
 {
     sr[3] = (sr[3] >> 1) | (sr[2] << 31);
     sr[2] = (sr[2] >> 1) | (sr[1] << 31);
@@ -126,7 +126,7 @@ inline void bch_bb_impl::reg_4_shift(unsigned int* sr)
 /*
  * Shift 160 bits
  */
-inline void bch_bb_impl::reg_5_shift(unsigned int* sr)
+inline void bch_encoder_bb_impl::reg_5_shift(unsigned int* sr)
 {
     sr[4] = (sr[4] >> 1) | (sr[3] << 31);
     sr[3] = (sr[3] >> 1) | (sr[2] << 31);
@@ -138,7 +138,7 @@ inline void bch_bb_impl::reg_5_shift(unsigned int* sr)
 /*
  * Shift 192 bits
  */
-inline void bch_bb_impl::reg_6_shift(unsigned int* sr)
+inline void bch_encoder_bb_impl::reg_6_shift(unsigned int* sr)
 {
     sr[5] = (sr[5] >> 1) | (sr[4] << 31);
     sr[4] = (sr[4] >> 1) | (sr[3] << 31);
@@ -148,7 +148,7 @@ inline void bch_bb_impl::reg_6_shift(unsigned int* sr)
     sr[0] = (sr[0] >> 1);
 }
 
-void bch_bb_impl::bch_poly_build_tables(void)
+void bch_encoder_bb_impl::bch_poly_build_tables(void)
 {
     // Normal polynomials
     const int polyn01[] = { 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 };
@@ -240,7 +240,7 @@ void bch_bb_impl::bch_poly_build_tables(void)
 }
 
 
-int bch_bb_impl::general_work(int noutput_items,
+int bch_encoder_bb_impl::general_work(int noutput_items,
                               gr_vector_int& ninput_items,
                               gr_vector_const_void_star& input_items,
                               gr_vector_void_star& output_items)

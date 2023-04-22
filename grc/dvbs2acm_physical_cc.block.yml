@@ -1,6 +1,6 @@
 id: dvbs2acm_physical_cc
 label: physical_cc
-category: '[DVB]/DVB-S2 ACM'
+category: '[DVB]/DVB-S2 ACM/Transmitter'
 
 parameters:
 -   id: dummyframes

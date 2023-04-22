@@ -1,6 +1,6 @@
-id: dvbs2acm_bch_bb
-label: bch_bb
-category: '[DVB]/DVB-S2 ACM'
+id: dvbs2acm_bch_encoder_bb
+label: bch_encoder_bb
+category: '[DVB]/DVB-S2 ACM/Transmitter'
 
 inputs:
 - domain: stream
@@ -12,6 +12,6 @@ outputs:
 
 templates:
   imports: from gnuradio import dvbs2acm
-  make: dvbs2acm.bch_bb()
+  make: dvbs2acm.bch_encoder_bb()
 
 file_format: 1

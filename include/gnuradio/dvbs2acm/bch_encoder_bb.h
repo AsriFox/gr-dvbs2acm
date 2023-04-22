@@ -19,8 +19,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef INCLUDED_DVBS2ACM_BCH_BB_H
-#define INCLUDED_DVBS2ACM_BCH_BB_H
+#ifndef INCLUDED_DVBS2ACM_BCH_ENCODER_BB_H
+#define INCLUDED_DVBS2ACM_BCH_ENCODER_BB_H
 
 #include <gnuradio/block.h>
 #include <gnuradio/dvbs2acm/api.h>
@@ -37,10 +37,10 @@ namespace dvbs2acm {
  * Input: Variable length FEC baseband frames (BBFRAME).
  * Output: Variable length FEC baseband frames with appended BCH (BCHFEC).
  */
-class DVBS2ACM_API bch_bb : virtual public gr::block
+class DVBS2ACM_API bch_encoder_bb : virtual public gr::block
 {
 public:
-    typedef std::shared_ptr<bch_bb> sptr;
+    typedef std::shared_ptr<bch_encoder_bb> sptr;
 
     /*!
      * \brief Create a baseband frame BCH encoder.
@@ -51,4 +51,4 @@ public:
 } // namespace dvbs2acm
 } // namespace gr
 
-#endif /* INCLUDED_DVBS2ACM_BCH_BB_H */
+#endif /* INCLUDED_DVBS2ACM_BCH_ENCODER_BB_H */

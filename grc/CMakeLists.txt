@@ -8,8 +8,9 @@
 install(FILES
     dvbs2acm_bbheader_bb.block.yml
     dvbs2acm_bbscrambler_bb.block.yml
-    dvbs2acm_bch_bb.block.yml
+    dvbs2acm_bch_encoder_bb.block.yml
     dvbs2acm_interleaver_bb.block.yml
     dvbs2acm_modulator_bc.block.yml
-    dvbs2acm_physical_cc.block.yml DESTINATION share/gnuradio/grc/blocks
+    dvbs2acm_physical_cc.block.yml
+    DESTINATION share/gnuradio/grc/blocks
 )

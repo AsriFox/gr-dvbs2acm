@@ -19,15 +19,15 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef INCLUDED_DVBS2ACM_BCH_BB_IMPL_H
-#define INCLUDED_DVBS2ACM_BCH_BB_IMPL_H
+#ifndef INCLUDED_DVBS2ACM_BCH_ENCODER_BB_IMPL_H
+#define INCLUDED_DVBS2ACM_BCH_ENCODER_BB_IMPL_H
 
-#include <gnuradio/dvbs2acm/bch_bb.h>
+#include <gnuradio/dvbs2acm/bch_encoder_bb.h>
 
 namespace gr {
 namespace dvbs2acm {
 
-class bch_bb_impl : public bch_bb
+class bch_encoder_bb_impl : public bch_encoder_bb
 {
 private:
     unsigned int m_poly_n_8[4];
@@ -44,8 +44,8 @@ private:
     void bch_poly_build_tables(void);
 
 public:
-    bch_bb_impl();
-    ~bch_bb_impl();
+    bch_encoder_bb_impl();
+    ~bch_encoder_bb_impl();
 
     // Where all the action really happens
     void forecast(int noutput_items, gr_vector_int& ninput_items_required);
@@ -59,4 +59,4 @@ public:
 } // namespace dvbs2acm
 } // namespace gr
 
-#endif /* INCLUDED_DVBS2ACM_BCH_BB_IMPL_H */
+#endif /* INCLUDED_DVBS2ACM_BCH_ENCODER_BB_IMPL_H */

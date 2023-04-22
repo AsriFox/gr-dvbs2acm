@@ -1,6 +1,6 @@
 id: dvbs2acm_bbscrambler_bb
 label: BB Scrambler ACM
-category: '[DVB]/DVB-S2 ACM'
+category: '[DVB]/DVB-S2 ACM/Transmitter'
 
 inputs:
 - domain: stream

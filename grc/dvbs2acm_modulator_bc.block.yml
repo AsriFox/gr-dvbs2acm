@@ -1,6 +1,6 @@
 id: dvbs2acm_modulator_bc
 label: modulator_bc
-category: '[DVB]/DVB-S2 ACM'
+category: '[DVB]/DVB-S2 ACM/Transmitter'
 
 inputs:
 - domain: stream
