@@ -1,0 +1,61 @@
+id: dvbs2acm_symbol_sync_cc
+label: Symbol Synchronizer
+category: '[DVB]/DVB-S2 ACM/Receiver'
+
+parameters:
+- id: sps
+  label: Oversampling Factor
+  dtype: int
+  default: 2
+- id: loop_bw
+  label: Loop Bandwidth
+  dtype: float
+  default: 0.01
+- id: damping_factor
+  label: Damping Factor
+  dtype: float
+  default: 1.0
+- id: rolloff
+  label: Rolloff factor
+  dtype: enum
+  options: [RO_0_35, RO_0_25, RO_0_20, RO_0_15, RO_0_10, RO_0_05]
+  option_labels: ['0.35', '0.25', '0.20', '0.15', '0.10', '0.05']
+  option_attributes:
+      val: [dvbs2.RO_0_35, dvbs2.RO_0_25, dvbs2.RO_0_20, dvbs2.RO_0_15, dvbs2.RO_0_10,
+          dvbs2.RO_0_05]
+- id: rrc_delay
+  label: RRC Filter Delay
+  dtype: int
+  default: 5
+  hide: ${'none' if interp_method == 0 else 'all'}
+- id: n_subfilt
+  label: Polyphase Subfilters
+  dtype: int
+  default: 128
+  hide: ${'none' if interp_method == 0 else 'all'}
+- id: interp_method
+  label: Interpolation Method
+  dtype: enum
+  options: [0, 1, 2, 3]
+  option_labels: ["Polyphase", "Linear", "Quadratic", "Cubic"]
+  default: 0
+
+inputs:
+- label: in
+  domain: stream
+  dtype: complex
+  vlen: 1
+  optional: 0
+
+outputs:
+- label: out
+  domain: stream
+  dtype: complex
+  vlen: 1
+  optional: 0
+
+templates:
+  imports: from gnuradio import dvbs2acm
+  make: dvbs2acm.symbol_sync_cc(${sps}, ${loop_bw}, ${damping_factor}, ${rolloff.val}, ${rrc_delay}, ${n_subfilt}, ${interp_method})
+
+file_format: 1
