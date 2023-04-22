@@ -1,0 +1,60 @@
+id: dvbs2acm_plsync_cc
+label: Physical Layer Synchronizer
+category: '[DVB]/DVB-S2 ACM/Receiver'
+
+templates:
+  imports: from gnuradio import dvbs2acm
+  make: dvbs2acm.plsync_cc(${gold_code}, ${freq_est_period}, ${sps}, ${debug_level}, ${acm_vcm}, ${multistream}, ${pls_filter_lo}, ${pls_filter_hi})
+
+parameters:
+- id: gold_code
+  label: Gold code
+  dtype: int
+  default: 0
+- id: freq_est_period
+  label: Freq. Estimation Period
+  dtype: int
+  default: 10
+- id: sps
+  label: MF Oversampling
+  dtype: real
+  default: 2.0
+- id: debug_level
+  label: Debug Level
+  dtype: int
+  default: 0
+- id: acm_vcm
+  label: ACM/VCM mode
+  dtype: bool
+  default: 'True'
+- id: multistream
+  label: Multi stream (MIS)
+  dtype: bool
+  default: 'True'
+- id: pls_filter_lo
+  label: PLS filter (LSB)
+  dtype: hex
+  default: '0xFFFFFFFFFFFFFFFF'
+- id: pls_filter_hi
+  label: PLS filter (MSB)
+  dtype: hex
+  default: '0xFFFFFFFFFFFFFFFF'
+
+inputs:
+- label: in
+  domain: stream
+  dtype: complex
+  vlen: 1
+  optional: 0
+
+outputs:
+- label: out
+  domain: stream
+  dtype: complex
+  vlen: 1
+  optional: 0
+- domain: message
+  id: rotator_phase_inc
+  optional: true
+  
+file_format: 1

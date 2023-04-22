@@ -13,5 +13,6 @@ install(FILES
     dvbs2acm_modulator_bc.block.yml
     dvbs2acm_physical_cc.block.yml
     dvbs2acm_rotator_cc.block.yml
-    dvbs2acm_symbol_sync_cc.block.yml DESTINATION share/gnuradio/grc/blocks
+    dvbs2acm_symbol_sync_cc.block.yml
+    dvbs2acm_plsync_cc.block.yml DESTINATION share/gnuradio/grc/blocks
 )

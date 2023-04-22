@@ -6,6 +6,8 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 #
 
+add_subdirectory(plsync)
+
 ########################################################################
 # Setup library
 ########################################################################
@@ -18,7 +20,8 @@ list(APPEND dvbs2acm_sources
     modulator_bc_impl.cc
     physical_cc_impl.cc
     rotator_cc_impl.cc
-    symbol_sync_cc_impl.cc )
+    symbol_sync_cc_impl.cc
+    plsync_cc_impl.cc )
 
 set(dvbs2acm_sources "${dvbs2acm_sources}" PARENT_SCOPE)
 if(NOT dvbs2acm_sources)
@@ -27,7 +30,11 @@ if(NOT dvbs2acm_sources)
 endif(NOT dvbs2acm_sources)
 
 add_library(gnuradio-dvbs2acm SHARED ${dvbs2acm_sources})
-target_link_libraries(gnuradio-dvbs2acm gnuradio::gnuradio-runtime)
+target_link_libraries(gnuradio-dvbs2acm 
+    PRIVATE ${PLSYNC_LIBS}
+    PUBLIC gnuradio::gnuradio-runtime
+    PUBLIC gnuradio::gnuradio-filter
+)
 target_include_directories(gnuradio-dvbs2acm
     PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
     PUBLIC $<INSTALL_INTERFACE:include>
