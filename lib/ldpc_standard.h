@@ -10,8 +10,9 @@ public:
     unsigned int frame_size_real;
     unsigned int kbch;
     unsigned int nbch;
-    unsigned int q_val;
     unsigned int bch_code;
+
+    unsigned int q_val;
     int table;
     int Xs;
     int P;
