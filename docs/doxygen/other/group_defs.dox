@@ -1,0 +1,6 @@
+/*!
+ * \defgroup block GNU Radio DVBS2ACM C++ Signal Processing Blocks
+ * \brief All C++ blocks that can be used from the DVBS2ACM GNU Radio
+ *        module are listed here or in the subcategories below.
+ *
+ */

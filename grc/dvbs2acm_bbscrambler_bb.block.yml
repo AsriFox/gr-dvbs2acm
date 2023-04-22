@@ -1,0 +1,17 @@
+id: dvbs2acm_bbscrambler_bb
+label: BB Scrambler ACM
+category: '[DVB]/DVB-S2 ACM'
+
+inputs:
+- domain: stream
+  dtype: byte
+
+outputs:
+- domain: stream
+  dtype: byte
+
+templates:
+  imports: from gnuradio import dvbs2acm
+  make: dvbs2acm.bbscrambler_bb()
+
+file_format: 1
