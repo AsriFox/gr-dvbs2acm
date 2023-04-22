@@ -81,6 +81,7 @@ class plsync_cc_impl : public plsync_cc
 {
 private:
     /* Parameters */
+    int d_gold_code;
     int d_debug_level;  /** debug level */
     const double d_sps; /** samples per symbol */
     /* NOTE: the PLSYNC block requires a symbol-spaced stream at its
