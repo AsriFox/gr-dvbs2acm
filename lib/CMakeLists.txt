@@ -15,7 +15,8 @@ list(APPEND dvbs2acm_sources
     bbscrambler_bb_impl.cc
     bch_bb_impl.cc
     interleaver_bb_impl.cc
-    modulator_bc_impl.cc )
+    modulator_bc_impl.cc
+    physical_cc_impl.cc )
 
 set(dvbs2acm_sources "${dvbs2acm_sources}" PARENT_SCOPE)
 if(NOT dvbs2acm_sources)

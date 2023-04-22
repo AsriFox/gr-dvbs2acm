@@ -15,5 +15,6 @@ install(FILES
     bbscrambler_bb.h
     bch_bb.h
     interleaver_bb.h
-    modulator_bc.h DESTINATION include/gnuradio/dvbs2acm
+    modulator_bc.h
+    physical_cc.h DESTINATION include/gnuradio/dvbs2acm
 )

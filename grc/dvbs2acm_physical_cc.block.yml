@@ -1,0 +1,26 @@
+id: dvbs2acm_physical_cc
+label: physical_cc
+category: '[DVB]/DVB-S2 ACM'
+
+parameters:
+-   id: dummyframes
+    label: Dummy Frames
+    dtype: enum
+    options: [DUMMY_FRAMES_OFF, DUMMY_FRAMES_ON]
+    option_labels: ['Off', 'On']
+    option_attributes:
+        val: [dvbs2.DUMMY_FRAMES_OFF, dvbs2.DUMMY_FRAMES_ON]
+
+inputs:
+-   domain: stream
+    dtype: complex
+
+outputs:
+-   domain: stream
+    dtype: complex
+
+templates:
+    imports: import dvbs2
+    make: dvbs2.physical_cc(${dummyframes.val})
+
+file_format: 1
