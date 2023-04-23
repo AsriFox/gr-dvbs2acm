@@ -31,6 +31,7 @@ namespace py = pybind11;
     void bind_symbol_sync_cc(py::module& m);
     void bind_plsync_cc(py::module& m);
     void bind_ldpc_bb(py::module& m);
+    void bind_ldpc_decoder_cb(py::module& m);
 // ) END BINDING_FUNCTION_PROTOTYPES
 
 
@@ -69,5 +70,6 @@ PYBIND11_MODULE(dvbs2acm_python, m)
     bind_symbol_sync_cc(m);
     bind_plsync_cc(m);
     bind_ldpc_bb(m);
+    bind_ldpc_decoder_cb(m);
     // ) END BINDING_FUNCTION_CALLS
 }

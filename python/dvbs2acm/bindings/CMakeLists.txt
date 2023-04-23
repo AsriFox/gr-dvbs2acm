@@ -37,7 +37,8 @@ list(APPEND dvbs2acm_python_files
     rotator_cc_python.cc
     symbol_sync_cc_python.cc
     plsync_cc_python.cc
-    ldpc_encoder_bb_python.cc python_bindings.cc)
+    ldpc_encoder_bb_python.cc
+    ldpc_decoder_cb_python.cc python_bindings.cc)
 
 GR_PYBIND_MAKE_OOT(dvbs2acm
    ../../..

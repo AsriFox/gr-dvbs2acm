@@ -7,6 +7,7 @@
 #
 
 add_subdirectory(plsync)
+add_subdirectory(ldpc_decoder)
 
 ########################################################################
 # Setup library
@@ -24,6 +25,7 @@ list(APPEND dvbs2acm_sources
     plsync_cc_impl.cc
     ldpc_encoder_bb_impl.cc
     ldpc_standard.cc
+    ldpc_decoder_cb_impl.cc
 )
 
 set(dvbs2acm_sources "${dvbs2acm_sources}" PARENT_SCOPE)
@@ -35,6 +37,8 @@ endif(NOT dvbs2acm_sources)
 add_library(gnuradio-dvbs2acm SHARED ${dvbs2acm_sources})
 target_link_libraries(gnuradio-dvbs2acm 
     PRIVATE ${PLSYNC_LIBS}
+    PRIVATE ${LDPC_LIBS}
+    PRIVATE cpu_features
     PUBLIC gnuradio::gnuradio-runtime
     PUBLIC gnuradio::gnuradio-filter
 )

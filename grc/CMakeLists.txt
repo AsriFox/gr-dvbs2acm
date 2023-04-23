@@ -15,5 +15,6 @@ install(FILES
     dvbs2acm_rotator_cc.block.yml
     dvbs2acm_symbol_sync_cc.block.yml
     dvbs2acm_plsync_cc.block.yml
-    dvbs2acm_ldpc_encoder_bb.block.yml DESTINATION share/gnuradio/grc/blocks
+    dvbs2acm_ldpc_encoder_bb.block.yml
+    dvbs2acm_ldpc_decoder_cb.block.yml DESTINATION share/gnuradio/grc/blocks
 )
