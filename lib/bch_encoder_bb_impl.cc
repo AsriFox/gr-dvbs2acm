@@ -25,6 +25,8 @@
 #include <pmt/pmt.h>
 #include <vector>
 
+using namespace gr::dvbs2;
+
 namespace gr {
 namespace dvbs2acm {
 using input_type = unsigned char;

@@ -1,0 +1,28 @@
+id: dvbs2acm_bch_decoder_bb
+label: BCH Decoder
+category: '[DVB]/DVB-S2 ACM/Receiver'
+
+parameters:
+- id: outputmode
+  label: Output mode
+  dtype: enum
+  options: [OM_CODEWORD, OM_MESSAGE]
+  option_labels: [Codeword, Message]
+- id: debug_level
+  label: Debug Level
+  dtype: int
+  default: 0
+
+inputs:
+- domain: stream
+  dtype: byte
+
+outputs:
+- domain: stream
+  dtype: byte
+
+templates:
+  imports: from gnuradio import dvbs2acm
+  make: dvbs2acm.bch_decoder_bb(dvbs2.${outputmode}, ${debug_level})
+
+file_format: 1
