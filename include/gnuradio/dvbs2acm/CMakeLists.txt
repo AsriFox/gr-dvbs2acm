@@ -19,5 +19,6 @@ install(FILES
     physical_cc.h
     rotator_cc.h
     symbol_sync_cc.h
-    plsync_cc.h DESTINATION include/gnuradio/dvbs2acm
+    plsync_cc.h
+    ldpc_encoder_bb.h DESTINATION include/gnuradio/dvbs2acm
 )

@@ -21,7 +21,10 @@ list(APPEND dvbs2acm_sources
     physical_cc_impl.cc
     rotator_cc_impl.cc
     symbol_sync_cc_impl.cc
-    plsync_cc_impl.cc )
+    plsync_cc_impl.cc
+    ldpc_encoder_bb_impl.cc
+    ldpc_standard.cc
+)
 
 set(dvbs2acm_sources "${dvbs2acm_sources}" PARENT_SCOPE)
 if(NOT dvbs2acm_sources)

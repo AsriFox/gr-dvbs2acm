@@ -36,9 +36,8 @@ bch_encoder_bb::sptr bch_encoder_bb::make() { return gnuradio::make_block_sptr<b
  * The private constructor
  */
 bch_encoder_bb_impl::bch_encoder_bb_impl()
-    : gr::block("bch_encoder_bb",
-                gr::io_signature::make(1, 1, sizeof(input_type)),
-                gr::io_signature::make(1, 1, sizeof(output_type)))
+    : gr::block(
+          "bch_encoder_bb", gr::io_signature::make(1, 1, sizeof(input_type)), gr::io_signature::make(1, 1, sizeof(output_type)))
 {
 }
 
@@ -241,9 +240,9 @@ void bch_encoder_bb_impl::bch_poly_build_tables(void)
 
 
 int bch_encoder_bb_impl::general_work(int noutput_items,
-                              gr_vector_int& ninput_items,
-                              gr_vector_const_void_star& input_items,
-                              gr_vector_void_star& output_items)
+                                      gr_vector_int& ninput_items,
+                                      gr_vector_const_void_star& input_items,
+                                      gr_vector_void_star& output_items)
 {
     auto in = static_cast<const input_type*>(input_items[0]);
     auto out = static_cast<output_type*>(output_items[0]);
@@ -257,12 +256,13 @@ int bch_encoder_bb_impl::general_work(int noutput_items,
     const uint64_t nread = this->nitems_read(0); // number of items read on port 0
 
     // Read all tags on the input buffer
-    this->get_tags_in_range(
-        tags, 0, nread, nread + noutput_items, pmt::string_to_symbol("modcod"));
+    this->get_tags_in_range(tags, 0, nread, nread + noutput_items, pmt::string_to_symbol("modcod"));
 
-    for (int i = 0; i < (int)tags.size(); i++) {
-        auto tagmodcod = pmt::to_uint64(tags[i].value);
-        auto params = gr::dvbs2::ldpc_std_values::from_tag(tagmodcod);
+    for (tag_t tag : tags) {
+        auto tagmodcod = pmt::to_uint64(tag.value);
+        auto framesize = (dvbs2_framesize_t)((tagmodcod >> 1) & 0x7f);
+        auto rate = (dvbs2_code_rate_t)((tagmodcod >> 8) & 0xff);
+        auto params = gr::dvbs2::ldpc_std_values::std(framesize, rate);
         if (params.nbch + produced > (unsigned int)noutput_items) {
             break;
         }

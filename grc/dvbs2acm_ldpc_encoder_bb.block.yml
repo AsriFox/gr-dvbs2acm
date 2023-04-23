@@ -1,0 +1,17 @@
+id: dvbs2acm_ldpc_encoder_bb
+label: LDPC Encoder
+category: '[DVB]/DVB-S2 ACM/Transmitter'
+
+inputs:
+- domain: stream
+  dtype: byte
+
+outputs:
+- domain: stream
+  dtype: byte
+
+templates:
+  imports: from gnuradio import dvbs2acm
+  make: dvbs2acm.ldpc_encoder_bb()
+
+file_format: 1
