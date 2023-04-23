@@ -22,25 +22,8 @@
 #ifndef INCLUDED_DVBS2ACM_BBHEADER_BB_IMPL_H
 #define INCLUDED_DVBS2ACM_BBHEADER_BB_IMPL_H
 
+#include "bb_header.hh"
 #include <gnuradio/dvbs2acm/bbheader_bb.h>
-
-typedef struct {
-    int ts_gs;
-    int sis_mis;
-    int ccm_acm;
-    int issyi;
-    int npd;
-    int ro;
-    int isi;
-    int upl;
-    int dfl;
-    int sync;
-    int syncd;
-} BBHeader;
-
-typedef struct {
-    BBHeader bb_header;
-} FrameFormat;
 
 namespace gr {
 namespace dvbs2acm {

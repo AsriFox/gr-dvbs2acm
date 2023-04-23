@@ -40,7 +40,8 @@ list(APPEND dvbs2acm_python_files
     ldpc_encoder_bb_python.cc
     ldpc_decoder_cb_python.cc
     bch_decoder_bb_python.cc
-    bbdescrambler_bb_python.cc python_bindings.cc)
+    bbdescrambler_bb_python.cc
+    bbdeheader_bb_python.cc python_bindings.cc)
 
 GR_PYBIND_MAKE_OOT(dvbs2acm
    ../../..

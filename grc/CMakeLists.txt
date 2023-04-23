@@ -18,5 +18,6 @@ install(FILES
     dvbs2acm_ldpc_encoder_bb.block.yml
     dvbs2acm_ldpc_decoder_cb.block.yml
     dvbs2acm_bch_decoder_bb.block.yml
-    dvbs2acm_bbdescrambler_bb.block.yml DESTINATION share/gnuradio/grc/blocks
+    dvbs2acm_bbdescrambler_bb.block.yml
+    dvbs2acm_bbdeheader_bb.block.yml DESTINATION share/gnuradio/grc/blocks
 )

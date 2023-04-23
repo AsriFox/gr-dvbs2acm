@@ -1,0 +1,22 @@
+id: dvbs2acm_bbdeheader_bb
+label: BB Deheader
+category: '[DVB]/DVB-S2 ACM/Receiver'
+
+parameters:
+- id: debug_level
+  label: Debug Level
+  dtype: int
+  default: 0
+
+- domain: stream
+  dtype: byte
+
+outputs:
+- domain: stream
+  dtype: byte
+
+templates:
+  imports: from gnuradio import dvbs2acm
+  make: dvbs2acm.bbdeheader_bb(${debug_level})
+
+file_format: 1
