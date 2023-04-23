@@ -27,6 +27,7 @@ list(APPEND dvbs2acm_sources
     ldpc_standard.cc
     ldpc_decoder_cb_impl.cc
     bch_decoder_bb_impl.cc
+    bbdescrambler_bb_impl.cc
 )
 
 set(dvbs2acm_sources "${dvbs2acm_sources}" PARENT_SCOPE)

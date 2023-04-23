@@ -22,5 +22,6 @@ install(FILES
     plsync_cc.h
     ldpc_encoder_bb.h
     ldpc_decoder_cb.h
-    bch_decoder_bb.h DESTINATION include/gnuradio/dvbs2acm
+    bch_decoder_bb.h
+    bbdescrambler_bb.h DESTINATION include/gnuradio/dvbs2acm
 )

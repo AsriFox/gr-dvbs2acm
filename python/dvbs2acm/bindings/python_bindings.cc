@@ -33,6 +33,7 @@ namespace py = pybind11;
     void bind_ldpc_bb(py::module& m);
     void bind_ldpc_decoder_cb(py::module& m);
     void bind_bch_decoder_cb(py::module& m);
+    void bind_bbdescrambler_bb(py::module& m);
 // ) END BINDING_FUNCTION_PROTOTYPES
 
 
@@ -73,5 +74,6 @@ PYBIND11_MODULE(dvbs2acm_python, m)
     bind_ldpc_bb(m);
     bind_ldpc_decoder_cb(m);
     bind_bch_decoder_cb(m);
+    bind_bbdescrambler_bb(m);
     // ) END BINDING_FUNCTION_CALLS
 }
