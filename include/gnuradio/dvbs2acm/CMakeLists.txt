@@ -24,5 +24,6 @@ install(FILES
     ldpc_decoder_cb.h
     bch_decoder_bb.h
     bbdescrambler_bb.h
-    bbdeheader_bb.h DESTINATION include/gnuradio/dvbs2acm
+    bbdeheader_bb.h 
+    DESTINATION include/gnuradio/dvbs2acm
 )

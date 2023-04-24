@@ -10,6 +10,8 @@
 #ifndef LDPC_HH
 #define LDPC_HH
 
+#include "../../include/gnuradio/dvbs2acm/dvbs2_config.h"
+
 struct LDPCInterface {
     virtual LDPCInterface* clone() = 0;
     virtual int code_len() = 0;
@@ -86,5 +88,7 @@ public:
         next_group();
     }
 };
+
+LDPCInterface* build_decoder(gr::dvbs2::dvbs2_framesize_t, gr::dvbs2::dvbs2_code_rate_t);
 
 #endif

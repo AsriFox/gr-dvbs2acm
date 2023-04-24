@@ -41,40 +41,6 @@ private:
     void* aligned_buffer;
     int (*decode)(void*, int8_t*, int);
 
-    int interleave_lookup_table[FRAME_SIZE_NORMAL];
-    int deinterleave_lookup_table[FRAME_SIZE_NORMAL];
-
-    void generate_interleave_lookup();
-    void generate_deinterleave_lookup();
-    inline void interleave_parity_bits(int* tempu, const int*& in);
-    inline void twist_interleave_columns(int* tempv, int* tempu, int rows, int mod, const int* twist);
-    inline void twist_deinterleave_columns(int* tempv, int* tempu, int rows, int mod, const int* twist);
-
-    const static int twist16n[8];
-    const static int twist64n[12];
-    const static int twist256n[16];
-
-    const static int twist16s[8];
-    const static int twist64s[12];
-    const static int twist256s[8];
-
-    const static int mux16[8];
-    const static int mux64[12];
-    const static int mux256[16];
-
-    const static int mux16_35[8];
-    const static int mux16_13[8];
-    const static int mux16_25[8];
-    const static int mux64_35[12];
-    const static int mux64_13[12];
-    const static int mux64_25[12];
-    const static int mux256_35[16];
-    const static int mux256_23[16];
-
-    const static int mux256s[8];
-    const static int mux256s_13[8];
-    const static int mux256s_25[8];
-
 public:
     ldpc_decoder_cb_impl(gr::dvbs2::dvbs2_outputmode_t outputmode,
                          gr::dvbs2::dvbs2_infomode_t infomode,

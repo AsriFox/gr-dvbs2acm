@@ -15,7 +15,11 @@ if(CMAKE_SYSTEM_PROCESSOR MATCHES "(x86_64)|(AMD64|amd64)|(^i.86$)")
   list(APPEND LDPC_LIBS ldpc_decoder_sse41)
 endif()
 
-add_library(ldpc_decoder_generic STATIC ldpc_decoder_generic.cc)
+add_library(ldpc_decoder_generic STATIC ldpc.cc ldpc_decoder_generic.cc)
+target_include_directories(ldpc_decoder_generic
+  PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
+   PUBLIC $<INSTALL_INTERFACE:include>
+)
 list(APPEND LDPC_LIBS ldpc_decoder_generic)
 
 foreach(LDPC_LIB ${LDPC_LIBS})

@@ -61,10 +61,13 @@ namespace dvbs2acm {
 using input_type = gr_complex;
 using output_type = unsigned char;
 
-ldpc_decoder_cb::sptr
-ldpc_decoder_cb::make(dvbs2_outputmode_t outputmode, dvbs2_infomode_t infomode, int max_trials, int debug_level)
+ldpc_decoder_cb::sptr ldpc_decoder_cb::make(dvbs2_outputmode_t outputmode,
+                                            dvbs2_infomode_t infomode,
+                                            int max_trials,
+                                            int debug_level)
 {
-    return gnuradio::make_block_sptr<ldpc_decoder_cb_impl>(outputmode, infomode, max_trials, debug_level);
+    return gnuradio::make_block_sptr<ldpc_decoder_cb_impl>(
+        outputmode, infomode, max_trials, debug_level);
 }
 
 
@@ -124,13 +127,11 @@ ldpc_decoder_cb_impl::ldpc_decoder_cb_impl(dvbs2_outputmode_t outputmode,
     assert(decode != nullptr);
     d_debug_logger->debug("LDPC decoder implementation: {:s}", impl);
 
-    soft = new int8_t[ldpc->code_len() * d_simd_size];
-    dint = new int8_t[ldpc->code_len() * d_simd_size];
-    tempu = new int8_t[ldpc->code_len()];
-    tempv = new int8_t[ldpc->code_len()];
-    aligned_buffer = aligned_alloc(d_simd_size, d_simd_size * ldpc->code_len());
-    generate_interleave_lookup();
-    generate_deinterleave_lookup();
+    soft = new int8_t[FRAME_SIZE_NORMAL];
+    dint = new int8_t[FRAME_SIZE_NORMAL];
+    tempu = new int8_t[FRAME_SIZE_NORMAL];
+    tempv = new int8_t[FRAME_SIZE_NORMAL];
+    aligned_buffer = aligned_alloc(d_simd_size, d_simd_size * FRAME_SIZE_NORMAL);
     set_output_multiple(FRAME_SIZE_NORMAL);
     // if (outputmode == OM_MESSAGE) {
     //     set_output_multiple(nbch * d_simd_size);
@@ -199,6 +200,8 @@ int ldpc_decoder_cb_impl::general_work(int noutput_items,
         const uint64_t tagoffset = this->nitems_written(0);
         this->add_item_tag(0, tagoffset, pmt::string_to_symbol("modcod"), pmt::from_uint64(tagmodcod));
 
+        ldpc = build_decoder(framesize, rate);
+
         // TODO: Make a class
         switch (constellation) {
         case MOD_QPSK:
@@ -214,7 +217,8 @@ int ldpc_decoder_cb_impl::general_work(int noutput_items,
                 rowaddr2 = 0;
             }
             /* 102 */
-            else if (rate == C25_36 || rate == C13_18 || rate == C7_15 || rate == C8_15 || rate == C26_45) {
+            else if (rate == C25_36 || rate == C13_18 || rate == C7_15 || rate == C8_15 ||
+                     rate == C26_45) {
                 rowaddr0 = rows;
                 rowaddr1 = 0;
                 rowaddr2 = rows * 2;
@@ -307,10 +311,18 @@ int ldpc_decoder_cb_impl::general_work(int noutput_items,
         int count = decode(aligned_buffer, code, trials);
         if (count < 0) {
             total_trials += trials;
-            GR_LOG_DEBUG_LEVEL(1, "frame = {:d}, snr = {:.2f}, trials = {:d} (max)", (chunk * d_simd_size), snr, trials);
+            GR_LOG_DEBUG_LEVEL(1,
+                               "frame = {:d}, snr = {:.2f}, trials = {:d} (max)",
+                               (chunk * d_simd_size),
+                               snr,
+                               trials);
         } else {
             total_trials += (trials - count);
-            GR_LOG_DEBUG_LEVEL(1, "frame = {:d}, snr = {:.2f}, trials = {:d}", (chunk * d_simd_size), snr, (trials - count));
+            GR_LOG_DEBUG_LEVEL(1,
+                               "frame = {:d}, snr = {:.2f}, trials = {:d}",
+                               (chunk * d_simd_size),
+                               snr,
+                               (trials - count));
         }
 
         // Deinterleave?
