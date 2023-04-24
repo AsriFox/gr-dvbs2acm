@@ -8,10 +8,11 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "cpu_features/cpu_features_macros.h"
+#include "cpu_features_macros.h"
 #include "debug_level.h"
 #include "ldpc_decoder_cb_impl.h"
 #include <gnuradio/io_signature.h>
+#include <pmt/pmt.h>
 #include <cstddef>
 #include <string>
 
@@ -27,7 +28,7 @@ static const bool has_neon = true; // always available on aarch64
 #endif
 
 #ifdef CPU_FEATURES_ARCH_X86
-#include "cpu_features/cpuinfo_x86.h"
+#include "cpuinfo_x86.h"
 using namespace cpu_features;
 static const X86Features features = GetX86Info().features;
 #endif
@@ -130,12 +131,13 @@ ldpc_decoder_cb_impl::ldpc_decoder_cb_impl(dvbs2_outputmode_t outputmode,
     aligned_buffer = aligned_alloc(d_simd_size, d_simd_size * ldpc->code_len());
     generate_interleave_lookup();
     generate_deinterleave_lookup();
-    if (outputmode == OM_MESSAGE) {
-        set_output_multiple(nbch * d_simd_size);
-        set_relative_rate((double)nbch / frame_size);
-    } else {
-        set_output_multiple(frame_size * d_simd_size);
-    }
+    set_output_multiple(FRAME_SIZE_NORMAL);
+    // if (outputmode == OM_MESSAGE) {
+    //     set_output_multiple(nbch * d_simd_size);
+    //     set_relative_rate((double)nbch / frame_size);
+    // } else {
+    //     set_output_multiple(frame_size * d_simd_size);
+    // }
 }
 
 /*
@@ -154,11 +156,12 @@ ldpc_decoder_cb_impl::~ldpc_decoder_cb_impl()
 
 void ldpc_decoder_cb_impl::forecast(int noutput_items, gr_vector_int& ninput_items_required)
 {
-    if (output_mode == OM_MESSAGE) {
-        ninput_items_required[0] = (noutput_items / nbch) * (frame_size / mod->bits());
-    } else {
-        ninput_items_required[0] = noutput_items / mod->bits();
-    }
+    ninput_items_required[0] = noutput_items;
+    // if (output_mode == OM_MESSAGE) {
+    //     ninput_items_required[0] = (noutput_items / nbch) * (frame_size / mod->bits());
+    // } else {
+    //     ninput_items_required[0] = noutput_items / mod->bits();
+    // }
 }
 
 const int DEFAULT_TRIALS = 25;
@@ -172,345 +175,85 @@ int ldpc_decoder_cb_impl::general_work(int noutput_items,
     const gr_complex* in = (const gr_complex*)input_items[0];
     const gr_complex* insnr = (const gr_complex*)input_items[0];
     unsigned char* out = (unsigned char*)output_items[0];
-    const int CODE_LEN = ldpc->code_len();
-    const int MOD_BITS = mod->bits();
-    int8_t tmp[MOD_BITS];
-    int8_t* code = nullptr;
     float sp, np, sigma, precision_sum;
     gr_complex s, e;
-    const int SYMBOLS = CODE_LEN / MOD_BITS;
     const int trials = (d_max_trials == 0) ? DEFAULT_TRIALS : d_max_trials;
     int consumed = 0;
     int rows, offset, indexin, indexout;
     const int* mux;
     int8_t *c1, *c2, *c3;
-    int output_size = output_mode ? nbch : frame_size;
+    // int output_size = output_mode ? nbch : frame_size;
 
-    for (int i = 0; i < noutput_items; i += output_size * d_simd_size) {
-        for (int blk = 0; blk < d_simd_size; blk++) {
-            if (frame == 0) {
-                sp = 0;
-                np = 0;
-                for (int j = 0; j < SYMBOLS; j++) {
-                    mod->hard(tmp, in[j]);
-                    s = mod->map(tmp);
-                    e = in[j] - s;
-                    sp += std::norm(s);
-                    np += std::norm(e);
-                }
-                if (!(np > 0)) {
-                    np = 1e-12;
-                }
-                snr = 10 * std::log10(sp / np);
-                sigma = std::sqrt(np / (2 * sp));
-                precision = FACTOR / (sigma * sigma);
+    std::vector<tag_t> tags;
+    const uint64_t nread = this->nitems_read(0); // number of items read on port 0
+
+    // Read all tags on the input buffer
+    this->get_tags_in_range(tags, 0, nread, nread + noutput_items, pmt::string_to_symbol("modcod"));
+
+    // TODO: SIMD stuff
+    for (tag_t tag : tags) {
+        const uint64_t tagmodcod = pmt::to_uint64(tag.value);
+        auto framesize = (dvbs2_framesize_t)((tagmodcod >> 1) & 0x7f);
+        auto rate = (dvbs2_code_rate_t)((tagmodcod >> 8) & 0xff);
+        auto constellation = (dvbs2_constellation_t)((tagmodcod >> 16) & 0xff);
+        const uint64_t tagoffset = this->nitems_written(0);
+        this->add_item_tag(0, tagoffset, pmt::string_to_symbol("modcod"), pmt::from_uint64(tagmodcod));
+
+        // TODO: Make a class
+        switch (constellation) {
+        case MOD_QPSK:
+            mod = new PhaseShiftKeying<4, gr_complex, int8_t>();
+            break;
+        case MOD_8PSK:
+            mod = new PhaseShiftKeying<8, gr_complex, int8_t>();
+            rows = ldpc->code_len() / mod->bits();
+            /* 210 */
+            if (rate == C3_5) {
+                rowaddr0 = rows * 2;
+                rowaddr1 = rows;
+                rowaddr2 = 0;
             }
-            for (int j = 0; j < SYMBOLS; j++) {
-                mod->soft(soft + (j * MOD_BITS + (blk * CODE_LEN)), in[j], precision);
+            /* 102 */
+            else if (rate == C25_36 || rate == C13_18 || rate == C7_15 || rate == C8_15 || rate == C26_45) {
+                rowaddr0 = rows;
+                rowaddr1 = 0;
+                rowaddr2 = rows * 2;
             }
-            switch (signal_constellation) {
-            case MOD_QPSK:
-                if (dvb_standard == STANDARD_DVBT2) {
-                    if (code_rate == C1_3 || code_rate == C2_5) {
-                        for (unsigned int t = 0; t < q_val; t++) {
-                            for (int s = 0; s < 360; s++) {
-                                dint[(nbch + (q_val * s) + t) + (blk * CODE_LEN)] =
-                                    soft[(nbch + (360 * t) + s) + (blk * CODE_LEN)];
-                            }
-                        }
-                        for (unsigned int k = 0; k < nbch; k++) {
-                            dint[k + (blk * CODE_LEN)] = soft[k + (blk * CODE_LEN)];
-                        }
-                        code = dint;
-                    } else {
-                        code = soft;
-                    }
-                } else {
-                    code = soft;
-                }
-                break;
-            case MOD_8PSK:
-                rows = frame_size / MOD_BITS;
-                c1 = &dint[rowaddr0 + (blk * CODE_LEN)];
-                c2 = &dint[rowaddr1 + (blk * CODE_LEN)];
-                c3 = &dint[rowaddr2 + (blk * CODE_LEN)];
-                indexin = 0;
-                for (int j = 0; j < rows; j++) {
-                    c1[j] = soft[indexin++ + (blk * CODE_LEN)];
-                    c2[j] = soft[indexin++ + (blk * CODE_LEN)];
-                    c3[j] = soft[indexin++ + (blk * CODE_LEN)];
-                }
-                code = dint;
-                break;
-            case MOD_16QAM:
-                if (code_rate == C3_5 && frame_size == FRAME_SIZE_NORMAL) {
-                    mux = &mux16_35[0];
-                } else if (code_rate == C1_3 && frame_size == FRAME_SIZE_SHORT) {
-                    mux = &mux16_13[0];
-                } else if (code_rate == C2_5 && frame_size == FRAME_SIZE_SHORT) {
-                    mux = &mux16_25[0];
-                } else {
-                    mux = &mux16[0];
-                }
-                indexin = 0;
-                indexout = 0;
-                for (unsigned int d = 0; d < frame_size / (MOD_BITS * 2); d++) {
-                    for (int e = 0; e < (MOD_BITS * 2); e++) {
-                        offset = mux[e];
-                        tempu[indexout++] = soft[(offset + indexin) + (blk * CODE_LEN)];
-                    }
-                    indexin += MOD_BITS * 2;
-                }
-                indexin = 0;
-                indexout = 0;
-                for (unsigned int j = 0; j < frame_size; j++) {
-                    tempv[indexout++] = tempu[deinterleave_lookup_table[indexin++]];
-                }
-                for (unsigned int t = 0; t < q_val; t++) {
-                    for (int s = 0; s < 360; s++) {
-                        dint[(nbch + (q_val * s) + t) + (blk * CODE_LEN)] = tempv[(nbch + (360 * t) + s)];
-                    }
-                }
-                for (unsigned int k = 0; k < nbch; k++) {
-                    dint[k + (blk * CODE_LEN)] = tempv[k];
-                }
-                code = dint;
-                break;
-            case MOD_64QAM:
-                if (code_rate == C3_5 && frame_size == FRAME_SIZE_NORMAL) {
-                    mux = &mux64_35[0];
-                } else if (code_rate == C1_3 && frame_size == FRAME_SIZE_SHORT) {
-                    mux = &mux64_13[0];
-                } else if (code_rate == C2_5 && frame_size == FRAME_SIZE_SHORT) {
-                    mux = &mux64_25[0];
-                } else {
-                    mux = &mux64[0];
-                }
-                indexin = 0;
-                indexout = 0;
-                for (unsigned int d = 0; d < frame_size / (MOD_BITS * 2); d++) {
-                    for (int e = 0; e < (MOD_BITS * 2); e++) {
-                        offset = mux[e];
-                        tempu[indexout++] = soft[(offset + indexin) + (blk * CODE_LEN)];
-                    }
-                    indexin += MOD_BITS * 2;
-                }
-                indexin = 0;
-                indexout = 0;
-                for (unsigned int j = 0; j < frame_size; j++) {
-                    tempv[indexout++] = tempu[deinterleave_lookup_table[indexin++]];
-                }
-                for (unsigned int t = 0; t < q_val; t++) {
-                    for (int s = 0; s < 360; s++) {
-                        dint[(nbch + (q_val * s) + t) + (blk * CODE_LEN)] = tempv[(nbch + (360 * t) + s)];
-                    }
-                }
-                for (unsigned int k = 0; k < nbch; k++) {
-                    dint[k + (blk * CODE_LEN)] = tempv[k];
-                }
-                code = dint;
-                break;
-            case MOD_256QAM:
-                if (frame_size == FRAME_SIZE_NORMAL) {
-                    if (code_rate == C3_5) {
-                        mux = &mux256_35[0];
-                    } else if (code_rate == C2_3) {
-                        mux = &mux256_23[0];
-                    } else {
-                        mux = &mux256[0];
-                    }
-                    indexin = 0;
-                    indexout = 0;
-                    for (unsigned int d = 0; d < frame_size / (MOD_BITS * 2); d++) {
-                        for (int e = 0; e < (MOD_BITS * 2); e++) {
-                            offset = mux[e];
-                            tempu[indexout++] = soft[(offset + indexin) + (blk * CODE_LEN)];
-                        }
-                        indexin += MOD_BITS * 2;
-                    }
-                    indexin = 0;
-                    indexout = 0;
-                    for (unsigned int j = 0; j < frame_size; j++) {
-                        tempv[indexout++] = tempu[deinterleave_lookup_table[indexin++]];
-                    }
-                    for (unsigned int t = 0; t < q_val; t++) {
-                        for (int s = 0; s < 360; s++) {
-                            dint[(nbch + (q_val * s) + t) + (blk * CODE_LEN)] = tempv[(nbch + (360 * t) + s)];
-                        }
-                    }
-                    for (unsigned int k = 0; k < nbch; k++) {
-                        dint[k + (blk * CODE_LEN)] = tempv[k];
-                    }
-                    code = dint;
-                } else {
-                    if (code_rate == C1_3) {
-                        mux = &mux256s_13[0];
-                    } else if (code_rate == C2_5) {
-                        mux = &mux256s_25[0];
-                    } else {
-                        mux = &mux256s[0];
-                    }
-                    indexin = 0;
-                    indexout = 0;
-                    for (unsigned int d = 0; d < frame_size / MOD_BITS; d++) {
-                        for (int e = 0; e < MOD_BITS; e++) {
-                            offset = mux[e];
-                            tempu[indexout++] = soft[(offset + indexin) + (blk * CODE_LEN)];
-                        }
-                        indexin += MOD_BITS;
-                    }
-                    indexin = 0;
-                    indexout = 0;
-                    for (unsigned int j = 0; j < frame_size; j++) {
-                        tempv[indexout++] = tempu[deinterleave_lookup_table[indexin++]];
-                    }
-                    for (unsigned int t = 0; t < q_val; t++) {
-                        for (int s = 0; s < 360; s++) {
-                            dint[(nbch + (q_val * s) + t) + (blk * CODE_LEN)] = tempv[(nbch + (360 * t) + s)];
-                        }
-                    }
-                    for (unsigned int k = 0; k < nbch; k++) {
-                        dint[k + (blk * CODE_LEN)] = tempv[k];
-                    }
-                    code = dint;
-                }
-                break;
-            default:
-                code = soft;
-                break;
+            /* 012 */
+            else {
+                rowaddr0 = 0;
+                rowaddr1 = rows;
+                rowaddr2 = rows * 2;
             }
-            in += frame_size / MOD_BITS;
-            consumed += frame_size / MOD_BITS;
+            break;
+        // These modulations are from DVB-T2:
+        // case MOD_16QAM:
+        //     mod = new QuadratureAmplitudeModulation<16, gr_complex, int8_t>();
+        //     break;
+        // case MOD_64QAM:
+        //     mod = new QuadratureAmplitudeModulation<64, gr_complex, int8_t>();
+        //     break;
+        // case MOD_256QAM:
+        //     mod = new QuadratureAmplitudeModulation<256, gr_complex, int8_t>();
+        //     break;
+        default:
+            break;
         }
-        int count = decode(aligned_buffer, code, trials);
-        if (count < 0) {
-            total_trials += trials;
-            GR_LOG_DEBUG_LEVEL(1, "frame = {:d}, snr = {:.2f}, trials = {:d} (max)", (chunk * d_simd_size), snr, trials);
-        } else {
-            total_trials += (trials - count);
-            GR_LOG_DEBUG_LEVEL(1, "frame = {:d}, snr = {:.2f}, trials = {:d}", (chunk * d_simd_size), snr, (trials - count));
-        }
-        chunk++;
-        precision_sum = 0;
-        for (int blk = 0; blk < d_simd_size; blk++) {
-            switch (signal_constellation) {
-            case MOD_QPSK:
-                for (int j = 0; j < CODE_LEN; j++) {
-                    tempv[j] = code[j + (blk * CODE_LEN)] < 0 ? -1 : 1;
-                }
-                break;
-            case MOD_8PSK:
-                for (int j = 0; j < CODE_LEN; j++) {
-                    tempu[j] = code[j + (blk * CODE_LEN)] < 0 ? -1 : 1;
-                }
-                rows = frame_size / MOD_BITS;
-                c1 = &tempu[rowaddr0];
-                c2 = &tempu[rowaddr1];
-                c3 = &tempu[rowaddr2];
-                indexout = 0;
-                for (int j = 0; j < rows; j++) {
-                    tempv[indexout++] = c1[j];
-                    tempv[indexout++] = c2[j];
-                    tempv[indexout++] = c3[j];
-                }
-                break;
-            case MOD_16QAM:
-                if (code_rate == C3_5 && frame_size == FRAME_SIZE_NORMAL) {
-                    mux = &mux16_35[0];
-                } else if (code_rate == C1_3 && frame_size == FRAME_SIZE_SHORT) {
-                    mux = &mux16_13[0];
-                } else if (code_rate == C2_5 && frame_size == FRAME_SIZE_SHORT) {
-                    mux = &mux16_25[0];
-                } else {
-                    mux = &mux16[0];
-                }
-                for (int j = 0; j < CODE_LEN; j++) {
-                    tempu[j] = code[j + (blk * CODE_LEN)] < 0 ? -1 : 1;
-                }
-                indexin = 0;
-                indexout = 0;
-                for (unsigned int d = 0; d < frame_size / (MOD_BITS * 2); d++) {
-                    for (int e = 0; e < (MOD_BITS * 2); e++) {
-                        offset = mux[e];
-                        tempv[offset + indexout] = tempu[interleave_lookup_table[indexin++]];
-                    }
-                    indexout += MOD_BITS * 2;
-                }
-                break;
-            case MOD_64QAM:
-                if (code_rate == C3_5 && frame_size == FRAME_SIZE_NORMAL) {
-                    mux = &mux64_35[0];
-                } else if (code_rate == C1_3 && frame_size == FRAME_SIZE_SHORT) {
-                    mux = &mux64_13[0];
-                } else if (code_rate == C2_5 && frame_size == FRAME_SIZE_SHORT) {
-                    mux = &mux64_25[0];
-                } else {
-                    mux = &mux64[0];
-                }
-                for (int j = 0; j < CODE_LEN; j++) {
-                    tempu[j] = code[j + (blk * CODE_LEN)] < 0 ? -1 : 1;
-                }
-                indexin = 0;
-                indexout = 0;
-                for (unsigned int d = 0; d < frame_size / (MOD_BITS * 2); d++) {
-                    for (int e = 0; e < (MOD_BITS * 2); e++) {
-                        offset = mux[e];
-                        tempv[offset + indexout] = tempu[interleave_lookup_table[indexin++]];
-                    }
-                    indexout += MOD_BITS * 2;
-                }
-                break;
-            case MOD_256QAM:
-                if (frame_size == FRAME_SIZE_NORMAL) {
-                    if (code_rate == C3_5) {
-                        mux = &mux256_35[0];
-                    } else if (code_rate == C2_3) {
-                        mux = &mux256_23[0];
-                    } else {
-                        mux = &mux256[0];
-                    }
-                    for (int j = 0; j < CODE_LEN; j++) {
-                        tempu[j] = code[j + (blk * CODE_LEN)] < 0 ? -1 : 1;
-                    }
-                    indexin = 0;
-                    indexout = 0;
-                    for (unsigned int d = 0; d < frame_size / (MOD_BITS * 2); d++) {
-                        for (int e = 0; e < (MOD_BITS * 2); e++) {
-                            offset = mux[e];
-                            tempv[offset + indexout] = tempu[interleave_lookup_table[indexin++]];
-                        }
-                        indexout += MOD_BITS * 2;
-                    }
-                } else {
-                    if (code_rate == C1_3) {
-                        mux = &mux256s_13[0];
-                    } else if (code_rate == C2_5) {
-                        mux = &mux256s_25[0];
-                    } else {
-                        mux = &mux256s[0];
-                    }
-                    for (int j = 0; j < CODE_LEN; j++) {
-                        tempu[j] = code[j + (blk * CODE_LEN)] < 0 ? -1 : 1;
-                    }
-                    indexin = 0;
-                    indexout = 0;
-                    for (unsigned int d = 0; d < frame_size / MOD_BITS; d++) {
-                        for (int e = 0; e < MOD_BITS; e++) {
-                            offset = mux[e];
-                            tempv[offset + indexout] = tempu[interleave_lookup_table[indexin++]];
-                        }
-                        indexout += MOD_BITS;
-                    }
-                }
-                break;
-            default:
-                break;
-            }
+
+        const int CODE_LEN = ldpc->code_len();
+        const int MOD_BITS = mod->bits();
+        int8_t tmp[MOD_BITS];
+        int8_t* code = nullptr;
+        const int SYMBOLS = CODE_LEN / MOD_BITS;
+
+        // Determine target precision for demodulator based on noise level
+        if (frame == 0) {
             sp = 0;
             np = 0;
             for (int j = 0; j < SYMBOLS; j++) {
-                s = mod->map(&tempv[(j * MOD_BITS)]);
-                e = insnr[j] - s;
+                mod->hard(tmp, in[j]);
+                s = mod->map(tmp);
+                e = in[j] - s;
                 sp += std::norm(s);
                 np += std::norm(e);
             }
@@ -519,38 +262,124 @@ int ldpc_decoder_cb_impl::general_work(int noutput_items,
             }
             snr = 10 * std::log10(sp / np);
             sigma = std::sqrt(np / (2 * sp));
-            precision_sum += FACTOR / (sigma * sigma);
-            total_snr += snr;
-            if (info_mode) {
-                GR_LOG_DEBUG_LEVEL(1,
-                                   "frame = {:d}, snr = {:.2f}, average trials = {:d}, "
-                                   "average snr =,.2f",
-                                   frame,
-                                   snr,
-                                   (total_trials / chunk),
-                                   (total_snr / (frame + 1)));
-            }
-            insnr += frame_size / MOD_BITS;
-            frame++;
+            precision = FACTOR / (sigma * sigma);
         }
+
+        // Demodulate
+        for (int j = 0; j < SYMBOLS; j++) {
+            mod->soft(soft + (j * MOD_BITS /*+ (blk * CODE_LEN)*/), in[j], precision);
+        }
+        int frame_size;
+        switch (framesize) {
+        case FECFRAME_NORMAL:
+            frame_size = FRAME_SIZE_NORMAL;
+            break;
+        case FECFRAME_SHORT:
+            frame_size = FRAME_SIZE_SHORT;
+            break;
+        case FECFRAME_MEDIUM:
+            frame_size = FRAME_SIZE_MEDIUM;
+            break;
+        }
+        rows = frame_size / MOD_BITS;
+        switch (constellation) {
+        case MOD_8PSK:
+            c1 = &dint[rowaddr0];
+            c2 = &dint[rowaddr1];
+            c3 = &dint[rowaddr2];
+            indexin = 0;
+            for (int j = 0; j < rows; j++) {
+                c1[j] = soft[indexin++];
+                c2[j] = soft[indexin++];
+                c3[j] = soft[indexin++];
+            }
+            code = dint;
+            break;
+        case MOD_QPSK:
+        default:
+            code = soft;
+            break;
+        }
+        in += rows;
+        consumed += rows;
+
+        // Decode LDPC
+        int count = decode(aligned_buffer, code, trials);
+        if (count < 0) {
+            total_trials += trials;
+            GR_LOG_DEBUG_LEVEL(1, "frame = {:d}, snr = {:.2f}, trials = {:d} (max)", (chunk * d_simd_size), snr, trials);
+        } else {
+            total_trials += (trials - count);
+            GR_LOG_DEBUG_LEVEL(1, "frame = {:d}, snr = {:.2f}, trials = {:d}", (chunk * d_simd_size), snr, (trials - count));
+        }
+
+        // Deinterleave?
+        chunk++;
+        precision_sum = 0;
+        switch (constellation) {
+        case MOD_QPSK:
+            for (int j = 0; j < CODE_LEN; j++) {
+                tempv[j] = code[j] < 0 ? -1 : 1;
+            }
+            break;
+        case MOD_8PSK:
+            for (int j = 0; j < CODE_LEN; j++) {
+                tempu[j] = code[j] < 0 ? -1 : 1;
+            }
+            rows = frame_size / MOD_BITS;
+            c1 = &tempu[rowaddr0];
+            c2 = &tempu[rowaddr1];
+            c3 = &tempu[rowaddr2];
+            indexout = 0;
+            for (int j = 0; j < rows; j++) {
+                tempv[indexout++] = c1[j];
+                tempv[indexout++] = c2[j];
+                tempv[indexout++] = c3[j];
+            }
+            break;
+        default:
+            break;
+        }
+        sp = 0;
+        np = 0;
+        for (int j = 0; j < SYMBOLS; j++) {
+            s = mod->map(&tempv[(j * MOD_BITS)]);
+            e = insnr[j] - s;
+            sp += std::norm(s);
+            np += std::norm(e);
+        }
+        if (!(np > 0)) {
+            np = 1e-12;
+        }
+        snr = 10 * std::log10(sp / np);
+        sigma = std::sqrt(np / (2 * sp));
+        precision_sum += FACTOR / (sigma * sigma);
+        total_snr += snr;
+        if (info_mode) {
+            GR_LOG_DEBUG_LEVEL(1,
+                               "frame = {:d}, snr = {:.2f}, average trials = {:d}, "
+                               "average snr =,.2f",
+                               frame,
+                               snr,
+                               (total_trials / chunk),
+                               (total_snr / (frame + 1)));
+        }
+        insnr += frame_size / MOD_BITS;
+        frame++;
+
+        // Produce information bits
         precision = precision_sum / d_simd_size;
-        for (int blk = 0; blk < d_simd_size; blk++) {
-            for (int j = 0; j < output_size; j++) {
-                if (code[j + (blk * CODE_LEN)] >= 0) {
-                    *out++ = 0;
-                } else {
-                    *out++ = 1;
-                }
+        for (int j = 0; j < CODE_LEN; j++) {
+            if (code[j] >= 0) {
+                *out++ = 0;
+            } else {
+                *out++ = 1;
             }
         }
+        produce(0, CODE_LEN);
     }
-
-    // Tell runtime system how many input items we consumed on
-    // each input stream.
     consume_each(consumed);
-
-    // Tell runtime system how many output items we produced.
-    return noutput_items;
+    return WORK_CALLED_PRODUCE;
 }
 
 } /* namespace dvbs2acm */

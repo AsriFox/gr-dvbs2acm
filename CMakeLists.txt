@@ -28,8 +28,6 @@ set(CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE} CACHE STRING "")
 
 # Make sure our local CMake Modules path comes first
 list(INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake/Modules)
-# Find gnuradio to get access to the cmake modules
-find_package(Gnuradio "3.10" REQUIRED)
 
 # Set the version information here
 set(VERSION_MAJOR 1)
@@ -43,20 +41,12 @@ cmake_policy(SET CMP0011 NEW)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 ########################################################################
-# Minimum Version Requirements
-########################################################################
-
-include(GrMinReq)
-
-########################################################################
-# Compiler settings
-########################################################################
-
-include(GrCompilerSettings)
-
-########################################################################
 # Install directories
 ########################################################################
+include(FindPkgConfig)
+# Find gnuradio to get access to the cmake modules
+find_package(Gnuradio "3.10" REQUIRED COMPONENTS blocks fft filter)
+
 include(GrVersion)
 
 include(GrPlatform) #define LIB_SUFFIX
@@ -121,6 +111,10 @@ add_custom_target(uninstall
 ########################################################################
 # Add subdirectories
 ########################################################################
+SET(BUILD_TESTING OFF CACHE BOOL "Build libcpu_features without tests")
+add_subdirectory(cpu_features EXCLUDE_FROM_ALL)
+set_property(TARGET cpu_features PROPERTY POSITION_INDEPENDENT_CODE ON)
+
 add_subdirectory(include/gnuradio/dvbs2acm)
 add_subdirectory(lib)
 add_subdirectory(apps)
