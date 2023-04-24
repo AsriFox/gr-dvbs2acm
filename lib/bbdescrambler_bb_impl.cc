@@ -6,7 +6,7 @@
  */
 
 #include "bbdescrambler_bb_impl.h"
-#include "ldpc_standard.h"
+#include "bch_code.h"
 #include <gnuradio/io_signature.h>
 #include <vector>
 
@@ -18,7 +18,10 @@ namespace dvbs2acm {
 using input_type = unsigned char;
 using output_type = unsigned char;
 
-bbdescrambler_bb::sptr bbdescrambler_bb::make() { return gnuradio::make_block_sptr<bbdescrambler_bb_impl>(); }
+bbdescrambler_bb::sptr bbdescrambler_bb::make()
+{
+    return gnuradio::make_block_sptr<bbdescrambler_bb_impl>();
+}
 
 
 /*
@@ -51,7 +54,9 @@ void bbdescrambler_bb_impl::init_bb_derandomiser()
  */
 bbdescrambler_bb_impl::~bbdescrambler_bb_impl() {}
 
-int bbdescrambler_bb_impl::work(int noutput_items, gr_vector_const_void_star& input_items, gr_vector_void_star& output_items)
+int bbdescrambler_bb_impl::work(int noutput_items,
+                                gr_vector_const_void_star& input_items,
+                                gr_vector_void_star& output_items)
 {
     auto in = static_cast<const input_type*>(input_items[0]);
     auto out = static_cast<output_type*>(output_items[0]);
@@ -67,7 +72,7 @@ int bbdescrambler_bb_impl::work(int noutput_items, gr_vector_const_void_star& in
         auto tagmodcod = pmt::to_uint64(tag.value);
         auto framesize = (dvbs2_framesize_t)((tagmodcod >> 1) & 0x7f);
         auto rate = (dvbs2_code_rate_t)((tagmodcod >> 8) & 0xff);
-        kbch = gr::dvbs2::ldpc_std_values::std(framesize, rate).kbch;
+        kbch = bch_code::select(framesize, rate).kbch;
         if (kbch + produced <= (unsigned int)noutput_items) {
             for (int j = 0; j < (int)kbch; j++) {
                 out[produced + j] = in[produced + j] ^ bb_derandomize[j];

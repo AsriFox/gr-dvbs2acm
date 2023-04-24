@@ -19,8 +19,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
+#include "ldpc_encode_tables.h"
 #include "ldpc_encoder_bb_impl.h"
-#include "ldpc_standard.h"
 #include <gnuradio/io_signature.h>
 #include <vector>
 
@@ -32,17 +32,20 @@ namespace dvbs2acm {
 using input_type = unsigned char;
 using output_type = unsigned char;
 
-ldpc_encoder_bb::sptr ldpc_encoder_bb::make() { return gnuradio::make_block_sptr<ldpc_encoder_bb_impl>(); }
+ldpc_encoder_bb::sptr ldpc_encoder_bb::make()
+{
+    return gnuradio::make_block_sptr<ldpc_encoder_bb_impl>();
+}
 
 
 /*
  * The private constructor
  */
 ldpc_encoder_bb_impl::ldpc_encoder_bb_impl()
-    : gr::block(
-          "ldpc_bb", gr::io_signature::make(1, 1, sizeof(unsigned char)), gr::io_signature::make(1, 1, sizeof(unsigned char)))
+    : gr::block("ldpc_bb",
+                gr::io_signature::make(1, 1, sizeof(unsigned char)),
+                gr::io_signature::make(1, 1, sizeof(unsigned char)))
 {
-    ldpc_lookup_generate();
     set_min_output_buffer((FRAME_SIZE_NORMAL)*6);
     set_tag_propagation_policy(TPP_DONT);
     set_output_multiple(FRAME_SIZE_NORMAL);
@@ -82,7 +85,7 @@ int ldpc_encoder_bb_impl::general_work(int noutput_items,
         auto tagmodcod = pmt::to_uint64(tag.value);
         auto framesize = (dvbs2_framesize_t)((tagmodcod >> 1) & 0x7f);
         auto rate = (dvbs2_code_rate_t)((tagmodcod >> 8) & 0xff);
-        auto params = gr::dvbs2::ldpc_std_values::std(framesize, rate);
+        auto params = gr::dvbs2::ldpc_encode_table::select(framesize, rate);
         if (params.frame_size + produced > (unsigned)noutput_items) {
             break;
         }

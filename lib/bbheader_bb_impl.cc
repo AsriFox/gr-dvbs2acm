@@ -20,37 +20,41 @@
  */
 
 #include "bbheader_bb_impl.h"
-#include "ldpc_standard.h"
+#include "bch_code.h"
 #include <gnuradio/io_signature.h>
 #include <pmt/pmt.h>
+
+using namespace gr::dvbs2;
 
 namespace gr {
 namespace dvbs2acm {
 using input_type = unsigned char;
 using output_type = unsigned char;
 
-bbheader_bb::sptr bbheader_bb::make(gr::dvbs2::dvbs2_framesize_t framesize,
-                                    gr::dvbs2::dvbs2_code_rate_t code_rate,
-                                    gr::dvbs2::dvbs2_constellation_t constellation,
-                                    gr::dvbs2::dvbs2_pilots_t pilots,
-                                    gr::dvbs2::dvbs2_rolloff_factor_t rolloff,
+bbheader_bb::sptr bbheader_bb::make(dvbs2_framesize_t framesize,
+                                    dvbs2_code_rate_t code_rate,
+                                    dvbs2_constellation_t constellation,
+                                    dvbs2_pilots_t pilots,
+                                    dvbs2_rolloff_factor_t rolloff,
                                     int goldcode)
 {
-    return gnuradio::make_block_sptr<bbheader_bb_impl>(framesize, code_rate, constellation, pilots, rolloff, goldcode);
+    return gnuradio::make_block_sptr<bbheader_bb_impl>(
+        framesize, code_rate, constellation, pilots, rolloff, goldcode);
 }
 
 
 /*
  * The private constructor
  */
-bbheader_bb_impl::bbheader_bb_impl(gr::dvbs2::dvbs2_framesize_t framesize,
-                                   gr::dvbs2::dvbs2_code_rate_t code_rate,
-                                   gr::dvbs2::dvbs2_constellation_t constellation,
-                                   gr::dvbs2::dvbs2_pilots_t pilots,
-                                   gr::dvbs2::dvbs2_rolloff_factor_t rolloff,
+bbheader_bb_impl::bbheader_bb_impl(dvbs2_framesize_t framesize,
+                                   dvbs2_code_rate_t code_rate,
+                                   dvbs2_constellation_t constellation,
+                                   dvbs2_pilots_t pilots,
+                                   dvbs2_rolloff_factor_t rolloff,
                                    int goldcode)
-    : gr::block(
-          "bbheader_bb", gr::io_signature::make(1, 1, sizeof(input_type)), gr::io_signature::make(1, 1, sizeof(output_type))),
+    : gr::block("bbheader_bb",
+                gr::io_signature::make(1, 1, sizeof(input_type)),
+                gr::io_signature::make(1, 1, sizeof(output_type))),
       framesize(framesize),
       code_rate(code_rate),
       constellation(constellation),
@@ -62,7 +66,7 @@ bbheader_bb_impl::bbheader_bb_impl(gr::dvbs2::dvbs2_framesize_t framesize,
         goldcode = 0;
     }
     root_code = gold_to_root(goldcode);
-    kbch = gr::dvbs2::ldpc_std_values::std(framesize, code_rate).kbch;
+    kbch = bch_code::select(framesize, code_rate).kbch;
 
     BBHeader* f = &m_format[0].bb_header;
     f->ts_gs = TS_GS_GENERIC_CONTINUOUS; // TODO: GSE
@@ -231,8 +235,9 @@ int bbheader_bb_impl::general_work(int noutput_items,
 
     while (kbch + produced <= (unsigned int)noutput_items) {
         const uint64_t tagoffset = this->nitems_written(0);
-        const uint64_t tagmodcod = (uint64_t(root_code) << 32) | (uint64_t(pilots) << 24) | (uint64_t(constellation) << 16) |
-                                   (uint64_t(code_rate) << 8) | (uint64_t(framesize) << 1) | uint64_t(0);
+        const uint64_t tagmodcod = (uint64_t(root_code) << 32) | (uint64_t(pilots) << 24) |
+                                   (uint64_t(constellation) << 16) | (uint64_t(code_rate) << 8) |
+                                   (uint64_t(framesize) << 1) | uint64_t(0);
         pmt::pmt_t key = pmt::string_to_symbol("modcod");
         pmt::pmt_t value = pmt::from_uint64(tagmodcod);
         this->add_item_tag(0, tagoffset, key, value);

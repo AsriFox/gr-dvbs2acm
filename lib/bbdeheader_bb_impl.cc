@@ -9,8 +9,8 @@
  */
 
 #include "bbdeheader_bb_impl.h"
+#include "bch_code.h"
 #include "debug_level.h"
-#include "ldpc_standard.h"
 #include <gnuradio/dvbs2acm/dvbs2_config.h>
 #include <gnuradio/io_signature.h>
 #include <gnuradio/logger.h>
@@ -26,15 +26,19 @@ namespace dvbs2acm {
 using input_type = unsigned char;
 using output_type = unsigned char;
 
-bbdeheader_bb::sptr bbdeheader_bb::make(int debug_level) { return gnuradio::make_block_sptr<bbdeheader_bb_impl>(debug_level); }
+bbdeheader_bb::sptr bbdeheader_bb::make(int debug_level)
+{
+    return gnuradio::make_block_sptr<bbdeheader_bb_impl>(debug_level);
+}
 
 
 /*
  * The private constructor
  */
 bbdeheader_bb_impl::bbdeheader_bb_impl(int debug_level)
-    : gr::block(
-          "bbdeheader_bb", gr::io_signature::make(1, 1, sizeof(input_type)), gr::io_signature::make(1, 1, sizeof(output_type))),
+    : gr::block("bbdeheader_bb",
+                gr::io_signature::make(1, 1, sizeof(input_type)),
+                gr::io_signature::make(1, 1, sizeof(output_type))),
       d_debug_level(debug_level),
       count(0),
       synched(false),
@@ -121,7 +125,7 @@ int bbdeheader_bb_impl::general_work(int noutput_items,
         auto tagmodcod = pmt::to_uint64(tag.value);
         auto framesize = (dvbs2_framesize_t)((tagmodcod >> 1) & 0x7f);
         auto rate = (dvbs2_code_rate_t)((tagmodcod >> 8) & 0xff);
-        auto kbch = gr::dvbs2::ldpc_std_values::std(framesize, rate).kbch;
+        auto kbch = bch_code::select(framesize, rate).kbch;
         auto max_dfl = kbch - BB_HEADER_LENGTH_BITS;
 
         if (produced + max_dfl > (unsigned)noutput_items) {
@@ -387,7 +391,10 @@ int bbdeheader_bb_impl::general_work(int noutput_items,
     }
 
     if (errors != 0) {
-        GR_LOG_DEBUG_LEVEL(1, "TS packet crc errors = {:d} (PER = {:g})", errors, ((double)d_error_cnt / d_packet_cnt));
+        GR_LOG_DEBUG_LEVEL(1,
+                           "TS packet crc errors = {:d} (PER = {:g})",
+                           errors,
+                           ((double)d_error_cnt / d_packet_cnt));
     }
 
     // Tell runtime system how many input items we consumed on

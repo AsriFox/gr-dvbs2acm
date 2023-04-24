@@ -8,9 +8,9 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
+#include "bch_code.h"
 #include "bch_decoder_bb_impl.h"
 #include "debug_level.h"
-#include "ldpc_standard.h"
 #include <gnuradio/io_signature.h>
 #include <gnuradio/logger.h>
 #include <functional>
@@ -112,7 +112,7 @@ int bch_decoder_bb_impl::general_work(int noutput_items,
         auto tagmodcod = pmt::to_uint64(tag.value);
         auto framesize = (dvbs2_framesize_t)((tagmodcod >> 1) & 0x7f);
         auto rate = (dvbs2_code_rate_t)((tagmodcod >> 8) & 0xff);
-        auto params = gr::dvbs2::ldpc_std_values::std(framesize, rate);
+        auto params = bch_code::select(framesize, rate);
         if (params.nbch + produced > (unsigned int)noutput_items) {
             break;
         }
@@ -131,7 +131,7 @@ int bch_decoder_bb_impl::general_work(int noutput_items,
         for (unsigned int j = 0; j < nbch - kbch; j++) {
             CODE::set_be_bit(parity, j, *in++);
         }
-        switch (params.bch_code) {
+        switch (params.code) {
         case BCH_CODE_N12:
             corrections = (*decode_n_12)(code, parity, 0, 0, kbch);
             break;
@@ -149,7 +149,8 @@ int bch_decoder_bb_impl::general_work(int noutput_items,
             break;
         }
         if (corrections > 0) {
-            GR_LOG_DEBUG_LEVEL(1, "frame = {:d}, BCH decoder corrections = {:d}", d_frame_cnt, corrections);
+            GR_LOG_DEBUG_LEVEL(
+                1, "frame = {:d}, BCH decoder corrections = {:d}", d_frame_cnt, corrections);
         } else if (corrections == -1) {
             d_frame_error_cnt++;
             GR_LOG_DEBUG_LEVEL(1,
