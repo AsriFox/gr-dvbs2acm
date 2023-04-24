@@ -14,7 +14,7 @@
 /* BINDTOOL_GEN_AUTOMATIC(0)                                                       */
 /* BINDTOOL_USE_PYGCCXML(0)                                                        */
 /* BINDTOOL_HEADER_FILE(modulator_bc.h)                                        */
-/* BINDTOOL_HEADER_FILE_HASH(6117a39cc4f113de53149490d6e993cc)                     */
+/* BINDTOOL_HEADER_FILE_HASH(47c7e24abbf2426bfcb825d33abe0ef9)                     */
 /***********************************************************************************/
 
 #include <pybind11/complex.h>
@@ -30,7 +30,7 @@ namespace py = pybind11;
 void bind_modulator_bc(py::module& m)
 {
 
-    using modulator_bc    = gr::dvbs2acm::modulator_bc;
+    using modulator_bc    = ::gr::dvbs2acm::modulator_bc;
 
 
     py::class_<modulator_bc, gr::block, gr::basic_block,

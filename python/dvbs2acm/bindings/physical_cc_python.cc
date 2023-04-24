@@ -14,7 +14,7 @@
 /* BINDTOOL_GEN_AUTOMATIC(0)                                                       */
 /* BINDTOOL_USE_PYGCCXML(0)                                                        */
 /* BINDTOOL_HEADER_FILE(physical_cc.h)                                        */
-/* BINDTOOL_HEADER_FILE_HASH(72a0cade79b75ad23851ab714294cc9e)                     */
+/* BINDTOOL_HEADER_FILE_HASH(ced315de71ddb0cbc3ff926e6ccf4720)                     */
 /***********************************************************************************/
 
 #include <pybind11/complex.h>
@@ -30,13 +30,14 @@ namespace py = pybind11;
 void bind_physical_cc(py::module& m)
 {
 
-    using physical_cc    = gr::dvbs2acm::physical_cc;
+    using physical_cc    = ::gr::dvbs2acm::physical_cc;
 
 
     py::class_<physical_cc, gr::block, gr::basic_block,
         std::shared_ptr<physical_cc>>(m, "physical_cc", D(physical_cc))
 
         .def(py::init(&physical_cc::make),
+           py::arg("dummyframes"),
            D(physical_cc,make)
         )
         

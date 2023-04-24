@@ -14,7 +14,7 @@
 /* BINDTOOL_GEN_AUTOMATIC(0)                                                       */
 /* BINDTOOL_USE_PYGCCXML(0)                                                        */
 /* BINDTOOL_HEADER_FILE(ldpc_decoder_cb.h)                                        */
-/* BINDTOOL_HEADER_FILE_HASH(277a67bfa0c6611f9b97ec4ee58afcaf)                     */
+/* BINDTOOL_HEADER_FILE_HASH(a23890b080d7f7b5ff0bd0c93ff9b453)                     */
 /***********************************************************************************/
 
 #include <pybind11/complex.h>
@@ -30,18 +30,34 @@ namespace py = pybind11;
 void bind_ldpc_decoder_cb(py::module& m)
 {
 
-    using ldpc_decoder_cb    = gr::dvbs2acm::ldpc_decoder_cb;
+    using ldpc_decoder_cb    = ::gr::dvbs2acm::ldpc_decoder_cb;
 
 
     py::class_<ldpc_decoder_cb, gr::block, gr::basic_block,
         std::shared_ptr<ldpc_decoder_cb>>(m, "ldpc_decoder_cb", D(ldpc_decoder_cb))
 
         .def(py::init(&ldpc_decoder_cb::make),
+           py::arg("outputmode"),
+           py::arg("infomode"),
+           py::arg("max_trials"),
+           py::arg("debug_level") = 0,
            D(ldpc_decoder_cb,make)
         )
         
 
 
+
+
+        
+        .def("get_snr",&ldpc_decoder_cb::get_snr,       
+            D(ldpc_decoder_cb,get_snr)
+        )
+
+
+        
+        .def("get_average_trials",&ldpc_decoder_cb::get_average_trials,       
+            D(ldpc_decoder_cb,get_average_trials)
+        )
 
         ;
 

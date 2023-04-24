@@ -14,7 +14,7 @@
 /* BINDTOOL_GEN_AUTOMATIC(0)                                                       */
 /* BINDTOOL_USE_PYGCCXML(0)                                                        */
 /* BINDTOOL_HEADER_FILE(bbdescrambler_bb.h)                                        */
-/* BINDTOOL_HEADER_FILE_HASH(c3cfa077d2f34d8ae48818bf89c27f8e)                     */
+/* BINDTOOL_HEADER_FILE_HASH(a19ee825a9b66c486bbb03548ab89ae2)                     */
 /***********************************************************************************/
 
 #include <pybind11/complex.h>
@@ -30,7 +30,7 @@ namespace py = pybind11;
 void bind_bbdescrambler_bb(py::module& m)
 {
 
-    using bbdescrambler_bb    = gr::dvbs2acm::bbdescrambler_bb;
+    using bbdescrambler_bb    = ::gr::dvbs2acm::bbdescrambler_bb;
 
 
     py::class_<bbdescrambler_bb, gr::sync_block, gr::block, gr::basic_block,

@@ -30,7 +30,7 @@ namespace py = pybind11;
 void bind_bch_encoder_bb(py::module& m)
 {
 
-    using bch_encoder_bb    = gr::dvbs2acm::bch_encoder_bb;
+    using bch_encoder_bb    = ::gr::dvbs2acm::bch_encoder_bb;
 
 
     py::class_<bch_encoder_bb, gr::block, gr::basic_block,

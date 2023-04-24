@@ -14,7 +14,7 @@
 /* BINDTOOL_GEN_AUTOMATIC(0)                                                       */
 /* BINDTOOL_USE_PYGCCXML(0)                                                        */
 /* BINDTOOL_HEADER_FILE(interleaver_bb.h)                                        */
-/* BINDTOOL_HEADER_FILE_HASH(6260c0372662a58403143d32d4ecc315)                     */
+/* BINDTOOL_HEADER_FILE_HASH(2faeb9310bb35c14826aa5387d36537c)                     */
 /***********************************************************************************/
 
 #include <pybind11/complex.h>
@@ -30,7 +30,7 @@ namespace py = pybind11;
 void bind_interleaver_bb(py::module& m)
 {
 
-    using interleaver_bb    = gr::dvbs2acm::interleaver_bb;
+    using interleaver_bb    = ::gr::dvbs2acm::interleaver_bb;
 
 
     py::class_<interleaver_bb, gr::block, gr::basic_block,
