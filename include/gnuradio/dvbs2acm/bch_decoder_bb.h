@@ -19,9 +19,12 @@ namespace gr {
 namespace dvbs2acm {
 
 /*!
- * \brief <+description of block+>
+ * \brief Decodes a BCH (Bose, Chaudhuri, Hocquenghem) FEC.
  * \ingroup dvbs2acm
  *
+ * \details
+ * Input: Variable length FEC baseband frames with appended BCH (BCHFEC).
+ * Output: Variable length FEC baseband frames (BBFRAME).
  */
 class DVBS2ACM_API bch_decoder_bb : virtual public gr::block
 {
@@ -29,12 +32,7 @@ public:
     typedef std::shared_ptr<bch_decoder_bb> sptr;
 
     /*!
-     * \brief Return a shared_ptr to a new instance of dvbs2acm::bch_decoder_bb.
-     *
-     * To avoid accidental use of raw pointers, dvbs2acm::bch_decoder_bb's
-     * constructor is in a private implementation
-     * class. dvbs2acm::bch_decoder_bb::make is the public interface for
-     * creating new instances.
+     * \brief Create a baseband frame BCH decoder.
      */
     static sptr make(dvbs2_outputmode_t outputmode, int debug_level = 0);
 

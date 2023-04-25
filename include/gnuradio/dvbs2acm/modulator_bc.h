@@ -30,7 +30,7 @@ namespace dvbs2acm {
 
 /*!
  * \brief Modulates DVB-S2 frames.
- * \ingroup dvbs2
+ * \ingroup dvbs2acm
  *
  * Input: Bit interleaved baseband frames.
  * Output: QPSK, 8PSK, 16APSK or 32APSK modulated complex IQ values (XFECFRAME).

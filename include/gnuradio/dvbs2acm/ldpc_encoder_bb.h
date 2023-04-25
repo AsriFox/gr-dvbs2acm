@@ -30,7 +30,7 @@ namespace dvbs2acm {
 
 /*!
  * \brief Encodes a LDPC (Low-Density Parity-Check) FEC.
- * \ingroup dvbs2
+ * \ingroup dvbs2acm
  *
  * Input: Variable length FEC baseband frames with appended BCH (BCHFEC).
  * Output: Normal, medium or short FEC baseband frames with appended LPDC (LDPCFEC).

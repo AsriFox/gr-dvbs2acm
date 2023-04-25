@@ -31,7 +31,7 @@ namespace dvbs2acm {
 
 /*!
  * \brief Signals DVB-S2 physical layer frames.
- * \ingroup dvbs2
+ * \ingroup dvbs2acm
  *
  * Input: QPSK, 8PSK, 16APSK or 32APSK modulated complex IQ values (XFECFRAME).
  * Output: DVB-S2 PLFRAME.

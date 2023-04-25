@@ -18,9 +18,8 @@ namespace dvbs2acm {
 
 /*!
  * \brief Symbol Synchronizer Loop
- * \ingroup dvbs2rx
+ * \ingroup dvbs2acm
  * \details
- *
  * Implements symbol timing recovery using a feedback loop composed of a non-data-aided
  * Gardner timing error detector (GTED), a proportional-plus-integral (PI) loop filter, a
  * modulo-1 counter, and a configurable interpolator. The loop takes an oversampled sample

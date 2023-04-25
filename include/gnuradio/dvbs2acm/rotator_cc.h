@@ -16,10 +16,9 @@ namespace dvbs2acm {
 
 /*!
  * \brief Complex rotator
- * \ingroup math_operators_blk
+ * \ingroup dvbs2acm
  *
  * \details
- *
  * Rotates an input complex sequence using a complex exponential in the form of
  * exp(1j * phase_inc * n), where "phase_inc" is a chosen phase increment in
  * radians and "n" is the sample index.

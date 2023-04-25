@@ -30,7 +30,7 @@ namespace dvbs2acm {
 
 /*!
  * \brief Bit interleaves DVB-S2 FEC baseband frames.
- * \ingroup dvbs2
+ * \ingroup dvbs2acm
  *
  * Input: Normal or short FEC baseband frames with appended LPDC (LDPCFEC).
  * Output: Bit interleaved baseband frames.

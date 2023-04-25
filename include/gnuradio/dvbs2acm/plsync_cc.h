@@ -18,10 +18,9 @@ namespace dvbs2acm {
 
 /*!
  * \brief DVB-S2 Physical Layer (PL) Synchronizer
- * \ingroup dvbs2rx
+ * \ingroup dvbs2acm
  *
  * \details
- *
  * This block finds DVB-S2 PLFRAMEs on the input symbol-spaced IQ stream and outputs the
  * corresponding XFECFRAMEs towards a downstream constellation de-mapper block.
  * Internally, it implements PL frame timing recovery, coarse and fine frequency offset

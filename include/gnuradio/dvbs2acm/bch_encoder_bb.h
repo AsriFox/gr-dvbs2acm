@@ -30,8 +30,8 @@ namespace gr {
 namespace dvbs2acm {
 
 /*!
- * \brief Encodes a BCH ((Bose, Chaudhuri, Hocquenghem) FEC.
- * \ingroup dvbs2
+ * \brief Encodes a BCH (Bose, Chaudhuri, Hocquenghem) FEC.
+ * \ingroup dvbs2acm
  *
  * \details
  * Input: Variable length FEC baseband frames (BBFRAME).

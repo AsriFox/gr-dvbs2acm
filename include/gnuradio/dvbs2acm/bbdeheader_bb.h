@@ -18,9 +18,12 @@ namespace gr {
 namespace dvbs2acm {
 
 /*!
- * \brief <+description of block+>
+ * \brief Processes decoded FEC baseband frames, reading
+ * the 10-byte baseband header and validating it.
  * \ingroup dvbs2acm
- *
+ * \details
+ * Input: Variable length FEC baseband frames (BBFRAME).
+ * Output: Generic Stream packets.
  */
 class DVBS2ACM_API bbdeheader_bb : virtual public gr::block
 {
@@ -28,12 +31,9 @@ public:
     typedef std::shared_ptr<bbdeheader_bb> sptr;
 
     /*!
-     * \brief Return a shared_ptr to a new instance of dvbs2acm::bbdeheader_bb.
+     * \brief Create a baseband header reader.
      *
-     * To avoid accidental use of raw pointers, dvbs2acm::bbdeheader_bb's
-     * constructor is in a private implementation
-     * class. dvbs2acm::bbdeheader_bb::make is the public interface for
-     * creating new instances.
+     * \param debug_level Max level of debug messages to display (0 to 4 inclusive).
      */
     static sptr make(int debug_level = 0);
 

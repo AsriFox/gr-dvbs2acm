@@ -31,7 +31,7 @@ namespace dvbs2acm {
 
 /*!
  * \brief Scrambles FEC baseband frames with a PRBS encoder.
- * \ingroup dvbs2
+ * \ingroup dvbs2acm
  *
  * \details
  * Input: Variable length FEC baseband frames (BBFRAME).

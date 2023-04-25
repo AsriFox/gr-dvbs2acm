@@ -19,9 +19,12 @@ namespace gr {
 namespace dvbs2acm {
 
 /*!
- * \brief <+description of block+>
+ * \brief Demodulates DVB-S2 frames, deinterleaves them
+ * and decodes a LDPC (Low-Density Parity-Check) FEC.
  * \ingroup dvbs2acm
  *
+ * Input: QPSK or 8PSK modulated complex IQ values (XFECFRAME).
+ * Output: Normal, medium or short FEC baseband frames with appended LPDC (LDPCFEC).
  */
 class DVBS2ACM_API ldpc_decoder_cb : virtual public gr::block
 {
@@ -29,12 +32,7 @@ public:
     typedef std::shared_ptr<ldpc_decoder_cb> sptr;
 
     /*!
-     * \brief Return a shared_ptr to a new instance of dvbs2acm::ldpc_decoder_cb.
-     *
-     * To avoid accidental use of raw pointers, dvbs2acm::ldpc_decoder_cb's
-     * constructor is in a private implementation
-     * class. dvbs2acm::ldpc_decoder_cb::make is the public interface for
-     * creating new instances.
+     * \brief Create a DVB-S2 demodulator / deinterleaver / LDPC decoder.
      */
     static sptr
     make(dvbs2_outputmode_t outputmode, dvbs2_infomode_t infomode, int max_trials, int debug_level = 0);

@@ -1,15 +1,19 @@
-title: DVB-S2 ACM Transmitter and Receiver blocks
-brief: Short description of gr-dvbs2acm
-tags: # Tags are arbitrary, but look at CGRAN what other authors are using
-  - sdr
+title: gr-dvbs2acm
+brief: DVB-S2 ACM Transmitter and Receiver blocks for GNU Radio.
+tags:
+  - SDR
+  - LDPC
+  - BCH
 author:
   - AsriFox <asrifox@yandex.ru>
+  - Igor Freire <igor@ifcomm.com.br>
+  - Ron Economos <w6rz@comcast.net>
 copyright_owner:
-  - AsriFox
-license:
-gr_supported_version: # Put a comma separated list of supported GR versions here
-#repo: # Put the URL of the repository here, or leave blank for default
+  - AsriFox <asrifox@yandex.ru>
+  - Igor Freire <igor@ifcomm.com.br>
+  - Ahmet Inan <xdsopl@gmail.com>
+  - Ron Economos <w6rz@comcast.net>
+license: GPL version 3 or later.
+repo: https://github.com/AsriFox/gr-dvbs2acm
 ---
-A longer, multi-line description of gr-dvbs2acm.
-You may use some *basic* Markdown here.
-If left empty, it will try to find a README file instead.
+gr-dvbs2acm is a GNU Radio OOT module including a collection of DVB-S2 transmitter and receiver blocks for software-defined radio. These blocks have been modified to include support for VCM (Variable Coding and Modulation) and ACM (Adaptive Coding and Modulation) operating modes.
