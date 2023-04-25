@@ -30,30 +30,14 @@ namespace py = pybind11;
 void bind_bch_encoder_bb(py::module& m)
 {
 
-    using bch_encoder_bb    = ::gr::dvbs2acm::bch_encoder_bb;
+    using bch_encoder_bb = gr::dvbs2acm::bch_encoder_bb;
 
 
-    py::class_<bch_encoder_bb, gr::block, gr::basic_block,
-        std::shared_ptr<bch_encoder_bb>>(m, "bch_encoder_bb", D(bch_encoder_bb))
+    py::class_<bch_encoder_bb, gr::block, gr::basic_block, std::shared_ptr<bch_encoder_bb>>(
+        m, "bch_encoder_bb", D(bch_encoder_bb))
 
-        .def(py::init(&bch_encoder_bb::make),
-           D(bch_encoder_bb,make)
-        )
-        
-
+        .def(py::init(&bch_encoder_bb::make), D(bch_encoder_bb, make))
 
 
         ;
-
-
-
-
 }
-
-
-
-
-
-
-
-

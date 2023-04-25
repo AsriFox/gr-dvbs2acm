@@ -70,7 +70,7 @@
 #define EXTRA_PILOT_SYMBOLS_SET2 ((9 * 32) + 36)
 
 namespace gr {
-namespace dvbs2 {
+namespace dvbs2acm {
 enum dvbs2_code_rate_t {
     C1_4 = 0,
     C1_3,
@@ -164,16 +164,6 @@ enum dvbs2_framesize_t {
     FECFRAME_MEDIUM,
 };
 
-// enum dvbs2_ping_reply_t {
-//   PING_REPLY_OFF = 0,
-//   PING_REPLY_ON,
-// };
-
-// enum dvbs2_ipaddr_spoof_t {
-//   IPADDR_SPOOF_OFF = 0,
-//   IPADDR_SPOOF_ON,
-// };
-
 enum dvbs2_dummy_frames_t {
     DUMMY_FRAMES_OFF = 0,
     DUMMY_FRAMES_ON,
@@ -199,16 +189,18 @@ enum dvbs2_infomode_t {
     INFO_ON,
 };
 
-} // namespace dvbs2
+} // namespace dvbs2acm
 } // namespace gr
 
-// typedef gr::dvbs2::dvbs2_code_rate_t dvbs2_code_rate_t;
-// typedef gr::dvbs2::dvbs2_rolloff_factor_t dvbs2_rolloff_factor_t;
-// typedef gr::dvbs2::dvbs2_constellation_t dvbs2_constellation_t;
-// typedef gr::dvbs2::dvbs2_pilots_t dvbs2_pilots_t;
-// typedef gr::dvbs2::dvbs2_framesize_t dvbs2_framesize_t;
-// typedef gr::dvbs2::dvbs2_ping_reply_t dvbs2_ping_reply_t;
-// typedef gr::dvbs2::dvbs2_ipaddr_spoof_t dvbs2_ipaddr_spoof_t;
-// typedef gr::dvbs2::dvbs2_dummy_frames_t dvbs2_dummy_frames_t;
+typedef gr::dvbs2acm::dvbs2_code_rate_t dvbs2_code_rate_t;
+typedef gr::dvbs2acm::dvbs2_rolloff_factor_t dvbs2_rolloff_factor_t;
+typedef gr::dvbs2acm::dvbs2_constellation_t dvbs2_constellation_t;
+typedef gr::dvbs2acm::dvbs2_interpolation_t dvbs2_interpolation_t;
+typedef gr::dvbs2acm::dvbs2_pilots_t dvbs2_pilots_t;
+typedef gr::dvbs2acm::dvbs2_framesize_t dvbs2_framesize_t;
+typedef gr::dvbs2acm::dvbs2_dummy_frames_t dvbs2_dummy_frames_t;
+typedef gr::dvbs2acm::dvbs2_guardinterval_t dvbs2_guardinterval_t;
+typedef gr::dvbs2acm::dvbs2_outputmode_t dvbs2_outputmode_t;
+typedef gr::dvbs2acm::dvbs2_infomode_t dvbs2_infomode_t;
 
 #endif /* INCLUDED_DVBS2_CONFIG_H */

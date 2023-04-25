@@ -14,7 +14,7 @@
 /* BINDTOOL_GEN_AUTOMATIC(0)                                                       */
 /* BINDTOOL_USE_PYGCCXML(0)                                                        */
 /* BINDTOOL_HEADER_FILE(bbheader_bb.h)                                        */
-/* BINDTOOL_HEADER_FILE_HASH(038dfd369bee43a2aaa156eb0bec825f)                     */
+/* BINDTOOL_HEADER_FILE_HASH(b0f4e22c1fb6f943981aa739ad6d461a)                     */
 /***********************************************************************************/
 
 #include <pybind11/complex.h>
@@ -30,36 +30,20 @@ namespace py = pybind11;
 void bind_bbheader_bb(py::module& m)
 {
 
-    using bbheader_bb    = ::gr::dvbs2acm::bbheader_bb;
+    using bbheader_bb = gr::dvbs2acm::bbheader_bb;
 
-
-    py::class_<bbheader_bb, gr::block, gr::basic_block,
-        std::shared_ptr<bbheader_bb>>(m, "bbheader_bb", D(bbheader_bb))
+    py::class_<bbheader_bb, gr::block, gr::basic_block, std::shared_ptr<bbheader_bb>>(
+        m, "bbheader_bb", D(bbheader_bb))
 
         .def(py::init(&bbheader_bb::make),
-           py::arg("framesize") = ::gr::dvbs2::dvbs2_framesize_t::FECFRAME_NORMAL,
-           py::arg("code_rate") = ::gr::dvbs2::dvbs2_code_rate_t::C1_4,
-           py::arg("constellation") = ::gr::dvbs2::dvbs2_constellation_t::MOD_QPSK,
-           py::arg("pilots") = ::gr::dvbs2::dvbs2_pilots_t::PILOTS_ON,
-           py::arg("rolloff") = ::gr::dvbs2::dvbs2_rolloff_factor_t::RO_0_20,
-           py::arg("goldcode") = 0,
-           D(bbheader_bb,make)
-        )
-        
-
+             py::arg("framesize"),
+             py::arg("code_rate"),
+             py::arg("constellation"),
+             py::arg("pilots"),
+             py::arg("rolloff"),
+             py::arg("goldcode") = 0,
+             D(bbheader_bb, make))
 
 
         ;
-
-
-
-
 }
-
-
-
-
-
-
-
-

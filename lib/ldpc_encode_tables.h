@@ -3,7 +3,7 @@
 #include <vector>
 
 namespace gr {
-namespace dvbs2 {
+namespace dvbs2acm {
 
 struct ldpc_encode_table {
 public:
@@ -17,17 +17,17 @@ public:
     std::vector<std::vector<int>> table;
 
 private:
-    ldpc_encode_table(unsigned int frame_size,
-                      unsigned int frame_size_real,
-                      unsigned int nbch,
-                      unsigned int q_val,
-                      int Xs,
-                      int P,
-                      int Xp,
-                      std::vector<std::vector<int>> table);
+    ldpc_encode_table(unsigned int,
+                      unsigned int,
+                      unsigned int,
+                      unsigned int,
+                      int,
+                      int,
+                      int,
+                      std::vector<std::vector<int>>);
 
 public:
-    static ldpc_encode_table select(gr::dvbs2::dvbs2_framesize_t, gr::dvbs2::dvbs2_code_rate_t);
+    static ldpc_encode_table select(dvbs2_framesize_t, dvbs2_code_rate_t);
 
     // FECFRAME_NORMAL
     static const ldpc_encode_table ldpc_tab_1_4N;
@@ -55,5 +55,5 @@ public:
     static const ldpc_encode_table ldpc_tab_8_9S;
 };
 
-} // namespace dvbs2
+} // namespace dvbs2acm
 } // namespace gr

@@ -45,7 +45,7 @@ private:
     uint8_t* parity;
 
 public:
-    bch_decoder_bb_impl(gr::dvbs2::dvbs2_outputmode_t outputmode, int debug_level);
+    bch_decoder_bb_impl(dvbs2_outputmode_t outputmode, int debug_level);
     ~bch_decoder_bb_impl();
 
     // Where all the action really happens

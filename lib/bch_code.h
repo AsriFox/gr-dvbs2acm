@@ -1,7 +1,7 @@
 #include <gnuradio/dvbs2acm/dvbs2_config.h>
 
 namespace gr {
-namespace dvbs2 {
+namespace dvbs2acm {
 
 struct bch_code {
 public:
@@ -41,7 +41,7 @@ private:
     bch_code(unsigned int kbch, unsigned int nbch, unsigned int code);
 
 public:
-    static bch_code select(gr::dvbs2::dvbs2_framesize_t, gr::dvbs2::dvbs2_code_rate_t);
+    static bch_code select(dvbs2_framesize_t, dvbs2_code_rate_t);
 
     // FECFRAME_NORMAL
     static const bch_code bch_code_1_4N;
@@ -69,5 +69,5 @@ public:
     static const bch_code bch_code_8_9S;
 };
 
-} // namespace dvbs2
+} // namespace dvbs2acm
 } // namespace gr

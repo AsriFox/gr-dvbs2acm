@@ -25,5 +25,6 @@ install(FILES
     bch_decoder_bb.h
     bbdescrambler_bb.h
     bbdeheader_bb.h 
+    dvbs2_config.h
     DESTINATION include/gnuradio/dvbs2acm
 )

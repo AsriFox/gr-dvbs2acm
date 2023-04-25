@@ -1,6 +1,26 @@
 #include "ldpc_encode_tables.h"
 
-using namespace gr::dvbs2;
+namespace gr {
+namespace dvbs2acm {
+
+ldpc_encode_table::ldpc_encode_table(unsigned int frame_size,
+                                     unsigned int frame_size_real,
+                                     unsigned int nbch,
+                                     unsigned int q_val,
+                                     int Xs,
+                                     int P,
+                                     int Xp,
+                                     std::vector<std::vector<int>> table)
+    : frame_size(frame_size),
+      frame_size_real(frame_size_real),
+      nbch(nbch),
+      q_val(q_val),
+      Xs(Xs),
+      P(P),
+      Xp(Xp),
+      table(table)
+{
+}
 
 ldpc_encode_table ldpc_encode_table::select(dvbs2_framesize_t framesize, dvbs2_code_rate_t rate)
 {
@@ -1795,3 +1815,6 @@ const ldpc_encode_table ldpc_encode_table::ldpc_tab_8_9S = {
       { 3, 1, 732, 1368, 0 },   { 3, 2, 1328, 329, 0 },    { 3, 3, 1515, 506, 0 },
       { 3, 4, 1104, 1172, 0 } }
 };
+
+} // namespace dvbs2acm
+} // namespace gr

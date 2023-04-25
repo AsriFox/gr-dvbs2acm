@@ -37,7 +37,7 @@ public:
      * creating new instances.
      */
     static sptr
-    make(gr::dvbs2::dvbs2_outputmode_t outputmode, gr::dvbs2::dvbs2_infomode_t infomode, int max_trials, int debug_level = 0);
+    make(dvbs2_outputmode_t outputmode, dvbs2_infomode_t infomode, int max_trials, int debug_level = 0);
 
     /*!
      * \brief Get the measured SNR.

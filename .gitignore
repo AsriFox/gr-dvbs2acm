@@ -12,3 +12,4 @@ _deps/
 build/
 .cache/clangd/
 __pycache__/
+examples/*.py

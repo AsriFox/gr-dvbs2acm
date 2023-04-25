@@ -22,18 +22,13 @@
 #include "modulator_bc_impl.h"
 #include <gnuradio/io_signature.h>
 
-using namespace gr::dvbs2;
-
 namespace gr {
 namespace dvbs2acm {
 
 using input_type = unsigned char;
 using output_type = gr_complex;
 
-modulator_bc::sptr modulator_bc::make()
-{
-    return gnuradio::make_block_sptr<modulator_bc_impl>();
-}
+modulator_bc::sptr modulator_bc::make() { return gnuradio::make_block_sptr<modulator_bc_impl>(); }
 
 
 /*
@@ -81,9 +76,8 @@ modulator_bc_impl::modulator_bc_impl()
         m_8apsk[7][i] = gr_complex((r3 * cos(0.0)), (r3 * sin(0.0)));
     }
 
-    float m_16apsk_radius[12][1] = { { 3.70 }, { 3.60 }, { 3.50 }, { 3.32 },
-                                     { 3.20 }, { 3.15 }, { 3.10 }, { 2.85 },
-                                     { 2.75 }, { 2.70 }, { 2.60 }, { 2.57 } };
+    float m_16apsk_radius[12][1] = { { 3.70 }, { 3.60 }, { 3.50 }, { 3.32 }, { 3.20 }, { 3.15 },
+                                     { 3.10 }, { 2.85 }, { 2.75 }, { 2.70 }, { 2.60 }, { 2.57 } };
     r2 = m;
     for (int i = 0; i < 12; i++) {
         r1 = r2 / m_16apsk_radius[i][0];
@@ -92,30 +86,20 @@ modulator_bc_impl::modulator_bc_impl()
         r2 *= r0;
         m_16apsk[0][i] = gr_complex((r2 * cos(M_PI / 4.0)), (r2 * sin(M_PI / 4.0)));
         m_16apsk[1][i] = gr_complex((r2 * cos(-M_PI / 4.0)), (r2 * sin(-M_PI / 4.0)));
-        m_16apsk[2][i] =
-            gr_complex((r2 * cos(3 * M_PI / 4.0)), (r2 * sin(3 * M_PI / 4.0)));
-        m_16apsk[3][i] =
-            gr_complex((r2 * cos(-3 * M_PI / 4.0)), (r2 * sin(-3 * M_PI / 4.0)));
+        m_16apsk[2][i] = gr_complex((r2 * cos(3 * M_PI / 4.0)), (r2 * sin(3 * M_PI / 4.0)));
+        m_16apsk[3][i] = gr_complex((r2 * cos(-3 * M_PI / 4.0)), (r2 * sin(-3 * M_PI / 4.0)));
         m_16apsk[4][i] = gr_complex((r2 * cos(M_PI / 12.0)), (r2 * sin(M_PI / 12.0)));
         m_16apsk[5][i] = gr_complex((r2 * cos(-M_PI / 12.0)), (r2 * sin(-M_PI / 12.0)));
-        m_16apsk[6][i] =
-            gr_complex((r2 * cos(11 * M_PI / 12.0)), (r2 * sin(11 * M_PI / 12.0)));
-        m_16apsk[7][i] =
-            gr_complex((r2 * cos(-11 * M_PI / 12.0)), (r2 * sin(-11 * M_PI / 12.0)));
-        m_16apsk[8][i] =
-            gr_complex((r2 * cos(5 * M_PI / 12.0)), (r2 * sin(5 * M_PI / 12.0)));
-        m_16apsk[9][i] =
-            gr_complex((r2 * cos(-5 * M_PI / 12.0)), (r2 * sin(-5 * M_PI / 12.0)));
-        m_16apsk[10][i] =
-            gr_complex((r2 * cos(7 * M_PI / 12.0)), (r2 * sin(7 * M_PI / 12.0)));
-        m_16apsk[11][i] =
-            gr_complex((r2 * cos(-7 * M_PI / 12.0)), (r2 * sin(-7 * M_PI / 12.0)));
+        m_16apsk[6][i] = gr_complex((r2 * cos(11 * M_PI / 12.0)), (r2 * sin(11 * M_PI / 12.0)));
+        m_16apsk[7][i] = gr_complex((r2 * cos(-11 * M_PI / 12.0)), (r2 * sin(-11 * M_PI / 12.0)));
+        m_16apsk[8][i] = gr_complex((r2 * cos(5 * M_PI / 12.0)), (r2 * sin(5 * M_PI / 12.0)));
+        m_16apsk[9][i] = gr_complex((r2 * cos(-5 * M_PI / 12.0)), (r2 * sin(-5 * M_PI / 12.0)));
+        m_16apsk[10][i] = gr_complex((r2 * cos(7 * M_PI / 12.0)), (r2 * sin(7 * M_PI / 12.0)));
+        m_16apsk[11][i] = gr_complex((r2 * cos(-7 * M_PI / 12.0)), (r2 * sin(-7 * M_PI / 12.0)));
         m_16apsk[12][i] = gr_complex((r1 * cos(M_PI / 4.0)), (r1 * sin(M_PI / 4.0)));
         m_16apsk[13][i] = gr_complex((r1 * cos(-M_PI / 4.0)), (r1 * sin(-M_PI / 4.0)));
-        m_16apsk[14][i] =
-            gr_complex((r1 * cos(3 * M_PI / 4.0)), (r1 * sin(3 * M_PI / 4.0)));
-        m_16apsk[15][i] =
-            gr_complex((r1 * cos(-3 * M_PI / 4.0)), (r1 * sin(-3 * M_PI / 4.0)));
+        m_16apsk[14][i] = gr_complex((r1 * cos(3 * M_PI / 4.0)), (r1 * sin(3 * M_PI / 4.0)));
+        m_16apsk[15][i] = gr_complex((r1 * cos(-3 * M_PI / 4.0)), (r1 * sin(-3 * M_PI / 4.0)));
     }
 
     m_8_8apsk[0][0] = gr_complex(0.4718, 0.2606);
@@ -158,24 +142,18 @@ modulator_bc_impl::modulator_bc_impl()
     m_8_8apsk[1][2] = gr_complex((r1 * cos(3 * M_PI / 8.0)), (r1 * sin(3 * M_PI / 8.0)));
     m_8_8apsk[2][2] = gr_complex((r1 * cos(7 * M_PI / 8.0)), (r1 * sin(7 * M_PI / 8.0)));
     m_8_8apsk[3][2] = gr_complex((r1 * cos(5 * M_PI / 8.0)), (r1 * sin(5 * M_PI / 8.0)));
-    m_8_8apsk[4][2] =
-        gr_complex((r1 * cos(15 * M_PI / 8.0)), (r1 * sin(15 * M_PI / 8.0)));
-    m_8_8apsk[5][2] =
-        gr_complex((r1 * cos(13 * M_PI / 8.0)), (r1 * sin(13 * M_PI / 8.0)));
+    m_8_8apsk[4][2] = gr_complex((r1 * cos(15 * M_PI / 8.0)), (r1 * sin(15 * M_PI / 8.0)));
+    m_8_8apsk[5][2] = gr_complex((r1 * cos(13 * M_PI / 8.0)), (r1 * sin(13 * M_PI / 8.0)));
     m_8_8apsk[6][2] = gr_complex((r1 * cos(9 * M_PI / 8.0)), (r1 * sin(9 * M_PI / 8.0)));
-    m_8_8apsk[7][2] =
-        gr_complex((r1 * cos(11 * M_PI / 8.0)), (r1 * sin(11 * M_PI / 8.0)));
+    m_8_8apsk[7][2] = gr_complex((r1 * cos(11 * M_PI / 8.0)), (r1 * sin(11 * M_PI / 8.0)));
     m_8_8apsk[8][2] = gr_complex((r2 * cos(M_PI / 8.0)), (r2 * sin(M_PI / 8.0)));
     m_8_8apsk[9][2] = gr_complex((r2 * cos(3 * M_PI / 8.0)), (r2 * sin(3 * M_PI / 8.0)));
     m_8_8apsk[10][2] = gr_complex((r2 * cos(7 * M_PI / 8.0)), (r2 * sin(7 * M_PI / 8.0)));
     m_8_8apsk[11][2] = gr_complex((r2 * cos(5 * M_PI / 8.0)), (r2 * sin(5 * M_PI / 8.0)));
-    m_8_8apsk[12][2] =
-        gr_complex((r2 * cos(15 * M_PI / 8.0)), (r2 * sin(15 * M_PI / 8.0)));
-    m_8_8apsk[13][2] =
-        gr_complex((r2 * cos(13 * M_PI / 8.0)), (r2 * sin(13 * M_PI / 8.0)));
+    m_8_8apsk[12][2] = gr_complex((r2 * cos(15 * M_PI / 8.0)), (r2 * sin(15 * M_PI / 8.0)));
+    m_8_8apsk[13][2] = gr_complex((r2 * cos(13 * M_PI / 8.0)), (r2 * sin(13 * M_PI / 8.0)));
     m_8_8apsk[14][2] = gr_complex((r2 * cos(9 * M_PI / 8.0)), (r2 * sin(9 * M_PI / 8.0)));
-    m_8_8apsk[15][2] =
-        gr_complex((r2 * cos(11 * M_PI / 8.0)), (r2 * sin(11 * M_PI / 8.0)));
+    m_8_8apsk[15][2] = gr_complex((r2 * cos(11 * M_PI / 8.0)), (r2 * sin(11 * M_PI / 8.0)));
 
 
     float m_32apsk_radius[5][2] = {
@@ -190,55 +168,37 @@ modulator_bc_impl::modulator_bc_impl()
         r2 *= r0;
         r3 *= r0;
         m_32apsk[0][i] = gr_complex((r2 * cos(M_PI / 4.0)), (r2 * sin(M_PI / 4.0)));
-        m_32apsk[1][i] =
-            gr_complex((r2 * cos(5 * M_PI / 12.0)), (r2 * sin(5 * M_PI / 12.0)));
+        m_32apsk[1][i] = gr_complex((r2 * cos(5 * M_PI / 12.0)), (r2 * sin(5 * M_PI / 12.0)));
         m_32apsk[2][i] = gr_complex((r2 * cos(-M_PI / 4.0)), (r2 * sin(-M_PI / 4.0)));
-        m_32apsk[3][i] =
-            gr_complex((r2 * cos(-5 * M_PI / 12.0)), (r2 * sin(-5 * M_PI / 12.0)));
-        m_32apsk[4][i] =
-            gr_complex((r2 * cos(3 * M_PI / 4.0)), (r2 * sin(3 * M_PI / 4.0)));
-        m_32apsk[5][i] =
-            gr_complex((r2 * cos(7 * M_PI / 12.0)), (r2 * sin(7 * M_PI / 12.0)));
-        m_32apsk[6][i] =
-            gr_complex((r2 * cos(-3 * M_PI / 4.0)), (r2 * sin(-3 * M_PI / 4.0)));
-        m_32apsk[7][i] =
-            gr_complex((r2 * cos(-7 * M_PI / 12.0)), (r2 * sin(-7 * M_PI / 12.0)));
+        m_32apsk[3][i] = gr_complex((r2 * cos(-5 * M_PI / 12.0)), (r2 * sin(-5 * M_PI / 12.0)));
+        m_32apsk[4][i] = gr_complex((r2 * cos(3 * M_PI / 4.0)), (r2 * sin(3 * M_PI / 4.0)));
+        m_32apsk[5][i] = gr_complex((r2 * cos(7 * M_PI / 12.0)), (r2 * sin(7 * M_PI / 12.0)));
+        m_32apsk[6][i] = gr_complex((r2 * cos(-3 * M_PI / 4.0)), (r2 * sin(-3 * M_PI / 4.0)));
+        m_32apsk[7][i] = gr_complex((r2 * cos(-7 * M_PI / 12.0)), (r2 * sin(-7 * M_PI / 12.0)));
         m_32apsk[8][i] = gr_complex((r3 * cos(M_PI / 8.0)), (r3 * sin(M_PI / 8.0)));
-        m_32apsk[9][i] =
-            gr_complex((r3 * cos(3 * M_PI / 8.0)), (r3 * sin(3 * M_PI / 8.0)));
+        m_32apsk[9][i] = gr_complex((r3 * cos(3 * M_PI / 8.0)), (r3 * sin(3 * M_PI / 8.0)));
         m_32apsk[10][i] = gr_complex((r3 * cos(-M_PI / 4.0)), (r3 * sin(-M_PI / 4.0)));
         m_32apsk[11][i] = gr_complex((r3 * cos(-M_PI / 2.0)), (r3 * sin(-M_PI / 2.0)));
-        m_32apsk[12][i] =
-            gr_complex((r3 * cos(3 * M_PI / 4.0)), (r3 * sin(3 * M_PI / 4.0)));
+        m_32apsk[12][i] = gr_complex((r3 * cos(3 * M_PI / 4.0)), (r3 * sin(3 * M_PI / 4.0)));
         m_32apsk[13][i] = gr_complex((r3 * cos(M_PI / 2.0)), (r3 * sin(M_PI / 2.0)));
-        m_32apsk[14][i] =
-            gr_complex((r3 * cos(-7 * M_PI / 8.0)), (r3 * sin(-7 * M_PI / 8.0)));
-        m_32apsk[15][i] =
-            gr_complex((r3 * cos(-5 * M_PI / 8.0)), (r3 * sin(-5 * M_PI / 8.0)));
+        m_32apsk[14][i] = gr_complex((r3 * cos(-7 * M_PI / 8.0)), (r3 * sin(-7 * M_PI / 8.0)));
+        m_32apsk[15][i] = gr_complex((r3 * cos(-5 * M_PI / 8.0)), (r3 * sin(-5 * M_PI / 8.0)));
         m_32apsk[16][i] = gr_complex((r2 * cos(M_PI / 12.0)), (r2 * sin(M_PI / 12.0)));
         m_32apsk[17][i] = gr_complex((r1 * cos(M_PI / 4.0)), (r1 * sin(M_PI / 4.0)));
         m_32apsk[18][i] = gr_complex((r2 * cos(-M_PI / 12.0)), (r2 * sin(-M_PI / 12.0)));
         m_32apsk[19][i] = gr_complex((r1 * cos(-M_PI / 4.0)), (r1 * sin(-M_PI / 4.0)));
-        m_32apsk[20][i] =
-            gr_complex((r2 * cos(11 * M_PI / 12.0)), (r2 * sin(11 * M_PI / 12.0)));
-        m_32apsk[21][i] =
-            gr_complex((r1 * cos(3 * M_PI / 4.0)), (r1 * sin(3 * M_PI / 4.0)));
-        m_32apsk[22][i] =
-            gr_complex((r2 * cos(-11 * M_PI / 12.0)), (r2 * sin(-11 * M_PI / 12.0)));
-        m_32apsk[23][i] =
-            gr_complex((r1 * cos(-3 * M_PI / 4.0)), (r1 * sin(-3 * M_PI / 4.0)));
+        m_32apsk[20][i] = gr_complex((r2 * cos(11 * M_PI / 12.0)), (r2 * sin(11 * M_PI / 12.0)));
+        m_32apsk[21][i] = gr_complex((r1 * cos(3 * M_PI / 4.0)), (r1 * sin(3 * M_PI / 4.0)));
+        m_32apsk[22][i] = gr_complex((r2 * cos(-11 * M_PI / 12.0)), (r2 * sin(-11 * M_PI / 12.0)));
+        m_32apsk[23][i] = gr_complex((r1 * cos(-3 * M_PI / 4.0)), (r1 * sin(-3 * M_PI / 4.0)));
         m_32apsk[24][i] = gr_complex((r3 * cos(0.0)), (r3 * sin(0.0)));
         m_32apsk[25][i] = gr_complex((r3 * cos(M_PI / 4.0)), (r3 * sin(M_PI / 4.0)));
         m_32apsk[26][i] = gr_complex((r3 * cos(-M_PI / 8.0)), (r3 * sin(-M_PI / 8.0)));
-        m_32apsk[27][i] =
-            gr_complex((r3 * cos(-3 * M_PI / 8.0)), (r3 * sin(-3 * M_PI / 8.0)));
-        m_32apsk[28][i] =
-            gr_complex((r3 * cos(7 * M_PI / 8.0)), (r3 * sin(7 * M_PI / 8.0)));
-        m_32apsk[29][i] =
-            gr_complex((r3 * cos(5 * M_PI / 8.0)), (r3 * sin(5 * M_PI / 8.0)));
+        m_32apsk[27][i] = gr_complex((r3 * cos(-3 * M_PI / 8.0)), (r3 * sin(-3 * M_PI / 8.0)));
+        m_32apsk[28][i] = gr_complex((r3 * cos(7 * M_PI / 8.0)), (r3 * sin(7 * M_PI / 8.0)));
+        m_32apsk[29][i] = gr_complex((r3 * cos(5 * M_PI / 8.0)), (r3 * sin(5 * M_PI / 8.0)));
         m_32apsk[30][i] = gr_complex((r3 * cos(M_PI)), (r3 * sin(M_PI)));
-        m_32apsk[31][i] =
-            gr_complex((r3 * cos(-3 * M_PI / 4.0)), (r3 * sin(-3 * M_PI / 4.0)));
+        m_32apsk[31][i] = gr_complex((r3 * cos(-3 * M_PI / 4.0)), (r3 * sin(-3 * M_PI / 4.0)));
     }
 
     float m_4_12_16apsk_radius[3][2] = { { 5.55, 2.85 }, { 5.54, 2.84 }, { 5.26, 2.84 } };
@@ -246,68 +206,38 @@ modulator_bc_impl::modulator_bc_impl()
     for (int i = 0; i < 3; i++) {
         r1 = r3 / m_4_12_16apsk_radius[i][0];
         r2 = r1 * m_4_12_16apsk_radius[i][1];
-        m_4_12_16apsk[0][i] =
-            gr_complex((r3 * cos(11 * M_PI / 16.0)), (r3 * sin(11 * M_PI / 16.0)));
-        m_4_12_16apsk[1][i] =
-            gr_complex((r3 * cos(9 * M_PI / 16.0)), (r3 * sin(9 * M_PI / 16.0)));
-        m_4_12_16apsk[2][i] =
-            gr_complex((r3 * cos(5 * M_PI / 16.0)), (r3 * sin(5 * M_PI / 16.0)));
-        m_4_12_16apsk[3][i] =
-            gr_complex((r3 * cos(7 * M_PI / 16.0)), (r3 * sin(7 * M_PI / 16.0)));
-        m_4_12_16apsk[4][i] =
-            gr_complex((r2 * cos(3 * M_PI / 4.0)), (r2 * sin(3 * M_PI / 4.0)));
-        m_4_12_16apsk[5][i] =
-            gr_complex((r2 * cos(7 * M_PI / 12.0)), (r2 * sin(7 * M_PI / 12.0)));
+        m_4_12_16apsk[0][i] = gr_complex((r3 * cos(11 * M_PI / 16.0)), (r3 * sin(11 * M_PI / 16.0)));
+        m_4_12_16apsk[1][i] = gr_complex((r3 * cos(9 * M_PI / 16.0)), (r3 * sin(9 * M_PI / 16.0)));
+        m_4_12_16apsk[2][i] = gr_complex((r3 * cos(5 * M_PI / 16.0)), (r3 * sin(5 * M_PI / 16.0)));
+        m_4_12_16apsk[3][i] = gr_complex((r3 * cos(7 * M_PI / 16.0)), (r3 * sin(7 * M_PI / 16.0)));
+        m_4_12_16apsk[4][i] = gr_complex((r2 * cos(3 * M_PI / 4.0)), (r2 * sin(3 * M_PI / 4.0)));
+        m_4_12_16apsk[5][i] = gr_complex((r2 * cos(7 * M_PI / 12.0)), (r2 * sin(7 * M_PI / 12.0)));
         m_4_12_16apsk[6][i] = gr_complex((r2 * cos(M_PI / 4.0)), (r2 * sin(M_PI / 4.0)));
-        m_4_12_16apsk[7][i] =
-            gr_complex((r2 * cos(5 * M_PI / 12.0)), (r2 * sin(5 * M_PI / 12.0)));
-        m_4_12_16apsk[8][i] =
-            gr_complex((r3 * cos(13 * M_PI / 16.0)), (r3 * sin(13 * M_PI / 16.0)));
-        m_4_12_16apsk[9][i] =
-            gr_complex((r3 * cos(15 * M_PI / 16.0)), (r3 * sin(15 * M_PI / 16.0)));
-        m_4_12_16apsk[10][i] =
-            gr_complex((r3 * cos(3 * M_PI / 16.0)), (r3 * sin(3 * M_PI / 16.0)));
-        m_4_12_16apsk[11][i] =
-            gr_complex((r3 * cos(M_PI / 16.0)), (r3 * sin(M_PI / 16.0)));
-        m_4_12_16apsk[12][i] =
-            gr_complex((r2 * cos(11 * M_PI / 12.0)), (r2 * sin(11 * M_PI / 12.0)));
-        m_4_12_16apsk[13][i] =
-            gr_complex((r1 * cos(3 * M_PI / 4.0)), (r1 * sin(3 * M_PI / 4.0)));
-        m_4_12_16apsk[14][i] =
-            gr_complex((r2 * cos(M_PI / 12.0)), (r2 * sin(M_PI / 12.0)));
+        m_4_12_16apsk[7][i] = gr_complex((r2 * cos(5 * M_PI / 12.0)), (r2 * sin(5 * M_PI / 12.0)));
+        m_4_12_16apsk[8][i] = gr_complex((r3 * cos(13 * M_PI / 16.0)), (r3 * sin(13 * M_PI / 16.0)));
+        m_4_12_16apsk[9][i] = gr_complex((r3 * cos(15 * M_PI / 16.0)), (r3 * sin(15 * M_PI / 16.0)));
+        m_4_12_16apsk[10][i] = gr_complex((r3 * cos(3 * M_PI / 16.0)), (r3 * sin(3 * M_PI / 16.0)));
+        m_4_12_16apsk[11][i] = gr_complex((r3 * cos(M_PI / 16.0)), (r3 * sin(M_PI / 16.0)));
+        m_4_12_16apsk[12][i] = gr_complex((r2 * cos(11 * M_PI / 12.0)), (r2 * sin(11 * M_PI / 12.0)));
+        m_4_12_16apsk[13][i] = gr_complex((r1 * cos(3 * M_PI / 4.0)), (r1 * sin(3 * M_PI / 4.0)));
+        m_4_12_16apsk[14][i] = gr_complex((r2 * cos(M_PI / 12.0)), (r2 * sin(M_PI / 12.0)));
         m_4_12_16apsk[15][i] = gr_complex((r1 * cos(M_PI / 4.0)), (r1 * sin(M_PI / 4.0)));
-        m_4_12_16apsk[16][i] =
-            gr_complex((r3 * cos(21 * M_PI / 16.0)), (r3 * sin(21 * M_PI / 16.0)));
-        m_4_12_16apsk[17][i] =
-            gr_complex((r3 * cos(23 * M_PI / 16.0)), (r3 * sin(23 * M_PI / 16.0)));
-        m_4_12_16apsk[18][i] =
-            gr_complex((r3 * cos(27 * M_PI / 16.0)), (r3 * sin(27 * M_PI / 16.0)));
-        m_4_12_16apsk[19][i] =
-            gr_complex((r3 * cos(25 * M_PI / 16.0)), (r3 * sin(25 * M_PI / 16.0)));
-        m_4_12_16apsk[20][i] =
-            gr_complex((r2 * cos(5 * M_PI / 4.0)), (r2 * sin(5 * M_PI / 4.0)));
-        m_4_12_16apsk[21][i] =
-            gr_complex((r2 * cos(17 * M_PI / 12.0)), (r2 * sin(17 * M_PI / 12.0)));
-        m_4_12_16apsk[22][i] =
-            gr_complex((r2 * cos(7 * M_PI / 4.0)), (r2 * sin(7 * M_PI / 4.0)));
-        m_4_12_16apsk[23][i] =
-            gr_complex((r2 * cos(19 * M_PI / 12.0)), (r2 * sin(19 * M_PI / 12.0)));
-        m_4_12_16apsk[24][i] =
-            gr_complex((r3 * cos(19 * M_PI / 16.0)), (r3 * sin(19 * M_PI / 16.0)));
-        m_4_12_16apsk[25][i] =
-            gr_complex((r3 * cos(17 * M_PI / 16.0)), (r3 * sin(17 * M_PI / 16.0)));
-        m_4_12_16apsk[26][i] =
-            gr_complex((r3 * cos(29 * M_PI / 16.0)), (r3 * sin(29 * M_PI / 16.0)));
-        m_4_12_16apsk[27][i] =
-            gr_complex((r3 * cos(31 * M_PI / 16.0)), (r3 * sin(31 * M_PI / 16.0)));
-        m_4_12_16apsk[28][i] =
-            gr_complex((r2 * cos(13 * M_PI / 12.0)), (r2 * sin(13 * M_PI / 12.0)));
-        m_4_12_16apsk[29][i] =
-            gr_complex((r1 * cos(5 * M_PI / 4.0)), (r1 * sin(5 * M_PI / 4.0)));
-        m_4_12_16apsk[30][i] =
-            gr_complex((r2 * cos(23 * M_PI / 12.0)), (r2 * sin(23 * M_PI / 12.0)));
-        m_4_12_16apsk[31][i] =
-            gr_complex((r1 * cos(7 * M_PI / 4.0)), (r1 * sin(7 * M_PI / 4.0)));
+        m_4_12_16apsk[16][i] = gr_complex((r3 * cos(21 * M_PI / 16.0)), (r3 * sin(21 * M_PI / 16.0)));
+        m_4_12_16apsk[17][i] = gr_complex((r3 * cos(23 * M_PI / 16.0)), (r3 * sin(23 * M_PI / 16.0)));
+        m_4_12_16apsk[18][i] = gr_complex((r3 * cos(27 * M_PI / 16.0)), (r3 * sin(27 * M_PI / 16.0)));
+        m_4_12_16apsk[19][i] = gr_complex((r3 * cos(25 * M_PI / 16.0)), (r3 * sin(25 * M_PI / 16.0)));
+        m_4_12_16apsk[20][i] = gr_complex((r2 * cos(5 * M_PI / 4.0)), (r2 * sin(5 * M_PI / 4.0)));
+        m_4_12_16apsk[21][i] = gr_complex((r2 * cos(17 * M_PI / 12.0)), (r2 * sin(17 * M_PI / 12.0)));
+        m_4_12_16apsk[22][i] = gr_complex((r2 * cos(7 * M_PI / 4.0)), (r2 * sin(7 * M_PI / 4.0)));
+        m_4_12_16apsk[23][i] = gr_complex((r2 * cos(19 * M_PI / 12.0)), (r2 * sin(19 * M_PI / 12.0)));
+        m_4_12_16apsk[24][i] = gr_complex((r3 * cos(19 * M_PI / 16.0)), (r3 * sin(19 * M_PI / 16.0)));
+        m_4_12_16apsk[25][i] = gr_complex((r3 * cos(17 * M_PI / 16.0)), (r3 * sin(17 * M_PI / 16.0)));
+        m_4_12_16apsk[26][i] = gr_complex((r3 * cos(29 * M_PI / 16.0)), (r3 * sin(29 * M_PI / 16.0)));
+        m_4_12_16apsk[27][i] = gr_complex((r3 * cos(31 * M_PI / 16.0)), (r3 * sin(31 * M_PI / 16.0)));
+        m_4_12_16apsk[28][i] = gr_complex((r2 * cos(13 * M_PI / 12.0)), (r2 * sin(13 * M_PI / 12.0)));
+        m_4_12_16apsk[29][i] = gr_complex((r1 * cos(5 * M_PI / 4.0)), (r1 * sin(5 * M_PI / 4.0)));
+        m_4_12_16apsk[30][i] = gr_complex((r2 * cos(23 * M_PI / 12.0)), (r2 * sin(23 * M_PI / 12.0)));
+        m_4_12_16apsk[31][i] = gr_complex((r1 * cos(7 * M_PI / 4.0)), (r1 * sin(7 * M_PI / 4.0)));
     }
 
     float m_4_8_4_16apsk_radius[3][3] = { { 5.60, 2.99, 2.60 },
@@ -319,68 +249,37 @@ modulator_bc_impl::modulator_bc_impl()
         r3 = r1 * m_4_8_4_16apsk_radius[i][1];
         r2 = r1 * m_4_8_4_16apsk_radius[i][2];
         m_4_8_4_16apsk[0][i] = gr_complex((r1 * cos(M_PI / 4.0)), (r1 * sin(M_PI / 4.0)));
-        m_4_8_4_16apsk[1][i] =
-            gr_complex((r4 * cos(7 * M_PI / 16.0)), (r4 * sin(7 * M_PI / 16.0)));
-        m_4_8_4_16apsk[2][i] =
-            gr_complex((r1 * cos(7 * M_PI / 4.0)), (r1 * sin(7 * M_PI / 4.0)));
-        m_4_8_4_16apsk[3][i] =
-            gr_complex((r4 * cos(25 * M_PI / 16.0)), (r4 * sin(25 * M_PI / 16.0)));
-        m_4_8_4_16apsk[4][i] =
-            gr_complex((r1 * cos(3 * M_PI / 4.0)), (r1 * sin(3 * M_PI / 4.0)));
-        m_4_8_4_16apsk[5][i] =
-            gr_complex((r4 * cos(9 * M_PI / 16.0)), (r4 * sin(9 * M_PI / 16.0)));
-        m_4_8_4_16apsk[6][i] =
-            gr_complex((r1 * cos(5 * M_PI / 4.0)), (r1 * sin(5 * M_PI / 4.0)));
-        m_4_8_4_16apsk[7][i] =
-            gr_complex((r4 * cos(23 * M_PI / 16.0)), (r4 * sin(23 * M_PI / 16.0)));
-        m_4_8_4_16apsk[8][i] =
-            gr_complex((r2 * cos(M_PI / 12.0)), (r2 * sin(M_PI / 12.0)));
-        m_4_8_4_16apsk[9][i] =
-            gr_complex((r4 * cos(M_PI / 16.0)), (r4 * sin(M_PI / 16.0)));
-        m_4_8_4_16apsk[10][i] =
-            gr_complex((r2 * cos(23 * M_PI / 12.0)), (r2 * sin(23 * M_PI / 12.0)));
-        m_4_8_4_16apsk[11][i] =
-            gr_complex((r4 * cos(31 * M_PI / 16.0)), (r4 * sin(31 * M_PI / 16.0)));
-        m_4_8_4_16apsk[12][i] =
-            gr_complex((r2 * cos(11 * M_PI / 12.0)), (r2 * sin(11 * M_PI / 12.0)));
-        m_4_8_4_16apsk[13][i] =
-            gr_complex((r4 * cos(15 * M_PI / 16.0)), (r4 * sin(15 * M_PI / 16.0)));
-        m_4_8_4_16apsk[14][i] =
-            gr_complex((r2 * cos(13 * M_PI / 12.0)), (r2 * sin(13 * M_PI / 12.0)));
-        m_4_8_4_16apsk[15][i] =
-            gr_complex((r4 * cos(17 * M_PI / 16.0)), (r4 * sin(17 * M_PI / 16.0)));
-        m_4_8_4_16apsk[16][i] =
-            gr_complex((r2 * cos(5 * M_PI / 12.0)), (r2 * sin(5 * M_PI / 12.0)));
-        m_4_8_4_16apsk[17][i] =
-            gr_complex((r4 * cos(5 * M_PI / 16.0)), (r4 * sin(5 * M_PI / 16.0)));
-        m_4_8_4_16apsk[18][i] =
-            gr_complex((r2 * cos(19 * M_PI / 12.0)), (r2 * sin(19 * M_PI / 12.0)));
-        m_4_8_4_16apsk[19][i] =
-            gr_complex((r4 * cos(27 * M_PI / 16.0)), (r4 * sin(27 * M_PI / 16.0)));
-        m_4_8_4_16apsk[20][i] =
-            gr_complex((r2 * cos(7 * M_PI / 12.0)), (r2 * sin(7 * M_PI / 12.0)));
-        m_4_8_4_16apsk[21][i] =
-            gr_complex((r4 * cos(11 * M_PI / 16.0)), (r4 * sin(11 * M_PI / 16.0)));
-        m_4_8_4_16apsk[22][i] =
-            gr_complex((r2 * cos(17 * M_PI / 12.0)), (r2 * sin(17 * M_PI / 12.0)));
-        m_4_8_4_16apsk[23][i] =
-            gr_complex((r4 * cos(21 * M_PI / 16.0)), (r4 * sin(21 * M_PI / 16.0)));
-        m_4_8_4_16apsk[24][i] =
-            gr_complex((r3 * cos(M_PI / 4.0)), (r3 * sin(M_PI / 4.0)));
-        m_4_8_4_16apsk[25][i] =
-            gr_complex((r4 * cos(3 * M_PI / 16.0)), (r4 * sin(3 * M_PI / 16.0)));
-        m_4_8_4_16apsk[26][i] =
-            gr_complex((r3 * cos(7 * M_PI / 4.0)), (r3 * sin(7 * M_PI / 4.0)));
-        m_4_8_4_16apsk[27][i] =
-            gr_complex((r4 * cos(29 * M_PI / 16.0)), (r4 * sin(29 * M_PI / 16.0)));
-        m_4_8_4_16apsk[28][i] =
-            gr_complex((r3 * cos(3 * M_PI / 4.0)), (r3 * sin(3 * M_PI / 4.0)));
-        m_4_8_4_16apsk[29][i] =
-            gr_complex((r4 * cos(13 * M_PI / 16.0)), (r4 * sin(13 * M_PI / 16.0)));
-        m_4_8_4_16apsk[30][i] =
-            gr_complex((r3 * cos(5 * M_PI / 4.0)), (r3 * sin(5 * M_PI / 4.0)));
-        m_4_8_4_16apsk[31][i] =
-            gr_complex((r4 * cos(19 * M_PI / 16.0)), (r4 * sin(19 * M_PI / 16.0)));
+        m_4_8_4_16apsk[1][i] = gr_complex((r4 * cos(7 * M_PI / 16.0)), (r4 * sin(7 * M_PI / 16.0)));
+        m_4_8_4_16apsk[2][i] = gr_complex((r1 * cos(7 * M_PI / 4.0)), (r1 * sin(7 * M_PI / 4.0)));
+        m_4_8_4_16apsk[3][i] = gr_complex((r4 * cos(25 * M_PI / 16.0)), (r4 * sin(25 * M_PI / 16.0)));
+        m_4_8_4_16apsk[4][i] = gr_complex((r1 * cos(3 * M_PI / 4.0)), (r1 * sin(3 * M_PI / 4.0)));
+        m_4_8_4_16apsk[5][i] = gr_complex((r4 * cos(9 * M_PI / 16.0)), (r4 * sin(9 * M_PI / 16.0)));
+        m_4_8_4_16apsk[6][i] = gr_complex((r1 * cos(5 * M_PI / 4.0)), (r1 * sin(5 * M_PI / 4.0)));
+        m_4_8_4_16apsk[7][i] = gr_complex((r4 * cos(23 * M_PI / 16.0)), (r4 * sin(23 * M_PI / 16.0)));
+        m_4_8_4_16apsk[8][i] = gr_complex((r2 * cos(M_PI / 12.0)), (r2 * sin(M_PI / 12.0)));
+        m_4_8_4_16apsk[9][i] = gr_complex((r4 * cos(M_PI / 16.0)), (r4 * sin(M_PI / 16.0)));
+        m_4_8_4_16apsk[10][i] = gr_complex((r2 * cos(23 * M_PI / 12.0)), (r2 * sin(23 * M_PI / 12.0)));
+        m_4_8_4_16apsk[11][i] = gr_complex((r4 * cos(31 * M_PI / 16.0)), (r4 * sin(31 * M_PI / 16.0)));
+        m_4_8_4_16apsk[12][i] = gr_complex((r2 * cos(11 * M_PI / 12.0)), (r2 * sin(11 * M_PI / 12.0)));
+        m_4_8_4_16apsk[13][i] = gr_complex((r4 * cos(15 * M_PI / 16.0)), (r4 * sin(15 * M_PI / 16.0)));
+        m_4_8_4_16apsk[14][i] = gr_complex((r2 * cos(13 * M_PI / 12.0)), (r2 * sin(13 * M_PI / 12.0)));
+        m_4_8_4_16apsk[15][i] = gr_complex((r4 * cos(17 * M_PI / 16.0)), (r4 * sin(17 * M_PI / 16.0)));
+        m_4_8_4_16apsk[16][i] = gr_complex((r2 * cos(5 * M_PI / 12.0)), (r2 * sin(5 * M_PI / 12.0)));
+        m_4_8_4_16apsk[17][i] = gr_complex((r4 * cos(5 * M_PI / 16.0)), (r4 * sin(5 * M_PI / 16.0)));
+        m_4_8_4_16apsk[18][i] = gr_complex((r2 * cos(19 * M_PI / 12.0)), (r2 * sin(19 * M_PI / 12.0)));
+        m_4_8_4_16apsk[19][i] = gr_complex((r4 * cos(27 * M_PI / 16.0)), (r4 * sin(27 * M_PI / 16.0)));
+        m_4_8_4_16apsk[20][i] = gr_complex((r2 * cos(7 * M_PI / 12.0)), (r2 * sin(7 * M_PI / 12.0)));
+        m_4_8_4_16apsk[21][i] = gr_complex((r4 * cos(11 * M_PI / 16.0)), (r4 * sin(11 * M_PI / 16.0)));
+        m_4_8_4_16apsk[22][i] = gr_complex((r2 * cos(17 * M_PI / 12.0)), (r2 * sin(17 * M_PI / 12.0)));
+        m_4_8_4_16apsk[23][i] = gr_complex((r4 * cos(21 * M_PI / 16.0)), (r4 * sin(21 * M_PI / 16.0)));
+        m_4_8_4_16apsk[24][i] = gr_complex((r3 * cos(M_PI / 4.0)), (r3 * sin(M_PI / 4.0)));
+        m_4_8_4_16apsk[25][i] = gr_complex((r4 * cos(3 * M_PI / 16.0)), (r4 * sin(3 * M_PI / 16.0)));
+        m_4_8_4_16apsk[26][i] = gr_complex((r3 * cos(7 * M_PI / 4.0)), (r3 * sin(7 * M_PI / 4.0)));
+        m_4_8_4_16apsk[27][i] = gr_complex((r4 * cos(29 * M_PI / 16.0)), (r4 * sin(29 * M_PI / 16.0)));
+        m_4_8_4_16apsk[28][i] = gr_complex((r3 * cos(3 * M_PI / 4.0)), (r3 * sin(3 * M_PI / 4.0)));
+        m_4_8_4_16apsk[29][i] = gr_complex((r4 * cos(13 * M_PI / 16.0)), (r4 * sin(13 * M_PI / 16.0)));
+        m_4_8_4_16apsk[30][i] = gr_complex((r3 * cos(5 * M_PI / 4.0)), (r3 * sin(5 * M_PI / 4.0)));
+        m_4_8_4_16apsk[31][i] = gr_complex((r4 * cos(19 * M_PI / 16.0)), (r4 * sin(19 * M_PI / 16.0)));
     }
 
     set_tag_propagation_policy(TPP_DONT);
@@ -397,9 +296,9 @@ void modulator_bc_impl::forecast(int noutput_items, gr_vector_int& ninput_items_
     ninput_items_required[0] = noutput_items;
 }
 
-void modulator_bc_impl::get_items(gr::dvbs2::dvbs2_framesize_t framesize,
-                                  gr::dvbs2::dvbs2_code_rate_t rate,
-                                  gr::dvbs2::dvbs2_constellation_t constellation,
+void modulator_bc_impl::get_items(dvbs2_framesize_t framesize,
+                                  dvbs2_code_rate_t rate,
+                                  dvbs2_constellation_t constellation,
                                   int& num_items,
                                   int& constellation_index)
 {
@@ -647,8 +546,7 @@ int modulator_bc_impl::general_work(int noutput_items,
     const uint64_t nread = this->nitems_read(0);
 
     // Read all tags on the input buffer
-    this->get_tags_in_range(
-        tags, 0, nread, nread + noutput_items, pmt::string_to_symbol("modcod"));
+    this->get_tags_in_range(tags, 0, nread, nread + noutput_items, pmt::string_to_symbol("modcod"));
 
     for (tag_t tag : tags) {
         const uint64_t tagmodcod = pmt::to_uint64(tag.value);
@@ -660,8 +558,7 @@ int modulator_bc_impl::general_work(int noutput_items,
             break;
         }
         const uint64_t tagoffset = this->nitems_written(0);
-        this->add_item_tag(
-            0, tagoffset, pmt::string_to_symbol("modcod"), pmt::from_uint64(tagmodcod));
+        this->add_item_tag(0, tagoffset, pmt::string_to_symbol("modcod"), pmt::from_uint64(tagmodcod));
 
         switch (constellation) {
         case MOD_BPSK:

@@ -18,8 +18,6 @@
 #define TRANSPORT_PACKET_LENGTH 188
 #define TRANSPORT_ERROR_INDICATOR 0x80
 
-using namespace gr::dvbs2;
-
 namespace gr {
 namespace dvbs2acm {
 

@@ -32,11 +32,7 @@ class interleaver_bb_impl : public interleaver_bb
 {
 private:
     int rowaddr[5];
-    void get_rows(gr::dvbs2::dvbs2_framesize_t,
-                  gr::dvbs2::dvbs2_code_rate_t,
-                  gr::dvbs2::dvbs2_constellation_t,
-                  int&,
-                  int&);
+    void get_rows(dvbs2_framesize_t, dvbs2_code_rate_t, dvbs2_constellation_t, int&, int&);
 
 public:
     interleaver_bb_impl();

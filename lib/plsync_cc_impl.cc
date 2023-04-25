@@ -108,8 +108,7 @@ plsync_cc_impl::plsync_cc_impl(int gold_code,
     std::vector<uint8_t> expected_plsc;
     for (uint8_t pls = 0; pls < n_plsc_codewords; pls++) {
         pls_info_t info(pls);
-        bool enabled = (pls < 64) ? (pls_filter_lo & (1ULL << pls))
-                                  : (pls_filter_hi & (1ULL << pls));
+        bool enabled = (pls < 64) ? (pls_filter_lo & (1ULL << pls)) : (pls_filter_hi & (1ULL << pls));
         d_pls_enabled[pls] = enabled;
         if (enabled) {
             expected_plsc.push_back(pls);
@@ -120,11 +119,9 @@ plsync_cc_impl::plsync_cc_impl(int gold_code,
     if (!acm_vcm && expected_plsc.size() == 2) {
         pls_info_t info1(expected_plsc[0]);
         pls_info_t info2(expected_plsc[1]);
-        if (info1.modcod != info2.modcod ||
-            info1.short_fecframe != info2.short_fecframe) {
-            throw std::runtime_error(
-                "A single MODCOD and frame size should be selected in "
-                "CCM mode");
+        if (info1.modcod != info2.modcod || info1.short_fecframe != info2.short_fecframe) {
+            throw std::runtime_error("A single MODCOD and frame size should be selected in "
+                                     "CCM mode");
         }
     }
     // Include the PLSs of the dummy PLFRAMEs allowed in MIS or ACM/VCM mode
@@ -194,8 +191,8 @@ void plsync_cc_impl::forecast(int noutput_items, gr_vector_int& ninput_items_req
             // payload, the work function will only produce output if it processes enough
             // symbols to actually find a payload between two consecutive SOFs. Hence,
             // require the symbols remaining until the end of the subsequent PLHEADER.
-            ninput_items_required[0] = d_next_frame_info.pls.payload_len -
-                                       d_frame_sync->get_sym_count() + PLHEADER_LEN;
+            ninput_items_required[0] =
+                d_next_frame_info.pls.payload_len - d_frame_sync->get_sym_count() + PLHEADER_LEN;
         } else {
             // The PL Sync block has the full payload buffered internally and is trying to
             // complete the payload processing. Hence, it doesn't need any further input
@@ -210,10 +207,8 @@ void plsync_cc_impl::forecast(int noutput_items, gr_vector_int& ninput_items_req
         int n_remaining = d_next_frame_info.pls.xfecframe_len - (d_idx.i_slot * SLOT_LEN);
         int n_excess = noutput_items - n_remaining; // beyond the current XFECFRAME
         if (n_excess > 0) {
-            int n_extra_frames =
-                1 + ((n_excess - 1) / d_next_frame_info.pls.xfecframe_len); // ceil
-            ninput_items_required[0] +=
-                d_next_frame_info.pls.plframe_len * n_extra_frames;
+            int n_extra_frames = 1 + ((n_excess - 1) / d_next_frame_info.pls.xfecframe_len); // ceil
+            ninput_items_required[0] += d_next_frame_info.pls.plframe_len * n_extra_frames;
         }
     } else {
         // While the frame synchronizer is still trying to lock, assume conservatively
@@ -256,8 +251,7 @@ void plsync_cc_impl::calibrate_tag_delay(const uint64_t abs_sof_idx, int toleran
             // Unexpected lost tag. Do not worry about warning here. It will be warned
             // later when searching for unprocessed tags.
             d_rot_ctrl.tag_queue.pop();
-        } else if (tag.offset >= d_rot_ctrl.tag_search_start &&
-                   tag.offset < tag_search_end) {
+        } else if (tag.offset >= d_rot_ctrl.tag_search_start && tag.offset < tag_search_end) {
             // Tag in the search range
             tags.push_back(tag);
             d_rot_ctrl.tag_queue.pop();
@@ -311,10 +305,9 @@ void plsync_cc_impl::calibrate_tag_delay(const uint64_t abs_sof_idx, int toleran
         // they don't interfere with the PL sync.
         auto map_it = d_rot_ctrl.update_map.find(requested_offset);
         if (map_it == d_rot_ctrl.update_map.end()) {
-            d_logger->warn(
-                "Unexpected phase inc update tag at offset {:d} (requested offset {:d})",
-                tags[j].offset,
-                requested_offset);
+            d_logger->warn("Unexpected phase inc update tag at offset {:d} (requested offset {:d})",
+                           tags[j].offset,
+                           requested_offset);
             continue;
         }
 
@@ -329,8 +322,7 @@ void plsync_cc_impl::calibrate_tag_delay(const uint64_t abs_sof_idx, int toleran
         // tag placement error for past SOFs. Hence, go ahead and process a tag sent for a
         // past SOF. In contrast, do not expect to see a tag for a future SOF here.
         if (map_it->second.sof_idx > abs_sof_idx) {
-            d_logger->warn("Got tag for a future SOF index ({:d})",
-                           map_it->second.sof_idx);
+            d_logger->warn("Got tag for a future SOF index ({:d})", map_it->second.sof_idx);
         }
 
         // Error between the observed and expected tag offsets.
@@ -378,9 +370,7 @@ void plsync_cc_impl::calibrate_tag_delay(const uint64_t abs_sof_idx, int toleran
     for (auto it = d_rot_ctrl.update_map.cbegin(); it != d_rot_ctrl.update_map.cend();) {
         if (it->second.sof_idx < abs_sof_idx) {
             GR_LOG_DEBUG_LEVEL(
-                3,
-                "Rotator ctrl - Timing out unprocessed update scheduled for offset {:d}",
-                it->first);
+                3, "Rotator ctrl - Timing out unprocessed update scheduled for offset {:d}", it->first);
             it = d_rot_ctrl.update_map.erase(it);
         } else {
             it++;
@@ -433,8 +423,7 @@ void plsync_cc_impl::control_rotator_freq(uint64_t abs_sof_idx,
         return;
 
     // Sanity check
-    if (d_rot_ctrl.current.idx < d_rot_ctrl.past.idx ||
-        target_samp_idx < d_rot_ctrl.current.idx) {
+    if (d_rot_ctrl.current.idx < d_rot_ctrl.past.idx || target_samp_idx < d_rot_ctrl.current.idx) {
         d_logger->warn("Unexpected rotator control index order: target={:d}, "
                        "current={:d}, past={:d}",
                        target_samp_idx,
@@ -451,8 +440,7 @@ void plsync_cc_impl::control_rotator_freq(uint64_t abs_sof_idx,
     // the new frequency offset estimate. Refer to the comments on this function's
     // declaration (on plsync_cc_impl.h). Also, note the rotator's rotating frequency is
     // the negative of the estimated frequency offset since it corrects the offset.
-    const double ref_rot_freq =
-        (ref_is_past_frame) ? d_rot_ctrl.past.freq : d_rot_ctrl.current.freq;
+    const double ref_rot_freq = (ref_is_past_frame) ? d_rot_ctrl.past.freq : d_rot_ctrl.current.freq;
     const double prev_cum_freq_offset = -ref_rot_freq;
     d_cum_freq_offset = prev_cum_freq_offset + rot_freq_adj;
 
@@ -567,8 +555,7 @@ void plsync_cc_impl::handle_plheader(uint64_t abs_sof_idx,
      * the loss of a few frames until a better estimate is obtained.
      **/
     const bool was_coarse_corrected = frame_info.coarse_corrected; // last state
-    const bool est_coarse_with_full_plheader =
-        was_coarse_corrected || !d_plsc_decoder_enabled;
+    const bool est_coarse_with_full_plheader = was_coarse_corrected || !d_plsc_decoder_enabled;
     bool new_coarse_est;
     if (!est_coarse_with_full_plheader) {
         new_coarse_est = d_freq_sync->estimate_coarse(p_plheader, false /* SOF only */);
@@ -602,8 +589,8 @@ void plsync_cc_impl::handle_plheader(uint64_t abs_sof_idx,
     // decoding) if the frequency synchronizer was already coarse-corrected before or if
     // the PLSC decoder is disabled (when the PLS is known a priori).
     if (est_coarse_with_full_plheader) {
-        new_coarse_est = d_freq_sync->estimate_coarse(
-            p_plheader, true /* full PLHEADER */, frame_info.pls.plsc);
+        new_coarse_est =
+            d_freq_sync->estimate_coarse(p_plheader, true /* full PLHEADER */, frame_info.pls.plsc);
         frame_info.coarse_corrected = d_freq_sync->is_coarse_corrected();
     }
 
@@ -621,8 +608,7 @@ void plsync_cc_impl::handle_plheader(uint64_t abs_sof_idx,
      * correction. The dummy frames are too short, so there is a good chance the
      * correction will arrive late at the rotator message port, i.e., after the rotator
      * has already processed the corresponding index, which we should avoid. */
-    if (d_locked && !frame_info.coarse_corrected && new_coarse_est &&
-        !frame_info.pls.dummy_frame) {
+    if (d_locked && !frame_info.coarse_corrected && new_coarse_est && !frame_info.pls.dummy_frame) {
         control_rotator_freq(abs_sof_idx,
                              frame_info.pls.plframe_len,
                              frame_info.coarse_foffset,
@@ -634,8 +620,7 @@ void plsync_cc_impl::handle_plheader(uint64_t abs_sof_idx,
     memcpy(frame_info.plheader.data(), p_plheader, PLHEADER_LEN * sizeof(gr_complex));
 
     // Estimate also the PLHEADER phase and save for later
-    frame_info.plheader_phase =
-        d_freq_sync->estimate_plheader_phase(p_plheader, frame_info.pls.plsc);
+    frame_info.plheader_phase = d_freq_sync->estimate_plheader_phase(p_plheader, frame_info.pls.plsc);
 }
 
 int plsync_cc_impl::handle_payload(int noutput_items,
@@ -672,11 +657,10 @@ int plsync_cc_impl::handle_payload(int noutput_items,
                                                       frame_info.pls.plsc);
                 new_fine_est = true;
             } else {
-                new_fine_est = d_freq_sync->estimate_fine_pilotless_mode(
-                    frame_info.plheader_phase,
-                    next_frame_info.plheader_phase,
-                    frame_info.pls.plframe_len,
-                    frame_info.coarse_foffset);
+                new_fine_est = d_freq_sync->estimate_fine_pilotless_mode(frame_info.plheader_phase,
+                                                                         next_frame_info.plheader_phase,
+                                                                         frame_info.pls.plframe_len,
+                                                                         frame_info.coarse_foffset);
             }
         }
         frame_info.fine_foffset = new_fine_est ? d_freq_sync->get_fine_foffset() : 0;
@@ -724,8 +708,7 @@ int plsync_cc_impl::handle_payload(int noutput_items,
     // despite the two-frame delay. Meanwhile, the internal layer applies a feed-forward
     // correction (i.e., in open-loop) focusing on the residual frequency offset remaining
     // from the external (delayed) correction over this frame only.
-    const float phase_inc =
-        frame_info.coarse_corrected ? (2.0 * GR_M_PI * frame_info.fine_foffset) : 0;
+    const float phase_inc = frame_info.coarse_corrected ? (2.0 * GR_M_PI * frame_info.fine_foffset) : 0;
     gr_complex expj_phase_inc = gr_expj(-phase_inc);
 
     // Output the phase-corrected and descrambled data symbols.
@@ -767,11 +750,8 @@ int plsync_cc_impl::handle_payload(int noutput_items,
             }
 
             // De-rotate the slot sequence
-            volk_32fc_s32fc_x2_rotator_32fc(out + n_produced,
-                                            p_slot_seq,
-                                            expj_phase_inc,
-                                            &d_phase_corr,
-                                            slot_seq_len);
+            volk_32fc_s32fc_x2_rotator_32fc(
+                out + n_produced, p_slot_seq, expj_phase_inc, &d_phase_corr, slot_seq_len);
 
             n_produced += slot_seq_len;
 
@@ -788,8 +768,7 @@ int plsync_cc_impl::handle_payload(int noutput_items,
         const gr_complex* p_slot_seq = p_descrambled_payload + d_idx.i_in_payload;
 
         // De-rotate the slot sequence
-        volk_32fc_s32fc_x2_rotator_32fc(
-            out, p_slot_seq, expj_phase_inc, &d_phase_corr, slot_seq_len);
+        volk_32fc_s32fc_x2_rotator_32fc(out, p_slot_seq, expj_phase_inc, &d_phase_corr, slot_seq_len);
         n_produced += slot_seq_len;
 
         d_idx.step(slots_to_process, frame_info.pls.has_pilots);
@@ -847,8 +826,7 @@ int plsync_cc_impl::general_work(int noutput_items,
                 // corresponding to the first SOF/PLHEADER symbol. Consider that
                 // the SOF detection happens at the last PLHEADER symbol.
                 const uint64_t abs_sof_idx = nitems_read(0) + i - 89;
-                GR_LOG_DEBUG_LEVEL(
-                    2, "SOF count: {:d}; Index: {:d}", d_sof_cnt, abs_sof_idx);
+                GR_LOG_DEBUG_LEVEL(2, "SOF count: {:d}; Index: {:d}", d_sof_cnt, abs_sof_idx);
 
                 // Cache some information from the last PLFRAME before handling the new
                 // PLHEADER. As soon as the PLHEADER is handled, the PLSC decoder will
@@ -879,8 +857,7 @@ int plsync_cc_impl::general_work(int noutput_items,
                 // this point, and only at this point, the PLHEADER is available inside
                 // the frame synchronizer and can be fetched via the
                 // `frame_sync.get_plheader()` method.
-                handle_plheader(
-                    abs_sof_idx, d_frame_sync->get_plheader(), d_next_frame_info);
+                handle_plheader(abs_sof_idx, d_frame_sync->get_plheader(), d_next_frame_info);
 
                 // If this is the first SOF ever, keep going until the next. We take the
                 // PLFRAME payload as the sequence of symbols between two SOFs. Hence, we
@@ -904,8 +881,7 @@ int plsync_cc_impl::general_work(int noutput_items,
                 // useful to prevent wrong frame detection when it's known a priori that
                 // certain PLS values cannot be found in the input stream.
                 if (!d_pls_enabled[d_curr_frame_info.pls.plsc]) {
-                    GR_LOG_DEBUG_LEVEL(
-                        2, "PLFRAME rejected (PLS={:d})", d_curr_frame_info.pls.plsc);
+                    GR_LOG_DEBUG_LEVEL(2, "PLFRAME rejected (PLS={:d})", d_curr_frame_info.pls.plsc);
                     d_rejected_cnt++;
                     continue;
                 }
@@ -928,12 +904,9 @@ int plsync_cc_impl::general_work(int noutput_items,
                 // follow in the output.
                 if (d_acm_vcm) {
                     // TODO: move into its own lib
-                    using namespace gr::dvbs2;
-                    auto framesize = d_curr_frame_info.pls.short_fecframe
-                                         ? FECFRAME_SHORT
-                                         : FECFRAME_NORMAL;
-                    auto pilots =
-                        d_curr_frame_info.pls.has_pilots ? PILOTS_ON : PILOTS_OFF;
+                    auto framesize =
+                        d_curr_frame_info.pls.short_fecframe ? FECFRAME_SHORT : FECFRAME_NORMAL;
+                    auto pilots = d_curr_frame_info.pls.has_pilots ? PILOTS_ON : PILOTS_OFF;
                     auto root_code = d_gold_code; // TODO: gold_to_root()
                     auto dummy_frame = d_curr_frame_info.pls.dummy_frame;
                     dvbs2_code_rate_t code_rate;
@@ -1012,10 +985,10 @@ int plsync_cc_impl::general_work(int noutput_items,
                     }
 
                     const uint64_t tagoffset = this->nitems_written(0);
-                    const uint64_t tagmodcod =
-                        (uint64_t(root_code) << 32) | (uint64_t(pilots) << 24) |
-                        (uint64_t(constellation) << 16) | (uint64_t(code_rate) << 8) |
-                        (uint64_t(framesize) << 1) | uint64_t(dummy_frame);
+                    const uint64_t tagmodcod = (uint64_t(root_code) << 32) | (uint64_t(pilots) << 24) |
+                                               (uint64_t(constellation) << 16) |
+                                               (uint64_t(code_rate) << 8) | (uint64_t(framesize) << 1) |
+                                               uint64_t(dummy_frame);
                     pmt::pmt_t key = pmt::string_to_symbol("modcod");
                     pmt::pmt_t value = pmt::from_uint64(tagmodcod);
                     this->add_item_tag(0, tagoffset, key, value);
@@ -1025,12 +998,11 @@ int plsync_cc_impl::general_work(int noutput_items,
         }
 
         if (d_payload_state != payload_state_t::searching) {
-            n_produced +=
-                handle_payload((noutput_items - n_produced), // remaining output items
-                               out + n_produced, // pointer to the next output item
-                               d_frame_sync->get_payload(), // buffered frame payload
-                               d_curr_frame_info,
-                               d_next_frame_info);
+            n_produced += handle_payload((noutput_items - n_produced), // remaining output items
+                                         out + n_produced,            // pointer to the next output item
+                                         d_frame_sync->get_payload(), // buffered frame payload
+                                         d_curr_frame_info,
+                                         d_next_frame_info);
             assert(n_produced <= noutput_items);
             full_output = n_produced == noutput_items;
         }

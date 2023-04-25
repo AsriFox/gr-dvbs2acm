@@ -24,8 +24,6 @@
 #include <gnuradio/io_signature.h>
 #include <vector>
 
-using namespace gr::dvbs2;
-
 namespace gr {
 namespace dvbs2acm {
 
@@ -85,7 +83,7 @@ int ldpc_encoder_bb_impl::general_work(int noutput_items,
         auto tagmodcod = pmt::to_uint64(tag.value);
         auto framesize = (dvbs2_framesize_t)((tagmodcod >> 1) & 0x7f);
         auto rate = (dvbs2_code_rate_t)((tagmodcod >> 8) & 0xff);
-        auto params = gr::dvbs2::ldpc_encode_table::select(framesize, rate);
+        auto params = ldpc_encode_table::select(framesize, rate);
         if (params.frame_size + produced > (unsigned)noutput_items) {
             break;
         }

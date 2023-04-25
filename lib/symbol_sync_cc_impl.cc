@@ -23,18 +23,13 @@
 // for interpolation is also a matched filter, so an external filter block is unnecessary.
 #define INTERPOLATOR 4
 
-using namespace gr::dvbs2;
-
 namespace gr {
 namespace dvbs2acm {
 
 using input_type = gr_complex;
 using output_type = gr_complex;
 
-bool greater_than_or_equal(const uint64_t& value, const uint64_t& element)
-{
-    return element >= value;
-}
+bool greater_than_or_equal(const uint64_t& value, const uint64_t& element) { return element >= value; }
 gr_complex linear_interpolator::operator()(const gr_complex* in, int m_k, float mu) const
 {
     assert(m_k >= 0);
@@ -42,8 +37,7 @@ gr_complex linear_interpolator::operator()(const gr_complex* in, int m_k, float 
     return mu * in[m_k + 1] + (1 - mu) * in[m_k];
 }
 
-gr_complex
-quadratic_interpolator::operator()(const gr_complex* in, int m_k, float mu) const
+gr_complex quadratic_interpolator::operator()(const gr_complex* in, int m_k, float mu) const
 {
     assert((m_k - 2) >= 0);
     // Farrow coefficients from Table 8.4.1
@@ -97,8 +91,8 @@ polyphase_interpolator::polyphase_interpolator(float sps,
     // Design an RRC filter with an oversampling factor of "n_subfilt * sps"
     float poly_sps = n_subfilt * sps;
     size_t n_poly_rrc_taps = (2 * poly_sps * rrc_delay) + 1;
-    std::vector<float> rrc_taps = filter::firdes::root_raised_cosine(
-        n_subfilt, poly_sps, 1.0, rolloff, n_poly_rrc_taps);
+    std::vector<float> rrc_taps =
+        filter::firdes::root_raised_cosine(n_subfilt, poly_sps, 1.0, rolloff, n_poly_rrc_taps);
     assert(rrc_taps.size() == n_poly_rrc_taps);
 
     // Zero-pad the filter to a length that is an integer multiple of "n_subfilt"
@@ -126,23 +120,20 @@ polyphase_interpolator::polyphase_interpolator(float sps,
 
     // Sanity checks
     assert(d_rrc_subfilters.size() == d_n_subfilt);
-    assert(std::all_of(d_rrc_subfilters.begin(),
-                       d_rrc_subfilters.end(),
-                       [&](const volk::vector<float>& subfilt) {
-                           return subfilt.size() == d_subfilt_len;
-                       }));
+    assert(std::all_of(
+        d_rrc_subfilters.begin(), d_rrc_subfilters.end(), [&](const volk::vector<float>& subfilt) {
+            return subfilt.size() == d_subfilt_len;
+        }));
     assert(d_subfilt_len % 2 == 1); // odd length (even-symmetric around the peak)
 }
 
-gr_complex
-polyphase_interpolator::operator()(const gr_complex* in, int m_k, double mu) const
+gr_complex polyphase_interpolator::operator()(const gr_complex* in, int m_k, double mu) const
 {
     int idx_subfilt = (int)std::floor(d_n_subfilt * mu);
     const volk::vector<float>& subfilt = d_rrc_subfilters[idx_subfilt];
     assert((m_k + 2 - d_subfilt_len) >= 0);
     gr_complex result;
-    volk_32fc_32f_dot_prod_32fc(
-        &result, &in[m_k + 2 - d_subfilt_len], subfilt.data(), d_subfilt_len);
+    volk_32fc_32f_dot_prod_32fc(&result, &in[m_k + 2 - d_subfilt_len], subfilt.data(), d_subfilt_len);
     return result;
 }
 
@@ -150,7 +141,7 @@ polyphase_interpolator::operator()(const gr_complex* in, int m_k, double mu) con
 symbol_sync_cc::sptr symbol_sync_cc::make(float sps,
                                           float loop_bw,
                                           float damping_factor,
-                                          dvbs2_rolloff_factor_t rolloff,
+                                          float rolloff,
                                           int rrc_delay,
                                           int n_subfilt,
                                           int interp_method)
@@ -194,10 +185,10 @@ void symbol_sync_cc_impl::set_pi_constants(float loop_bw, float damping_factor)
     float theta_n = Bn_T / (damping_factor + (1.0 / (4 * damping_factor)));
 
     // Eq. C.56:
-    float Kp_K0_K1 = (4 * damping_factor * theta_n) /
-                     (1 + 2 * damping_factor * theta_n + (theta_n * theta_n));
-    float Kp_K0_K2 = (4 * (theta_n * theta_n)) /
-                     (1 + 2 * damping_factor * theta_n + (theta_n * theta_n));
+    float Kp_K0_K1 =
+        (4 * damping_factor * theta_n) / (1 + 2 * damping_factor * theta_n + (theta_n * theta_n));
+    float Kp_K0_K2 =
+        (4 * (theta_n * theta_n)) / (1 + 2 * damping_factor * theta_n + (theta_n * theta_n));
 
     // Counter gain (analogous to a DDS gain)
     float K0 = -1; // negative because the counter is a decrementing counter
@@ -214,7 +205,7 @@ void symbol_sync_cc_impl::set_pi_constants(float loop_bw, float damping_factor)
 symbol_sync_cc_impl::symbol_sync_cc_impl(float sps,
                                          float loop_bw,
                                          float damping_factor,
-                                         dvbs2_rolloff_factor_t rolloff,
+                                         float rolloff,
                                          int rrc_delay,
                                          int n_subfilt,
                                          int interp_method)
@@ -236,31 +227,7 @@ symbol_sync_cc_impl::symbol_sync_cc_impl(float sps,
       d_interp_method(interp_method),
       d_poly_interp(sps, 0.20, rrc_delay, n_subfilt)
 {
-    float rofactor;
-    switch (rolloff) {
-    case RO_0_05:
-        rofactor = 0.05;
-        break;
-    case RO_0_10:
-        rofactor = 0.10;
-        break;
-    case RO_0_15:
-        rofactor = 0.15;
-        break;
-    case RO_0_20:
-        rofactor = 0.20;
-        break;
-    case RO_0_25:
-        rofactor = 0.25;
-        break;
-    case RO_0_35:
-        rofactor = 0.35;
-        break;
-    case RO_RESERVED:
-        rofactor = 0.0;
-        break;
-    }
-    this->d_poly_interp = polyphase_interpolator(sps, rofactor, rrc_delay, n_subfilt);
+    this->d_poly_interp = polyphase_interpolator(sps, rolloff, rrc_delay, n_subfilt);
 
     if ((ceilf(sps) != sps) || (floorf(sps) != sps) || (static_cast<int>(sps) % 2 != 0) ||
         (sps < 2.0)) {
@@ -309,8 +276,7 @@ symbol_sync_cc_impl::symbol_sync_cc_impl(float sps,
  */
 symbol_sync_cc_impl::~symbol_sync_cc_impl() {}
 
-void symbol_sync_cc_impl::forecast(int noutput_items,
-                                   gr_vector_int& ninput_items_required)
+void symbol_sync_cc_impl::forecast(int noutput_items, gr_vector_int& ninput_items_required)
 {
     ninput_items_required[0] = (d_sps * noutput_items) + d_history;
 }
@@ -436,10 +402,8 @@ std::pair<int, int> symbol_sync_cc_impl::loop(const gr_complex* in,
     return std::make_pair(n, k);
 }
 
-std::pair<int, int> symbol_sync_cc_impl::loop(const gr_complex* in,
-                                              gr_complex* out,
-                                              int ninput_items,
-                                              int noutput_items)
+std::pair<int, int>
+symbol_sync_cc_impl::loop(const gr_complex* in, gr_complex* out, int ninput_items, int noutput_items)
 {
     switch (d_interp_method) {
     case 0:
@@ -505,15 +469,14 @@ int symbol_sync_cc_impl::general_work(int noutput_items,
     // of the basepoint index, the interpolant is more strongly influenced by the sample
     // at "m_k + 1 - D" for mu < 0.5, and "m_k + 2 - D" for mu > 0.5. Again, as for the
     // other interpolation methods, assume the case of mu < 0.5 for simplicity.
-    unsigned int strobe_offset = (d_interp_method == 0)
-                                     ? (d_history + d_poly_interp.get_subfilt_delay() - 1)
-                                     : d_history;
+    unsigned int strobe_offset =
+        (d_interp_method == 0) ? (d_history + d_poly_interp.get_subfilt_delay() - 1) : d_history;
     for (auto& tag : tags) {
         uint64_t target_strobe_idx = tag.offset - n_read + strobe_offset;
         // Find the first strobe index past or equal the target
         const auto last = d_strobe_idx.begin() + k;
-        const auto it = std::upper_bound(
-            d_strobe_idx.begin(), last, target_strobe_idx, greater_than_or_equal);
+        const auto it =
+            std::upper_bound(d_strobe_idx.begin(), last, target_strobe_idx, greater_than_or_equal);
 
         if (it != last) {
             tag.offset = n_written + (it - d_strobe_idx.begin());

@@ -4,15 +4,18 @@ category: '[DVB]/DVB-S2 ACM/Receiver'
 
 parameters:
 - id: debug_level
-  label: Debug Level
+  label: Debug_level
+  default: ' 0'
   dtype: int
-  default: 0
 
-- domain: stream
+inputs:
+- label: in
+  domain: stream
   dtype: byte
 
 outputs:
-- domain: stream
+- label: out
+  domain: stream
   dtype: byte
 
 templates:

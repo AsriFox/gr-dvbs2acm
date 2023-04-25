@@ -42,8 +42,8 @@ private:
     int (*decode)(void*, int8_t*, int);
 
 public:
-    ldpc_decoder_cb_impl(gr::dvbs2::dvbs2_outputmode_t outputmode,
-                         gr::dvbs2::dvbs2_infomode_t infomode,
+    ldpc_decoder_cb_impl(dvbs2_outputmode_t outputmode,
+                         dvbs2_infomode_t infomode,
                          int max_trials,
                          int debug_level);
     ~ldpc_decoder_cb_impl();

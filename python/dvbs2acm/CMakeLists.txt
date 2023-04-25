@@ -10,6 +10,7 @@
 # Include python install macros
 ########################################################################
 include(GrPython)
+include(GrPythonLocal)
 if(NOT PYTHONINTERP_FOUND)
     return()
 endif()

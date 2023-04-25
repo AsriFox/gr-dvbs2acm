@@ -34,10 +34,10 @@ private:
     unsigned int kbch;
     unsigned int count;
     unsigned char crc;
-    gr::dvbs2::dvbs2_framesize_t framesize;
-    gr::dvbs2::dvbs2_code_rate_t code_rate;
-    gr::dvbs2::dvbs2_constellation_t constellation;
-    gr::dvbs2::dvbs2_pilots_t pilots;
+    dvbs2_framesize_t framesize;
+    dvbs2_code_rate_t code_rate;
+    dvbs2_constellation_t constellation;
+    dvbs2_pilots_t pilots;
     unsigned int root_code;
     unsigned char bsave;
 
@@ -53,11 +53,11 @@ private:
     int add_crc8_bits(unsigned char*, int);
 
 public:
-    bbheader_bb_impl(gr::dvbs2::dvbs2_framesize_t framesize,
-                     gr::dvbs2::dvbs2_code_rate_t code_rate,
-                     gr::dvbs2::dvbs2_constellation_t constellation,
-                     gr::dvbs2::dvbs2_pilots_t pilots,
-                     gr::dvbs2::dvbs2_rolloff_factor_t rolloff,
+    bbheader_bb_impl(dvbs2_framesize_t framesize,
+                     dvbs2_code_rate_t code_rate,
+                     dvbs2_constellation_t constellation,
+                     dvbs2_pilots_t pilots,
+                     dvbs2_rolloff_factor_t rolloff,
                      int goldcode);
     ~bbheader_bb_impl();
 

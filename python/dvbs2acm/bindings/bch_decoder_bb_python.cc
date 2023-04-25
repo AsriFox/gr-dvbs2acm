@@ -14,7 +14,7 @@
 /* BINDTOOL_GEN_AUTOMATIC(0)                                                       */
 /* BINDTOOL_USE_PYGCCXML(0)                                                        */
 /* BINDTOOL_HEADER_FILE(bch_decoder_bb.h)                                        */
-/* BINDTOOL_HEADER_FILE_HASH(81ed8d54d6bcbbd254f5c9f19b9e1766)                     */
+/* BINDTOOL_HEADER_FILE_HASH(852359666aee086aa42f042aa8996348)                     */
 /***********************************************************************************/
 
 #include <pybind11/complex.h>
@@ -30,44 +30,17 @@ namespace py = pybind11;
 void bind_bch_decoder_bb(py::module& m)
 {
 
-    using bch_decoder_bb    = ::gr::dvbs2acm::bch_decoder_bb;
+    using bch_decoder_bb = gr::dvbs2acm::bch_decoder_bb;
 
 
-    py::class_<bch_decoder_bb, gr::block, gr::basic_block,
-        std::shared_ptr<bch_decoder_bb>>(m, "bch_decoder_bb", D(bch_decoder_bb))
+    py::class_<bch_decoder_bb, gr::block, gr::basic_block, std::shared_ptr<bch_decoder_bb>>(
+        m, "bch_decoder_bb", D(bch_decoder_bb))
 
         .def(py::init(&bch_decoder_bb::make),
-           py::arg("outputmode"),
-           py::arg("debug_level") = 0,
-           D(bch_decoder_bb,make)
-        )
-        
+             py::arg("outputmode"),
+             py::arg("debug_level") = 0,
+             D(bch_decoder_bb, make))
 
-
-
-
-        
-        .def("get_frame_count",&bch_decoder_bb::get_frame_count,       
-            D(bch_decoder_bb,get_frame_count)
-        )
-
-
-        
-        .def("get_error_count",&bch_decoder_bb::get_error_count,       
-            D(bch_decoder_bb,get_error_count)
-        )
 
         ;
-
-
-
-
 }
-
-
-
-
-
-
-
-

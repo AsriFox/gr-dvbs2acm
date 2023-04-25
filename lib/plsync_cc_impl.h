@@ -17,6 +17,7 @@
 #include "plsync/pl_signaling.h"
 #include <gnuradio/dvbs2acm/plsync_cc.h>
 #include <volk/volk_alloc.hh>
+#include <array>
 #include <queue>
 
 namespace gr {
@@ -42,11 +43,10 @@ struct rot_ctrl_t {
     uint64_t last_tag_search_end = 0; /** Ending index from the previous tag search */
     // NOTE: tag_search_start is used on the processing search (via calibrate_tag_delay),
     // while last_tag_search_end is used on the tag-copying search (via handle_tags).
-    rot_state_t past;            /** Frequency state at the past PLFRAME */
-    rot_state_t current;         /** Frequency state at the current PLFRAME */
-    std::queue<tag_t> tag_queue; /** Queue of rot_phase_inc tags */
-    std::map<uint64_t, rot_phase_adj_t>
-        update_map; /** Map of scheduled phase increment updates */
+    rot_state_t past;                               /** Frequency state at the past PLFRAME */
+    rot_state_t current;                            /** Frequency state at the current PLFRAME */
+    std::queue<tag_t> tag_queue;                    /** Queue of rot_phase_inc tags */
+    std::map<uint64_t, rot_phase_adj_t> update_map; /** Map of scheduled phase increment updates */
 };
 
 /** @brief Index tracking for various segments of a PLFRAME */
@@ -91,13 +91,13 @@ private:
      * can control the external rotator phase properly */
     bool d_acm_vcm;                                      /**< ACM/VCM mode */
     std::array<uint8_t, n_plsc_codewords> d_pls_enabled; /** PLSs to process */
-    bool d_plsc_decoder_enabled; /**< Whether the PLSC decoder is enabled */
+    bool d_plsc_decoder_enabled;                         /**< Whether the PLSC decoder is enabled */
 
     /* State */
-    bool d_locked;      /**< Whether the frame timing is locked */
-    bool d_closed_loop; /**< Whether any freq. correction has been applied to the
-                           external rotator. False while still waiting for the first
-                           correction (i.e., while effectively in open loop) */
+    bool d_locked;                   /**< Whether the frame timing is locked */
+    bool d_closed_loop;              /**< Whether any freq. correction has been applied to the
+                                        external rotator. False while still waiting for the first
+                                        correction (i.e., while effectively in open loop) */
     payload_state_t d_payload_state; /**< Payload processing state machine */
     rot_ctrl_t d_rot_ctrl;           /**< Upstream rotator control */
     plframe_idx_t d_idx;             /**< PLFRAME index state */
@@ -233,9 +233,8 @@ private:
      *                   the PLHEADER is decoded.
      * @return Void.
      */
-    void handle_plheader(uint64_t abs_sof_idx,
-                         const gr_complex* p_plheader,
-                         plframe_info_t& frame_info);
+    void
+    handle_plheader(uint64_t abs_sof_idx, const gr_complex* p_plheader, plframe_info_t& frame_info);
 
     /**
      * @brief Process a PLFRAME payload (data and pilot symbols).
@@ -295,10 +294,7 @@ public:
     uint64_t get_frame_count() { return d_frame_cnt; }
     uint64_t get_rejected_count() { return d_rejected_cnt; }
     uint64_t get_dummy_count() { return d_dummy_cnt; }
-    std::chrono::system_clock::time_point get_lock_time()
-    {
-        return d_frame_sync->get_lock_time();
-    };
+    std::chrono::system_clock::time_point get_lock_time() { return d_frame_sync->get_lock_time(); };
 };
 
 } // namespace dvbs2acm

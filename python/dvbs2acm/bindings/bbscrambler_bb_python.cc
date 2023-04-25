@@ -30,30 +30,14 @@ namespace py = pybind11;
 void bind_bbscrambler_bb(py::module& m)
 {
 
-    using bbscrambler_bb    = ::gr::dvbs2acm::bbscrambler_bb;
+    using bbscrambler_bb = gr::dvbs2acm::bbscrambler_bb;
 
 
-    py::class_<bbscrambler_bb, gr::sync_block, gr::block, gr::basic_block,
-        std::shared_ptr<bbscrambler_bb>>(m, "bbscrambler_bb", D(bbscrambler_bb))
+    py::class_<bbscrambler_bb, gr::block, gr::basic_block, std::shared_ptr<bbscrambler_bb>>(
+        m, "bbscrambler_bb", D(bbscrambler_bb))
 
-        .def(py::init(&bbscrambler_bb::make),
-           D(bbscrambler_bb,make)
-        )
-        
-
+        .def(py::init(&bbscrambler_bb::make), D(bbscrambler_bb, make))
 
 
         ;
-
-
-
-
 }
-
-
-
-
-
-
-
-

@@ -25,18 +25,13 @@
 #include <cstdint>
 #include <vector>
 
-using namespace gr::dvbs2;
-
 namespace gr {
 namespace dvbs2acm {
 
 using input_type = unsigned char;
 using output_type = unsigned char;
 
-interleaver_bb::sptr interleaver_bb::make()
-{
-    return gnuradio::make_block_sptr<interleaver_bb_impl>();
-}
+interleaver_bb::sptr interleaver_bb::make() { return gnuradio::make_block_sptr<interleaver_bb_impl>(); }
 
 
 /*
@@ -56,15 +51,14 @@ interleaver_bb_impl::interleaver_bb_impl()
  */
 interleaver_bb_impl::~interleaver_bb_impl() {}
 
-void interleaver_bb_impl::forecast(int noutput_items,
-                                   gr_vector_int& ninput_items_required)
+void interleaver_bb_impl::forecast(int noutput_items, gr_vector_int& ninput_items_required)
 {
     ninput_items_required[0] = noutput_items * 5;
 }
 
-void interleaver_bb_impl::get_rows(gr::dvbs2::dvbs2_framesize_t framesize,
-                                   gr::dvbs2::dvbs2_code_rate_t rate,
-                                   gr::dvbs2::dvbs2_constellation_t constellation,
+void interleaver_bb_impl::get_rows(dvbs2_framesize_t framesize,
+                                   dvbs2_code_rate_t rate,
+                                   dvbs2_constellation_t constellation,
                                    int& frame_size,
                                    int& mod_order)
 {
@@ -329,8 +323,7 @@ int interleaver_bb_impl::general_work(int noutput_items,
     const uint64_t nread = this->nitems_read(0);
 
     // Read all tags on the input buffer
-    this->get_tags_in_range(
-        tags, 0, nread, nread + noutput_items, pmt::string_to_symbol("modcod"));
+    this->get_tags_in_range(tags, 0, nread, nread + noutput_items, pmt::string_to_symbol("modcod"));
 
     for (tag_t tag : tags) {
         const uint64_t tagmodcod = pmt::to_uint64(tag.value);
@@ -343,8 +336,7 @@ int interleaver_bb_impl::general_work(int noutput_items,
             break;
         }
         const uint64_t tagoffset = this->nitems_written(0);
-        this->add_item_tag(
-            0, tagoffset, pmt::string_to_symbol("modcod"), pmt::from_uint64(tagmodcod));
+        this->add_item_tag(0, tagoffset, pmt::string_to_symbol("modcod"), pmt::from_uint64(tagmodcod));
 
         produced_per_iteration = 0;
         switch (constellation) {
@@ -379,8 +371,7 @@ int interleaver_bb_impl::general_work(int noutput_items,
             c[2] = &in[consumed + rowaddr[2]];
             c[3] = &in[consumed + rowaddr[3]];
             for (int j = 0; j < rows; j++) {
-                out[produced++] =
-                    (c[0][j] << 3) | (c[1][j] << 2) | (c[2][j] << 1) | (c[3][j]);
+                out[produced++] = (c[0][j] << 3) | (c[1][j] << 2) | (c[2][j] << 1) | (c[3][j]);
                 produced_per_iteration++;
                 consumed += 4;
             }
@@ -394,8 +385,8 @@ int interleaver_bb_impl::general_work(int noutput_items,
             c[3] = &in[consumed + rowaddr[3]];
             c[4] = &in[consumed + rowaddr[4]];
             for (int j = 0; j < rows; j++) {
-                out[produced++] = (c[0][j] << 4) | (c[1][j] << 3) | (c[2][j] << 2) |
-                                  (c[3][j] << 1) | (c[4][j]);
+                out[produced++] =
+                    (c[0][j] << 4) | (c[1][j] << 3) | (c[2][j] << 2) | (c[3][j] << 1) | (c[4][j]);
                 produced_per_iteration++;
                 consumed += 5;
             }

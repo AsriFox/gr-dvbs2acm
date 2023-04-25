@@ -30,43 +30,14 @@ namespace py = pybind11;
 void bind_bbdeheader_bb(py::module& m)
 {
 
-    using bbdeheader_bb    = ::gr::dvbs2acm::bbdeheader_bb;
+    using bbdeheader_bb = gr::dvbs2acm::bbdeheader_bb;
 
 
-    py::class_<bbdeheader_bb, gr::block, gr::basic_block,
-        std::shared_ptr<bbdeheader_bb>>(m, "bbdeheader_bb", D(bbdeheader_bb))
+    py::class_<bbdeheader_bb, gr::block, gr::basic_block, std::shared_ptr<bbdeheader_bb>>(
+        m, "bbdeheader_bb", D(bbdeheader_bb))
 
-        .def(py::init(&bbdeheader_bb::make),
-           py::arg("debug_level") = 0,
-           D(bbdeheader_bb,make)
-        )
-        
+        .def(py::init(&bbdeheader_bb::make), py::arg("debug_level") = 0, D(bbdeheader_bb, make))
 
-
-
-
-        
-        .def("get_packet_count",&bbdeheader_bb::get_packet_count,       
-            D(bbdeheader_bb,get_packet_count)
-        )
-
-
-        
-        .def("get_error_count",&bbdeheader_bb::get_error_count,       
-            D(bbdeheader_bb,get_error_count)
-        )
 
         ;
-
-
-
-
 }
-
-
-
-
-
-
-
-

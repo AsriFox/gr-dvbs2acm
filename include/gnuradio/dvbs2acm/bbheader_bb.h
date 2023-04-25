@@ -39,11 +39,11 @@ public:
      * \param rolloff DVB-S2 root-raised-cosine filter roll-off factor.
      * \param goldcode PL scrambler Gold code (0 to 262141 inclusive).
      */
-    static sptr make(gr::dvbs2::dvbs2_framesize_t framesize = gr::dvbs2::FECFRAME_NORMAL,
-                     gr::dvbs2::dvbs2_code_rate_t code_rate = gr::dvbs2::C1_4,
-                     gr::dvbs2::dvbs2_constellation_t constellation = gr::dvbs2::MOD_QPSK,
-                     gr::dvbs2::dvbs2_pilots_t pilots = gr::dvbs2::PILOTS_ON,
-                     gr::dvbs2::dvbs2_rolloff_factor_t rolloff = gr::dvbs2::RO_0_20,
+    static sptr make(dvbs2_framesize_t framesize = FECFRAME_NORMAL,
+                     dvbs2_code_rate_t code_rate = C1_4,
+                     dvbs2_constellation_t constellation = MOD_QPSK,
+                     dvbs2_pilots_t pilots = PILOTS_ON,
+                     dvbs2_rolloff_factor_t rolloff = RO_0_20,
                      int goldcode = 0);
 };
 

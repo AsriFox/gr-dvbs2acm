@@ -81,19 +81,19 @@ private:
 class symbol_sync_cc_impl : public symbol_sync_cc
 {
 private:
-    int d_sps;             /**< Samples per symbol (oversampling ratio) */
-    int d_midpoint;        /**< Midpoint index between interpolants */
-    unsigned d_history;    /**< History of samples in the input buffer */
-    float d_K1;            /**< PI filter's proportional constant */
-    float d_K2;            /**< PI filter's integrator constant */
-    float d_Kp;            /**< Gardner TED gain */
-    double d_vi;           /**< Last integrator value */
-    double d_nominal_step; /**< Nominal mod-1 counter step (equal to "1/d_sps") */
-    double d_cnt;          /**< Modulo-1 counter */
-    double d_mu;           /**< Fractional symbol timing offset estimate */
-    int d_jump;            /**< Samples to jump until the next strobe */
-    bool d_init;           /**< Whether the loop is initialized (after the first work) */
-    gr_complex d_last_xi;  /**< Last output interpolant */
+    int d_sps;                         /**< Samples per symbol (oversampling ratio) */
+    int d_midpoint;                    /**< Midpoint index between interpolants */
+    unsigned d_history;                /**< History of samples in the input buffer */
+    float d_K1;                        /**< PI filter's proportional constant */
+    float d_K2;                        /**< PI filter's integrator constant */
+    float d_Kp;                        /**< Gardner TED gain */
+    double d_vi;                       /**< Last integrator value */
+    double d_nominal_step;             /**< Nominal mod-1 counter step (equal to "1/d_sps") */
+    double d_cnt;                      /**< Modulo-1 counter */
+    double d_mu;                       /**< Fractional symbol timing offset estimate */
+    int d_jump;                        /**< Samples to jump until the next strobe */
+    bool d_init;                       /**< Whether the loop is initialized (after the first work) */
+    gr_complex d_last_xi;              /**< Last output interpolant */
     std::vector<int> d_strobe_idx;     /**< Indexes of the output interpolants */
     std::vector<tag_t> d_pending_tags; /**< Pending tags from the previous work */
 
@@ -118,7 +118,7 @@ public:
     symbol_sync_cc_impl(float sps,
                         float loop_bw,
                         float damping_factor,
-                        gr::dvbs2::dvbs2_rolloff_factor_t rolloff,
+                        float rolloff,
                         int rrc_delay,
                         int n_subfilt,
                         int interp_method);

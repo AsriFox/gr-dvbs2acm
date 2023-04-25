@@ -89,6 +89,6 @@ public:
     }
 };
 
-LDPCInterface* build_decoder(gr::dvbs2::dvbs2_framesize_t, gr::dvbs2::dvbs2_code_rate_t);
+LDPCInterface* build_decoder(gr::dvbs2acm::dvbs2_framesize_t, gr::dvbs2acm::dvbs2_code_rate_t);
 
 #endif

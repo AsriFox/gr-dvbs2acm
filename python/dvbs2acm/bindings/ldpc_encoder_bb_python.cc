@@ -30,30 +30,14 @@ namespace py = pybind11;
 void bind_ldpc_encoder_bb(py::module& m)
 {
 
-    using ldpc_encoder_bb    = ::gr::dvbs2acm::ldpc_encoder_bb;
+    using ldpc_encoder_bb = gr::dvbs2acm::ldpc_encoder_bb;
 
 
-    py::class_<ldpc_encoder_bb, gr::block, gr::basic_block,
-        std::shared_ptr<ldpc_encoder_bb>>(m, "ldpc_encoder_bb", D(ldpc_encoder_bb))
+    py::class_<ldpc_encoder_bb, gr::block, gr::basic_block, std::shared_ptr<ldpc_encoder_bb>>(
+        m, "ldpc_encoder_bb", D(ldpc_encoder_bb))
 
-        .def(py::init(&ldpc_encoder_bb::make),
-           D(ldpc_encoder_bb,make)
-        )
-        
-
+        .def(py::init(&ldpc_encoder_bb::make), D(ldpc_encoder_bb, make))
 
 
         ;
-
-
-
-
 }
-
-
-
-
-
-
-
-

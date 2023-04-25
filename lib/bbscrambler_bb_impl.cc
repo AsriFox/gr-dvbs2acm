@@ -24,8 +24,6 @@
 #include <gnuradio/io_signature.h>
 #include <pmt/pmt.h>
 
-using namespace gr::dvbs2;
-
 namespace gr {
 namespace dvbs2acm {
 using input_type = unsigned char;

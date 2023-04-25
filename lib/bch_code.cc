@@ -1,7 +1,8 @@
 #include "bch_code.h"
 #include <cstring>
 
-using namespace gr::dvbs2;
+namespace gr {
+namespace dvbs2acm {
 
 /*
  * Polynomial calculation routines
@@ -63,7 +64,8 @@ void poly_reverse(int* pin, int* pout, int len)
     }
 }
 
-bch_code::bch_code(unsigned int kbch, unsigned int nbch, unsigned int code) : kbch(kbch), nbch(nbch), code(code)
+bch_code::bch_code(unsigned int kbch, unsigned int nbch, unsigned int code)
+    : kbch(kbch), nbch(nbch), code(code)
 {
     // Normal polynomials
     const int polyn01[] = { 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 };
@@ -384,3 +386,6 @@ const bch_code bch_code::bch_code_3_4S = { 11712, 11880, BCH_CODE_S12 };
 const bch_code bch_code::bch_code_4_5S = { 12432, 12600, BCH_CODE_S12 };
 const bch_code bch_code::bch_code_5_6S = { 13152, 13320, BCH_CODE_S12 };
 const bch_code bch_code::bch_code_8_9S = { 14232, 14400, BCH_CODE_S12 };
+
+} // namespace dvbs2acm
+} // namespace gr

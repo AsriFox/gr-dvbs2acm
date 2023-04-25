@@ -30,30 +30,14 @@ namespace py = pybind11;
 void bind_modulator_bc(py::module& m)
 {
 
-    using modulator_bc    = ::gr::dvbs2acm::modulator_bc;
+    using modulator_bc = gr::dvbs2acm::modulator_bc;
 
 
-    py::class_<modulator_bc, gr::block, gr::basic_block,
-        std::shared_ptr<modulator_bc>>(m, "modulator_bc", D(modulator_bc))
+    py::class_<modulator_bc, gr::block, gr::basic_block, std::shared_ptr<modulator_bc>>(
+        m, "modulator_bc", D(modulator_bc))
 
-        .def(py::init(&modulator_bc::make),
-           D(modulator_bc,make)
-        )
-        
-
+        .def(py::init(&modulator_bc::make), D(modulator_bc, make))
 
 
         ;
-
-
-
-
 }
-
-
-
-
-
-
-
-

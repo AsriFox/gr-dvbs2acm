@@ -17,12 +17,8 @@ parameters:
   default: 1.0
 - id: rolloff
   label: Rolloff factor
-  dtype: enum
-  options: [RO_0_35, RO_0_25, RO_0_20, RO_0_15, RO_0_10, RO_0_05]
-  option_labels: ['0.35', '0.25', '0.20', '0.15', '0.10', '0.05']
-  option_attributes:
-      val: [dvbs2.RO_0_35, dvbs2.RO_0_25, dvbs2.RO_0_20, dvbs2.RO_0_15, dvbs2.RO_0_10,
-          dvbs2.RO_0_05]
+  dtype: float
+  default: 0.2
 - id: rrc_delay
   label: RRC Filter Delay
   dtype: int
@@ -56,6 +52,6 @@ outputs:
 
 templates:
   imports: from gnuradio import dvbs2acm
-  make: dvbs2acm.symbol_sync_cc(${sps}, ${loop_bw}, ${damping_factor}, ${rolloff.val}, ${rrc_delay}, ${n_subfilt}, ${interp_method})
+  make: dvbs2acm.symbol_sync_cc(${sps}, ${loop_bw}, ${damping_factor}, ${rolloff}, ${rrc_delay}, ${n_subfilt}, ${interp_method})
 
 file_format: 1

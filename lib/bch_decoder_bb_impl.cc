@@ -16,8 +16,6 @@
 #include <functional>
 #include <vector>
 
-using namespace gr::dvbs2;
-
 namespace gr {
 namespace dvbs2acm {
 

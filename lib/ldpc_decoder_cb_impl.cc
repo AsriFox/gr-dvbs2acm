@@ -53,8 +53,6 @@ void ldpc_dec_init(LDPCInterface* it);
 int ldpc_dec_decode(void* buffer, int8_t* code, int trials);
 } // namespace ldpc_generic
 
-using namespace gr::dvbs2;
-
 namespace gr {
 namespace dvbs2acm {
 

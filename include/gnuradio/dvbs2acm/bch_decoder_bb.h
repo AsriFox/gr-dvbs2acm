@@ -36,7 +36,7 @@ public:
      * class. dvbs2acm::bch_decoder_bb::make is the public interface for
      * creating new instances.
      */
-    static sptr make(gr::dvbs2::dvbs2_outputmode_t outputmode, int debug_level = 0);
+    static sptr make(dvbs2_outputmode_t outputmode, int debug_level = 0);
 
     /*!
      * \brief Get count of processed FECFRAMEs.

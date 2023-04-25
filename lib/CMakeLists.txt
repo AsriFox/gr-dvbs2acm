@@ -52,6 +52,13 @@ target_include_directories(gnuradio-dvbs2acm
   )
 set_target_properties(gnuradio-dvbs2acm PROPERTIES DEFINE_SYMBOL "gnuradio_dvbs2acm_EXPORTS")
 
+option(NATIVE_OPTIMIZATIONS "Optimize build for the local machine" ON)
+if (NATIVE_OPTIMIZATIONS)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -Wall")
+else()
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+endif()
+
 if(APPLE)
     set_target_properties(gnuradio-dvbs2acm PROPERTIES
         INSTALL_NAME_DIR "${CMAKE_INSTALL_PREFIX}/lib"

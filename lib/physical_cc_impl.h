@@ -45,10 +45,10 @@ private:
     void pl_header_encode(unsigned char, unsigned char, int*);
     inline int parity_chk(int, int);
     inline int symbol_scrambler(void);
-    void get_slots(gr::dvbs2::dvbs2_framesize_t,
-                   gr::dvbs2::dvbs2_code_rate_t,
-                   gr::dvbs2::dvbs2_constellation_t,
-                   gr::dvbs2::dvbs2_pilots_t,
+    void get_slots(dvbs2_framesize_t,
+                   dvbs2_code_rate_t,
+                   dvbs2_constellation_t,
+                   dvbs2_pilots_t,
                    int,
                    int&,
                    int&,
@@ -61,7 +61,7 @@ private:
     const static int ph_vlsnr_seq[16][VLSNR_HEADER_LENGTH - 4];
 
 public:
-    physical_cc_impl(gr::dvbs2::dvbs2_dummy_frames_t dummyframes);
+    physical_cc_impl(dvbs2_dummy_frames_t dummyframes);
     ~physical_cc_impl();
 
     // Where all the action really happens

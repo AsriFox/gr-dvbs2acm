@@ -47,7 +47,7 @@ public:
      * \param sps (float) Oversampling ratio.
      * \param loop_bw (float) Loop bandwidth.
      * \param damping_factor (float) Damping factor.
-     * \param rolloff (enum) DVB-S2 root-raised-cosine filter roll-off factor.
+     * \param rolloff (float) DVB-S2 root-raised-cosine filter roll-off factor.
      * \param rrc_delay (int) Target root raised cosine (RRC) filter delay in symbol
      * periods when using a polyphase interpolator (with interp_method=0). Ignored if
      * using another interpolation method.
@@ -73,7 +73,7 @@ public:
     static sptr make(float sps,
                      float loop_bw,
                      float damping_factor,
-                     gr::dvbs2::dvbs2_rolloff_factor_t rolloff,
+                     float rolloff,
                      int rrc_delay = 5,
                      int n_subfilt = 128,
                      int interp_method = 0);

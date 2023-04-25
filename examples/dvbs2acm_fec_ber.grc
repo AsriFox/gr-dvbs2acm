@@ -230,7 +230,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [352, 348.0]
+    coordinate: [352, 344.0]
     rotation: 0
     state: true
 - name: analog_fastnoise_source_x_0
@@ -269,7 +269,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [8, 148.0]
+    coordinate: [8, 144.0]
     rotation: 0
     state: true
 - name: bitrate
@@ -320,7 +320,26 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [536, 628.0]
+    coordinate: [536, 640.0]
+    rotation: 0
+    state: true
+- name: blocks_throttle_0
+  id: blocks_throttle
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    ignoretag: 'True'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    samples_per_second: bitrate
+    type: byte
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [256, 120.0]
     rotation: 0
     state: true
 - name: blocks_unpack_k_bits_bb_0
@@ -336,7 +355,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [224, 164.0]
+    coordinate: [232, 160.0]
     rotation: 0
     state: true
 - name: debug
@@ -356,49 +375,20 @@ blocks:
     coordinate: [1216, 300.0]
     rotation: 0
     state: true
-- name: dvbs2_bbheader_bb_0
-  id: dvbs2_bbheader_bb
+- name: dvbs2acm_bbdeheader_bb_0
+  id: dvbs2acm_bbdeheader_bb
   parameters:
     affinity: ''
     alias: ''
     comment: ''
-    constellation1: MOD_QPSK
-    constellation2: MOD_QPSK
-    constellation3: MOD_QPSK
-    constellation4: MOD_QPSK
-    framesize1: FECFRAME_NORMAL
-    framesize2: FECFRAME_NORMAL
-    framesize3: FECFRAME_NORMAL
-    framesize4: FECFRAME_NORMAL
-    goldcode1: '0'
-    goldcode2: '0'
-    goldcode3: '0'
-    goldcode4: '0'
+    debug_level: ' 0'
     maxoutbuf: '0'
     minoutbuf: '0'
-    nstreams: '1'
-    pilots1: PILOTS_OFF
-    pilots2: PILOTS_OFF
-    pilots3: PILOTS_OFF
-    pilots4: PILOTS_OFF
-    rate1_1: C1_4
-    rate1_2: C1_5_MEDIUM
-    rate1_3: C1_4
-    rate2_1: C1_4
-    rate2_2: C1_5_MEDIUM
-    rate2_3: C1_4
-    rate3_1: C1_4
-    rate3_2: C1_5_MEDIUM
-    rate3_3: C1_4
-    rate4_1: C1_4
-    rate4_2: C1_5_MEDIUM
-    rate4_3: C1_4
-    rolloff: RO_0_35
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [376, 124.0]
+    coordinate: [360, 640.0]
     rotation: 0
     state: true
 - name: dvbs2acm_bbdescrambler_bb_0
@@ -413,7 +403,30 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [168, 632.0]
+    coordinate: [168, 648.0]
+    rotation: 0
+    state: true
+- name: dvbs2acm_bbheader_bb_0
+  id: dvbs2acm_bbheader_bb
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    constellation: MOD_QPSK
+    framesize: FECFRAME_NORMAL
+    goldcode: '0'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    pilots: PILOTS_OFF
+    rate_1: C1_4
+    rate_2: C1_5_MEDIUM
+    rate_3: C1_4
+    rolloff: RO_0_35
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [416, 80.0]
     rotation: 0
     state: true
 - name: dvbs2acm_bbscrambler_bb_0
@@ -595,7 +608,7 @@ blocks:
     maxoutbuf: '0'
     minoutbuf: '0'
     n_subfilt: '128'
-    rolloff: RO_0_35
+    rolloff: rolloff
     rrc_delay: '5'
     sps: '2'
   states:
@@ -603,24 +616,6 @@ blocks:
     bus_source: false
     bus_structure: null
     coordinate: [712, 356.0]
-    rotation: 0
-    state: true
-- name: dvbs2acm_bbdeheader_bb_0
-  id: dvbs2acm_bbdeheader_bb
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    framesize: ''
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    rate: ''
-    standard: ''
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [376, 612.0]
     rotation: 0
     state: true
 - name: fec_ber_bf_0
@@ -797,7 +792,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [24, 364.0]
+    coordinate: [40, 360.0]
     rotation: 180
     state: true
 - name: qtgui_number_sink_0
@@ -920,7 +915,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [720, 628.0]
+    coordinate: [720, 640.0]
     rotation: 0
     state: enabled
 - name: virtual_source_0
@@ -958,9 +953,11 @@ connections:
 - [blocks_add_xx_0, '0', analog_agc_xx_0, '0']
 - [blocks_add_xx_0, '0', qtgui_const_sink_x_0, '0']
 - [blocks_pack_k_bits_bb_0, '0', virtual_sink_0_0, '0']
-- [blocks_unpack_k_bits_bb_0, '0', dvbs2_bbheader_bb_0, '0']
-- [dvbs2_bbheader_bb_0, '0', dvbs2acm_bbscrambler_bb_0, '0']
+- [blocks_throttle_0, '0', dvbs2acm_bbheader_bb_0, '0']
+- [blocks_unpack_k_bits_bb_0, '0', blocks_throttle_0, '0']
+- [dvbs2acm_bbdeheader_bb_0, '0', blocks_pack_k_bits_bb_0, '0']
 - [dvbs2acm_bbdescrambler_bb_0, '0', dvbs2acm_bbdeheader_bb_0, '0']
+- [dvbs2acm_bbheader_bb_0, '0', dvbs2acm_bbscrambler_bb_0, '0']
 - [dvbs2acm_bbscrambler_bb_0, '0', dvbs2acm_bch_encoder_bb_0, '0']
 - [dvbs2acm_bch_decoder_bb_0, '0', dvbs2acm_bbdescrambler_bb_0, '0']
 - [dvbs2acm_bch_encoder_bb_0, '0', dvbs2acm_ldpc_encoder_bb_0, '0']
@@ -973,7 +970,6 @@ connections:
 - [dvbs2acm_plsync_cc_0, rotator_phase_inc, dvbs2acm_rotator_cc_0, cmd]
 - [dvbs2acm_rotator_cc_0, '0', dvbs2acm_symbol_sync_cc_0, '0']
 - [dvbs2acm_symbol_sync_cc_0, '0', dvbs2acm_plsync_cc_0, '0']
-- [dvbs2acm_bbdeheader_bb_0, '0', blocks_pack_k_bits_bb_0, '0']
 - [fec_ber_bf_0, '0', qtgui_number_sink_0, '0']
 - [fft_filter_xxx_0, '0', blocks_add_xx_0, '1']
 - [virtual_source_0, '0', fec_ber_bf_0, '1']
@@ -981,3 +977,4 @@ connections:
 
 metadata:
   file_format: 1
+  grc_version: 3.10.5.1

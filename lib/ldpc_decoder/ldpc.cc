@@ -2,7 +2,7 @@
 #include "dvb_s2x_tables.hh"
 #include "ldpc.hh"
 
-using namespace gr::dvbs2;
+using namespace gr::dvbs2acm;
 
 constexpr int DVB_S2_TABLE_B1::DEG[];
 constexpr int DVB_S2_TABLE_B1::LEN[];

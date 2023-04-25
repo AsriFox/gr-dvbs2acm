@@ -30,80 +30,23 @@ namespace py = pybind11;
 void bind_plsync_cc(py::module& m)
 {
 
-    using plsync_cc    = ::gr::dvbs2acm::plsync_cc;
+    using plsync_cc = gr::dvbs2acm::plsync_cc;
 
 
-    py::class_<plsync_cc, gr::block, gr::basic_block,
-        std::shared_ptr<plsync_cc>>(m, "plsync_cc", D(plsync_cc))
+    py::class_<plsync_cc, gr::block, gr::basic_block, std::shared_ptr<plsync_cc>>(
+        m, "plsync_cc", D(plsync_cc))
 
         .def(py::init(&plsync_cc::make),
-           py::arg("gold_code"),
-           py::arg("freq_est_period"),
-           py::arg("sps"),
-           py::arg("debug_level"),
-           py::arg("acm_vcm"),
-           py::arg("multistream"),
-           py::arg("pls_filter_lo"),
-           py::arg("pls_filter_hi"),
-           D(plsync_cc,make)
-        )
-        
+             py::arg("gold_code"),
+             py::arg("freq_est_period"),
+             py::arg("sps"),
+             py::arg("debug_level"),
+             py::arg("acm_vcm"),
+             py::arg("multistream"),
+             py::arg("pls_filter_lo"),
+             py::arg("pls_filter_hi"),
+             D(plsync_cc, make))
 
-
-
-
-        
-        .def("get_freq_offset",&plsync_cc::get_freq_offset,       
-            D(plsync_cc,get_freq_offset)
-        )
-
-
-        
-        .def("get_coarse_freq_corr_state",&plsync_cc::get_coarse_freq_corr_state,       
-            D(plsync_cc,get_coarse_freq_corr_state)
-        )
-
-
-        
-        .def("get_locked",&plsync_cc::get_locked,       
-            D(plsync_cc,get_locked)
-        )
-
-
-        
-        .def("get_frame_count",&plsync_cc::get_frame_count,       
-            D(plsync_cc,get_frame_count)
-        )
-
-
-        
-        .def("get_rejected_count",&plsync_cc::get_rejected_count,       
-            D(plsync_cc,get_rejected_count)
-        )
-
-
-        
-        .def("get_dummy_count",&plsync_cc::get_dummy_count,       
-            D(plsync_cc,get_dummy_count)
-        )
-
-
-        
-        .def("get_lock_time",&plsync_cc::get_lock_time,       
-            D(plsync_cc,get_lock_time)
-        )
 
         ;
-
-
-
-
 }
-
-
-
-
-
-
-
-

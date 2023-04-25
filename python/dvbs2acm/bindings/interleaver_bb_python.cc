@@ -30,30 +30,14 @@ namespace py = pybind11;
 void bind_interleaver_bb(py::module& m)
 {
 
-    using interleaver_bb    = ::gr::dvbs2acm::interleaver_bb;
+    using interleaver_bb = gr::dvbs2acm::interleaver_bb;
 
 
-    py::class_<interleaver_bb, gr::block, gr::basic_block,
-        std::shared_ptr<interleaver_bb>>(m, "interleaver_bb", D(interleaver_bb))
+    py::class_<interleaver_bb, gr::block, gr::basic_block, std::shared_ptr<interleaver_bb>>(
+        m, "interleaver_bb", D(interleaver_bb))
 
-        .def(py::init(&interleaver_bb::make),
-           D(interleaver_bb,make)
-        )
-        
-
+        .def(py::init(&interleaver_bb::make), D(interleaver_bb, make))
 
 
         ;
-
-
-
-
 }
-
-
-
-
-
-
-
-

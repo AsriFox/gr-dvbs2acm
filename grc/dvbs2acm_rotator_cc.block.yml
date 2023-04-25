@@ -29,7 +29,7 @@ outputs:
 
 templates:
   imports: from gnuradio import dvbs2acm
-  make: dvbs2acm.rotator_cc(${phase_inc}, ${tag_inc_updates})
+  make: dvbs2acm.rotator_cc(${phase_inc}, ${tag_inc_update})
   callbacks:
   - set_phase_inc(${phase_inc})
 

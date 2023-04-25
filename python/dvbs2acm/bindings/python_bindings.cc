@@ -21,20 +21,21 @@ namespace py = pybind11;
 // Please do not delete
 /**************************************/
 // BINDING_FUNCTION_PROTOTYPES(
-    void bind_dvbs2acm_bbheader_bb(py::module& m);
-    void bind_bbscrambler_bb(py::module& m);
-    void bind_bch_bb(py::module& m);
-    void bind_interleaver_bb(py::module& m);
-    void bind_modulator_bc(py::module& m);
-    void bind_physical_cc(py::module& m);
-    void bind_rotator_cc(py::module& m);
-    void bind_symbol_sync_cc(py::module& m);
-    void bind_plsync_cc(py::module& m);
-    void bind_ldpc_bb(py::module& m);
-    void bind_ldpc_decoder_cb(py::module& m);
-    void bind_bch_decoder_cb(py::module& m);
-    void bind_bbdescrambler_bb(py::module& m);
-    void bind_bbdeheader_bb(py::module& m);
+void bind_bbheader_bb(py::module& m);
+void bind_bbscrambler_bb(py::module& m);
+void bind_bch_encoder_bb(py::module& m);
+void bind_interleaver_bb(py::module& m);
+void bind_modulator_bc(py::module& m);
+void bind_physical_cc(py::module& m);
+void bind_rotator_cc(py::module& m);
+void bind_symbol_sync_cc(py::module& m);
+void bind_plsync_cc(py::module& m);
+void bind_ldpc_encoder_bb(py::module& m);
+void bind_ldpc_decoder_cb(py::module& m);
+void bind_bch_decoder_bb(py::module& m);
+void bind_bbdescrambler_bb(py::module& m);
+void bind_bbdeheader_bb(py::module& m);
+void bind_dvbs2_config(py::module& m);
 // ) END BINDING_FUNCTION_PROTOTYPES
 
 
@@ -63,19 +64,20 @@ PYBIND11_MODULE(dvbs2acm_python, m)
     // Please do not delete
     /**************************************/
     // BINDING_FUNCTION_CALLS(
-    bind_dvbs2acm_bbheader_bb(m);
+    bind_bbheader_bb(m);
     bind_bbscrambler_bb(m);
-    bind_bch_bb(m);
+    bind_bch_encoder_bb(m);
     bind_interleaver_bb(m);
     bind_modulator_bc(m);
     bind_physical_cc(m);
     bind_rotator_cc(m);
     bind_symbol_sync_cc(m);
     bind_plsync_cc(m);
-    bind_ldpc_bb(m);
+    bind_ldpc_encoder_bb(m);
     bind_ldpc_decoder_cb(m);
-    bind_bch_decoder_cb(m);
+    bind_bch_decoder_bb(m);
     bind_bbdescrambler_bb(m);
     bind_bbdeheader_bb(m);
+    bind_dvbs2_config(m);
     // ) END BINDING_FUNCTION_CALLS
 }

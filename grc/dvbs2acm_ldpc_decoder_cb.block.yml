@@ -32,6 +32,6 @@ outputs:
 
 templates:
   imports: from gnuradio import dvbs2acm
-  make: dvbs2acm.ldpc_decoder_cb(dvbs2.${outputmode}, dvbs2.${infomode}, ${max_trials}, ${debug_level})
+  make: dvbs2acm.ldpc_decoder_cb(dvbs2acm.${outputmode}, dvbs2acm.${infomode}, ${max_trials}, ${debug_level})
 
 file_format: 1

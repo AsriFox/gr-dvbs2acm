@@ -25,8 +25,6 @@
 #include <pmt/pmt.h>
 #include <vector>
 
-using namespace gr::dvbs2;
-
 namespace gr {
 namespace dvbs2acm {
 using input_type = unsigned char;
@@ -82,6 +80,7 @@ int bch_encoder_bb_impl::general_work(int noutput_items,
         pmt::pmt_t key = pmt::string_to_symbol("modcod");
         pmt::pmt_t value = pmt::from_uint64(tagmodcod);
         this->add_item_tag(0, tagoffset, key, value);
+        // TODO: Some actual work???
         consumed += params.kbch;
         produced += params.nbch;
         produce(0, params.nbch);
