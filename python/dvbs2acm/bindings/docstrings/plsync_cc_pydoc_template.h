@@ -7,7 +7,7 @@
  *
  */
 #include "pydoc_macros.h"
-#define D(...) DOC(gr, dvbs2acm, __VA_ARGS__)
+#define D(...) DOC(gr,dvbs2acm, __VA_ARGS__ )
 /*
   This file contains placeholders for docstrings for the Python bindings.
   Do not edit! These were automatically extracted during the binding process
@@ -15,7 +15,37 @@
  */
 
 
-static const char* __doc_gr_dvbs2acm_plsync_cc = R"doc()doc";
+ 
+ static const char *__doc_gr_dvbs2acm_plsync_cc = R"doc()doc";
 
 
-static const char* __doc_gr_dvbs2acm_plsync_cc_make = R"doc()doc";
+ static const char *__doc_gr_dvbs2acm_plsync_cc_plsync_cc_0 = R"doc()doc";
+
+
+ static const char *__doc_gr_dvbs2acm_plsync_cc_plsync_cc_1 = R"doc()doc";
+
+
+ static const char *__doc_gr_dvbs2acm_plsync_cc_make = R"doc()doc";
+
+
+ static const char *__doc_gr_dvbs2acm_plsync_cc_get_freq_offset = R"doc()doc";
+
+
+ static const char *__doc_gr_dvbs2acm_plsync_cc_get_coarse_freq_corr_state = R"doc()doc";
+
+
+ static const char *__doc_gr_dvbs2acm_plsync_cc_get_locked = R"doc()doc";
+
+
+ static const char *__doc_gr_dvbs2acm_plsync_cc_get_frame_count = R"doc()doc";
+
+
+ static const char *__doc_gr_dvbs2acm_plsync_cc_get_rejected_count = R"doc()doc";
+
+
+ static const char *__doc_gr_dvbs2acm_plsync_cc_get_dummy_count = R"doc()doc";
+
+
+ static const char *__doc_gr_dvbs2acm_plsync_cc_get_lock_time = R"doc()doc";
+
+  

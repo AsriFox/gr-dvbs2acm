@@ -7,7 +7,7 @@
  *
  */
 #include "pydoc_macros.h"
-#define D(...) DOC(gr, dvbs2acm, __VA_ARGS__)
+#define D(...) DOC(gr,dvbs2acm, __VA_ARGS__ )
 /*
   This file contains placeholders for docstrings for the Python bindings.
   Do not edit! These were automatically extracted during the binding process
@@ -15,7 +15,22 @@
  */
 
 
-static const char* __doc_gr_dvbs2acm_ldpc_decoder_cb = R"doc()doc";
+ 
+ static const char *__doc_gr_dvbs2acm_ldpc_decoder_cb = R"doc()doc";
 
 
-static const char* __doc_gr_dvbs2acm_ldpc_decoder_cb_make = R"doc()doc";
+ static const char *__doc_gr_dvbs2acm_ldpc_decoder_cb_ldpc_decoder_cb_0 = R"doc()doc";
+
+
+ static const char *__doc_gr_dvbs2acm_ldpc_decoder_cb_ldpc_decoder_cb_1 = R"doc()doc";
+
+
+ static const char *__doc_gr_dvbs2acm_ldpc_decoder_cb_make = R"doc()doc";
+
+
+ static const char *__doc_gr_dvbs2acm_ldpc_decoder_cb_get_snr = R"doc()doc";
+
+
+ static const char *__doc_gr_dvbs2acm_ldpc_decoder_cb_get_average_trials = R"doc()doc";
+
+  

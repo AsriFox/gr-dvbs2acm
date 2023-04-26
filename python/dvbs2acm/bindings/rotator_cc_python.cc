@@ -14,7 +14,7 @@
 /* BINDTOOL_GEN_AUTOMATIC(0)                                                       */
 /* BINDTOOL_USE_PYGCCXML(0)                                                        */
 /* BINDTOOL_HEADER_FILE(rotator_cc.h)                                        */
-/* BINDTOOL_HEADER_FILE_HASH(6b9cf3797c06531d2a42d614c24cb91c)                     */
+/* BINDTOOL_HEADER_FILE_HASH(be277dfd9ba485ef9ac0a895b82cd927)                     */
 /***********************************************************************************/
 
 #include <pybind11/complex.h>
@@ -30,17 +30,39 @@ namespace py = pybind11;
 void bind_rotator_cc(py::module& m)
 {
 
-    using rotator_cc = gr::dvbs2acm::rotator_cc;
+    using rotator_cc    = ::gr::dvbs2acm::rotator_cc;
 
 
-    py::class_<rotator_cc, gr::block, gr::basic_block, std::shared_ptr<rotator_cc>>(
-        m, "rotator_cc", D(rotator_cc))
+    py::class_<rotator_cc, gr::sync_block, gr::block, gr::basic_block,
+        std::shared_ptr<rotator_cc>>(m, "rotator_cc", D(rotator_cc))
 
         .def(py::init(&rotator_cc::make),
-             py::arg("phase_inc") = 0.0,
-             py::arg("tag_inc_updates") = false,
-             D(rotator_cc, make))
+           py::arg("phase_inc") = 0.,
+           py::arg("tag_inc_updates") = false,
+           D(rotator_cc,make)
+        )
+        
 
+
+
+
+        
+        .def("set_phase_inc",&rotator_cc::set_phase_inc,       
+            py::arg("phase_inc"),
+            D(rotator_cc,set_phase_inc)
+        )
 
         ;
+
+
+
+
 }
+
+
+
+
+
+
+
+

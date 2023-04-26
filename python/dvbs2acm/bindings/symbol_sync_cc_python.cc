@@ -14,7 +14,7 @@
 /* BINDTOOL_GEN_AUTOMATIC(0)                                                       */
 /* BINDTOOL_USE_PYGCCXML(0)                                                        */
 /* BINDTOOL_HEADER_FILE(symbol_sync_cc.h)                                        */
-/* BINDTOOL_HEADER_FILE_HASH(3d8e586b638da917cf5bacc897802b0b)                     */
+/* BINDTOOL_HEADER_FILE_HASH(635c7b53fe7da9293fd3feeef5ff4a3c)                     */
 /***********************************************************************************/
 
 #include <pybind11/complex.h>
@@ -30,22 +30,37 @@ namespace py = pybind11;
 void bind_symbol_sync_cc(py::module& m)
 {
 
-    using symbol_sync_cc = gr::dvbs2acm::symbol_sync_cc;
+    using symbol_sync_cc    = ::gr::dvbs2acm::symbol_sync_cc;
 
 
-    py::class_<symbol_sync_cc, gr::block, gr::basic_block, std::shared_ptr<symbol_sync_cc>>(
-        m, "symbol_sync_cc", D(symbol_sync_cc))
+    py::class_<symbol_sync_cc, gr::block, gr::basic_block,
+        std::shared_ptr<symbol_sync_cc>>(m, "symbol_sync_cc", D(symbol_sync_cc))
 
         .def(py::init(&symbol_sync_cc::make),
-             py::arg("sps"),
-             py::arg("loop_bw"),
-             py::arg("damping_factor"),
-             py::arg("rolloff"),
-             py::arg("rrc_delay") = 5,
-             py::arg("n_subfilt") = 128,
-             py::arg("interp_method") = 0,
-             D(symbol_sync_cc, make))
+           py::arg("sps"),
+           py::arg("loop_bw"),
+           py::arg("damping_factor"),
+           py::arg("rolloff"),
+           py::arg("rrc_delay") = 5,
+           py::arg("n_subfilt") = 128,
+           py::arg("interp_method") = 0,
+           D(symbol_sync_cc,make)
+        )
+        
+
 
 
         ;
+
+
+
+
 }
+
+
+
+
+
+
+
+
