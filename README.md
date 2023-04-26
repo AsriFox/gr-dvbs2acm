@@ -16,15 +16,14 @@ cd gr-dvbs2acm/
 
 ### From source
 
-#### Install dependencies
-Ubuntu:
+Install dependencies on Ubuntu:
 ```
 apt install cmake pkg-config doxygen gnuradio-dev \
     graphviz libsndfile1-dev libspdlog-dev \
     pybind11-dev python3-packaging
 ```
 
-Fedora:
+Install dependencies on Fedora:
 ```
 dnf install cmake doxygen gnuradio-devel \
     fftw-devel gmp-devel graphviz \
@@ -32,13 +31,13 @@ dnf install cmake doxygen gnuradio-devel \
     pybind11-devel python3-packaging \
 ```
 
-#### Build and install
 Build:
 ```
 mkdir build && cd build
 cmake -DCMAKE_INSTALL_PREFIX=$(gnuradio-config-info --prefix) ..
 cmake --build . -j$(nproc)
 ```
+Or use the convenience script `build.sh`.
 
 Install:
 ```
@@ -46,13 +45,21 @@ sudo make install
 sudo ldconfig
 ```
 
-Or use the convenience script `install.sh`.
-
 ### Docker Image
-It's possible to use Igor Freire's Ubuntu-based Docker image ([link](https://hub.docker.com/r/igorfreire/gnuradio-oot-dev)) for GNU Radio OOT development. A Dockerfile is available with a recipe to build **gr-dvbs2acm** blocks in the container. Run:
+It's possible to use Igor Freire's Ubuntu-based Docker image ([link](https://hub.docker.com/r/igorfreire/gnuradio-oot-dev)) for GNU Radio OOT development. A Dockerfile is available with a recipe to build **gr-dvbs2acm** blocks in the container.
+
+First, [install Docker](https://docs.docker.com/engine/install). After that, [install docker-compose](https://docs.docker.com/compose/install/) (e.g. [on Ubuntu](https://docs.docker.com/compose/install/linux/#install-using-the-repository): `apt install docker-compose`).
+
+Build the image:
 ```
-docker build -t gr-dvbs2acm .
+docker compose build
 ```
+
+Run the image:
+```
+docker compose up
+```
+This will launch an instance of *gnuradio-companion* inside the container with **gr-dvbs2acm** blocks ready to use. You can navigate to `/src/gr-dvbs2acm/examples` to use the provided example flowcharts.
 
 ## Authors
 - [Ron Economos](https://github.com/drmpeg)

@@ -30,7 +30,8 @@ namespace py = pybind11;
 void bind_bbheader_bb(py::module& m)
 {
 
-    using bbheader_bb = gr::dvbs2acm::bbheader_bb;
+    using bbheader_bb = ::gr::dvbs2acm::bbheader_bb;
+
 
     py::class_<bbheader_bb, gr::block, gr::basic_block, std::shared_ptr<bbheader_bb>>(
         m, "bbheader_bb", D(bbheader_bb))
