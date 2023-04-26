@@ -6,6 +6,5 @@ RUN apt-get install -y libsndfile1-dev python3-packaging
 ADD . /src/gr-dvbs2acm/
 RUN cd /src/gr-dvbs2acm/ && \
     (mkdir build || rm -r build/*) && \
-    sh install.sh && \
-    make install && ldconfig
-CMD ["gnuradio-companion"]
+    sh build.sh && \
+    cd build && make install && ldconfig
