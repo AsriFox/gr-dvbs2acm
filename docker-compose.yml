@@ -1,0 +1,17 @@
+version: '3'
+
+services:
+  app:
+    image: dvbs2acm:latest
+    build: .
+    environment:
+      - DISPLAY=${DISPLAY}
+      - HTTP_PROXY=${http_proxy}
+      - HTTPS_PROXY=${https_proxy}
+      - NO_PROXY=${no_proxy}
+      - http_proxy=${http_proxy}
+      - https_proxy=${https_proxy}
+      - no_proxy=${no_proxy}
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix
+    network_mode: host
