@@ -87,41 +87,43 @@ ldpc_decoder_cb_impl::ldpc_decoder_cb_impl(dvbs2_outputmode_t outputmode,
       total_trials(0),
       d_max_trials(max_trials),
       total_snr(0.0),
-      decode(nullptr)
+      decode(nullptr),
+      init(nullptr)
 {
     std::string impl = "generic";
 #ifdef CPU_FEATURES_ARCH_ANY_ARM
     d_simd_size = 16;
     if (has_neon) {
-        ldpc_neon::ldpc_dec_init(ldpc);
+        init = &ldpc_neon::ldpc_dec_init;
         decode = &ldpc_neon::ldpc_dec_decode;
         impl = "neon";
     } else {
-        ldpc_generic::ldpc_dec_init(ldpc);
+        init = &ldpc_generic::ldpc_dec_init;
         decode = &ldpc_generic::ldpc_dec_decode;
     }
 #else
 #ifdef CPU_FEATURES_ARCH_X86
     d_simd_size = features.avx2 ? 32 : 16;
     if (features.avx2) {
-        ldpc_avx2::ldpc_dec_init(ldpc);
+        init = &ldpc_avx2::ldpc_dec_init;
         decode = &ldpc_avx2::ldpc_dec_decode;
         impl = "avx2";
     } else if (features.sse4_1) {
-        ldpc_sse41::ldpc_dec_init(ldpc);
+        init = &ldpc_sse41::ldpc_dec_init;
         decode = &ldpc_sse41::ldpc_dec_decode;
         impl = "sse4_1";
     } else {
-        ldpc_generic::ldpc_dec_init(ldpc);
+        init = &ldpc_generic::ldpc_dec_init;
         decode = &ldpc_generic::ldpc_dec_decode;
     }
 #else
     // Not ARM, nor x86. Use generic implementation.
     d_simd_size = 16;
-    ldpc_generic::ldpc_dec_init(ldpc);
+    init = &ldpc_generic::ldpc_dec_init;
     decode = &ldpc_generic::ldpc_dec_decode;
 #endif
 #endif
+    assert(init != nullptr);
     assert(decode != nullptr);
     d_debug_logger->debug("LDPC decoder implementation: {:s}", impl);
 
@@ -199,6 +201,7 @@ int ldpc_decoder_cb_impl::general_work(int noutput_items,
         this->add_item_tag(0, tagoffset, pmt::string_to_symbol("modcod"), pmt::from_uint64(tagmodcod));
 
         ldpc = build_decoder(framesize, rate);
+        init(ldpc);
 
         // TODO: Make a class
         switch (constellation) {

@@ -40,6 +40,7 @@ private:
     int8_t* tempv;
     void* aligned_buffer;
     int (*decode)(void*, int8_t*, int);
+    void (*init)(LDPCInterface*);
 
 public:
     ldpc_decoder_cb_impl(dvbs2_outputmode_t outputmode,
