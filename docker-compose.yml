@@ -14,5 +14,7 @@ services:
       - no_proxy=${no_proxy}
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix
-      - $HOME/.Xauthority:/root/.Xauthority:rw
+      - ${XAUTHORITY}:/root/.Xauthority:rw
+    devices:
+      - /dev/dri:/dev/dri
     network_mode: host
