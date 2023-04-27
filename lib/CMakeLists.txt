@@ -14,6 +14,7 @@ add_subdirectory(ldpc_decoder)
 ########################################################################
 include(GrPlatform) #define LIB_SUFFIX
 list(APPEND dvbs2acm_sources
+    bb_header.cc
     bch_code.cc
     ldpc_encode_tables.cc
     bbheader_bb_impl.cc

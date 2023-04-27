@@ -22,7 +22,9 @@
 #ifndef INCLUDED_DVBS2ACM_BB_HEADER_H
 #define INCLUDED_DVBS2ACM_BB_HEADER_H
 
-typedef struct {
+#define TRANSPORT_PACKET_LENGTH 188
+
+struct BBHeader {
     int ts_gs;
     int sis_mis;
     int ccm_acm;
@@ -34,10 +36,17 @@ typedef struct {
     int dfl;
     int sync;
     int syncd;
-} BBHeader;
 
-typedef struct {
-    BBHeader bb_header;
-} FrameFormat;
+    void add_to_frame(unsigned char* frame, int count, bool nibble, bool dvbs2x_alternate);
+    void parse(const unsigned char* in);
+};
+
+void build_crc8_table(unsigned char* crc_tab);
+
+unsigned int check_crc8_bits(const unsigned char* in, int count);
+
+int unpack_bits_8(int temp, unsigned char* out);
+
+int unpack_bits_16(int temp, unsigned char* out);
 
 #endif

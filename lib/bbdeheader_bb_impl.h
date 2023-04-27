@@ -31,11 +31,9 @@ private:
     unsigned int index;
     uint64_t d_packet_cnt; /**< total packets received */
     uint64_t d_error_cnt;  /**< total packets with bit errors */
-    FrameFormat m_format[1];
-    unsigned char crc_tab[256];
-    unsigned char packet[188];
-    void build_crc8_table(void);
-    unsigned int check_crc8_bits(const unsigned char*, int);
+    BBHeader header;
+    std::array<unsigned char, 256> crc_tab;
+    std::array<unsigned char, 188> packet;
 
 public:
     bbdeheader_bb_impl(int debug_level);

@@ -24,6 +24,7 @@
 
 #include "bb_header.hh"
 #include <gnuradio/dvbs2acm/bbheader_bb.h>
+#include <array>
 
 namespace gr {
 namespace dvbs2acm {
@@ -44,13 +45,10 @@ private:
     bool dvbs2x;
     bool alternate;
     bool nibble;
-    FrameFormat m_format[1];
-    unsigned char crc_tab[256];
+    BBHeader header;
+    std::array<unsigned char, 256> crc_tab;
 
-    void add_bbheader(unsigned char*, int, bool);
     int gold_to_root(int);
-    void build_crc8_table(void);
-    int add_crc8_bits(unsigned char*, int);
 
 public:
     bbheader_bb_impl(dvbs2_framesize_t framesize,

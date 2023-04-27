@@ -21,9 +21,6 @@
 #ifndef INCLUDED_DVBS2_CONFIG_H
 #define INCLUDED_DVBS2_CONFIG_H
 
-#define TRUE 1
-#define FALSE 0
-
 #define BB_HEADER_LENGTH_BITS 80
 
 // BB HEADER fields

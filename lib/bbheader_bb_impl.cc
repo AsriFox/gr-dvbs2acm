@@ -19,6 +19,7 @@
  * Boston, MA 02110-1301, USA.
  */
 
+#include "bb_header.hh"
 #include "bbheader_bb_impl.h"
 #include "bch_code.h"
 #include <gnuradio/io_signature.h>
@@ -64,23 +65,20 @@ bbheader_bb_impl::bbheader_bb_impl(dvbs2_framesize_t framesize,
         goldcode = 0;
     }
     root_code = gold_to_root(goldcode);
-    kbch = bch_code::select(framesize, code_rate).kbch;
 
-    BBHeader* f = &m_format[0].bb_header;
-    f->ts_gs = TS_GS_GENERIC_CONTINUOUS; // TODO: GSE
+    header.ts_gs = TS_GS_GENERIC_CONTINUOUS; // TODO: GSE
     // f->ts_gs = TS_GS_GENERIC_PACKETIZED;
-    f->sis_mis = SIS_MIS_SINGLE;
-    f->ccm_acm = ACM;
-    f->issyi = ISSYI_NOT_ACTIVE;
-    f->upl = 0; // TODO: GSE
-    f->dfl = kbch - 80;
-    f->sync = 0; // TODO: GSE
+    header.sis_mis = SIS_MIS_SINGLE;
+    header.ccm_acm = ACM;
+    header.issyi = ISSYI_NOT_ACTIVE;
+    header.upl = 0;  // TODO: GSE
+    header.sync = 0; // TODO: GSE
     if (rolloff & 0x4) {
         dvbs2x = true;
     }
-    f->ro = rolloff & 0x3;
+    header.ro = rolloff & 0x3;
 
-    build_crc8_table();
+    build_crc8_table(crc_tab.data());
     set_output_multiple(FRAME_SIZE_NORMAL);
 }
 
@@ -92,117 +90,6 @@ bbheader_bb_impl::~bbheader_bb_impl() {}
 void bbheader_bb_impl::forecast(int noutput_items, gr_vector_int& ninput_items_required)
 {
     ninput_items_required[0] = (noutput_items - 80) / 8;
-}
-
-void bbheader_bb_impl::build_crc8_table(void)
-{
-    const int crc_poly_rev = 0xD5;
-    int r, crc;
-    for (int i = 0; i < 256; i++) {
-        r = i;
-        crc = 0;
-        for (int j = 1 << 7; j >= 1; j >>= 1) {
-            if (((r & j) ? 1 : 0) ^ ((crc & 0x80) ? 1 : 0)) {
-                crc = (crc << 1) ^ crc_poly_rev;
-            } else {
-                crc <<= 1;
-            }
-        }
-        crc_tab[i] = crc;
-    }
-}
-
-/*
- * MSB is sent first
- *
- * The polynomial has been reversed
- */
-int bbheader_bb_impl::add_crc8_bits(unsigned char* in, int length)
-{
-    const int crc_poly = 0xAB;
-    int crc = 0;
-    int b;
-    int i = 0;
-    for (int n = 0; n < length; n++) {
-        b = in[i++] ^ (crc & 0x01);
-        crc >>= 1;
-        if (b) {
-            crc ^= crc_poly;
-        }
-    }
-    for (int n = 1; n <= 1 << 7; n <<= 1) {
-        in[i++] = (crc & n) ? 1 : 0;
-    }
-    return 8; // Length of CRC-8
-}
-
-void bbheader_bb_impl::add_bbheader(unsigned char* out, int count, bool nibble)
-{
-    unsigned char* m_frame = out;
-    BBHeader* h = &m_format[0].bb_header;
-
-    m_frame[0] = h->ts_gs >> 1;
-    m_frame[1] = h->ts_gs & 1;
-    m_frame[2] = h->sis_mis;
-    m_frame[3] = h->ccm_acm;
-    m_frame[4] = h->issyi & 1;
-    m_frame[5] = h->npd & 1;
-    if (dvbs2x) {
-        if (alternate) {
-            alternate = false;
-            m_frame[6] = 1;
-            m_frame[7] = 1;
-        } else {
-            alternate = true;
-            m_frame[6] = h->ro >> 1;
-            m_frame[7] = h->ro & 1;
-        }
-    } else {
-        m_frame[6] = h->ro >> 1;
-        m_frame[7] = h->ro & 1;
-    }
-
-    int temp, m_frame_offset_bits = 8;
-    if (h->sis_mis == SIS_MIS_MULTIPLE) {
-        // TODO: NOT IMPLEMENTED
-        // temp = isi;
-        for (int n = 1 << 7; n >= 1; n >>= 1) {
-            m_frame[m_frame_offset_bits++] = (temp & n) ? 1 : 0;
-        }
-    } else {
-        for (int n = 1 << 7; n >= 1; n >>= 1) {
-            m_frame[m_frame_offset_bits++] = 0;
-        }
-    }
-    temp = h->upl;
-    for (int n = 1 << 15; n >= 1; n >>= 1) {
-        m_frame[m_frame_offset_bits++] = (temp & n) ? 1 : 0;
-    }
-    temp = h->dfl;
-    for (int n = 1 << 15; n >= 1; n >>= 1) {
-        m_frame[m_frame_offset_bits++] = (temp & n) ? 1 : 0;
-    }
-    temp = h->sync;
-    for (int n = 1 << 7; n >= 1; n >>= 1) {
-        m_frame[m_frame_offset_bits++] = (temp & n) ? 1 : 0;
-    }
-    temp = count;
-    if (temp == 0) {
-        // TODO: WTF?
-        temp = count;
-    } else {
-        // TODO: GSE
-        temp = (188 - count) * 8;
-    }
-    if (!nibble) {
-        temp += 4;
-    }
-    for (int n = 1 << 15; n >= 1; n >>= 1) {
-        m_frame[m_frame_offset_bits++] = (temp & n) ? 1 : 0;
-    }
-    // Append CRC to the end of BBHEADER
-    int length = BB_HEADER_LENGTH_BITS;
-    m_frame_offset_bits += add_crc8_bits(m_frame, length);
 }
 
 int bbheader_bb_impl::gold_to_root(int goldcode)
@@ -239,34 +126,46 @@ int bbheader_bb_impl::general_work(int noutput_items,
         pmt::pmt_t key = pmt::string_to_symbol("modcod");
         pmt::pmt_t value = pmt::from_uint64(tagmodcod);
         this->add_item_tag(0, tagoffset, key, value);
+        auto kbch = bch_code::select(framesize, code_rate).kbch;
+        header.dfl = kbch - BB_HEADER_LENGTH_BITS;
         if (framesize != FECFRAME_MEDIUM) {
-            add_bbheader(&out[offset], count, nibble);
-            offset += 80;
-            for (int j = 0; j < (int)((kbch - 80) / 8); j++) {
-                if (count == 0) {
-                    if (*in != 0x47) {
-                        GR_LOG_WARN(d_logger, "Transport Stream sync error!");
+            header.add_to_frame(&out[offset], count, nibble, dvbs2x && alternate);
+            if (dvbs2x) {
+                alternate = !alternate;
+            }
+            offset += BB_HEADER_LENGTH_BITS;
+            for (int j = 0; j < (int)(header.dfl / 8); j++) {
+                if (header.sync == 0x47) {
+                    // MPEG-2 Transport Stream
+                    if (count == 0) {
+                        if (*in != header.sync) {
+                            GR_LOG_WARN(d_logger, "Transport Stream sync error!");
+                        }
+                        in++;
+                        b = crc;
+                        crc = 0;
+                    } else {
+                        b = *in++;
+                        crc = crc_tab[b ^ crc];
                     }
-                    in++;
-                    b = crc;
-                    crc = 0;
-                } else {
-                    b = *in++;
-                    crc = crc_tab[b ^ crc];
+                    count = (count + 1) % 188; // TODO: GSE
                 }
-                count = (count + 1) % 188; // TODO: GSE
+                // else Generic Continous Stream
+                // TODO: GSE
                 consumed++;
-                for (int n = 1 << 7; n >= 1; n >>= 1) {
-                    out[offset++] = (b & n) ? 1 : 0;
-                }
+                offset += unpack_bits_8(b, &out[offset]);
             }
         } else {
-            add_bbheader(&out[offset], count, nibble);
-            offset += 80;
-            for (int j = 0; j < (int)((kbch - 80) / 4); j++) {
+            header.add_to_frame(&out[offset], count, nibble, dvbs2x && alternate);
+            if (dvbs2x) {
+                alternate = !alternate;
+            }
+            offset += BB_HEADER_LENGTH_BITS;
+            for (int j = 0; j < (int)(header.dfl / 4); j++) {
+                // TODO: Generic Streams
                 if (nibble) {
                     if (count == 0) {
-                        if (*in != 0x47) {
+                        if (header.sync != 0 && *in != header.sync) {
                             GR_LOG_WARN(d_logger, "Transport Stream sync error!");
                         }
                         in++;
