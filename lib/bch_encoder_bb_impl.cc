@@ -80,7 +80,9 @@ int bch_encoder_bb_impl::general_work(int noutput_items,
         pmt::pmt_t key = pmt::string_to_symbol("modcod");
         pmt::pmt_t value = pmt::from_uint64(tagmodcod);
         this->add_item_tag(0, tagoffset, key, value);
-        // TODO: Some actual work???
+
+        bch_code::select(framesize, rate).encode(in, out);
+
         consumed += params.kbch;
         produced += params.nbch;
         produce(0, params.nbch);
