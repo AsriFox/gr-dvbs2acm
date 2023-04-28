@@ -906,7 +906,7 @@ int plsync_cc_impl::general_work(int noutput_items,
                     // TODO: move into its own lib
                     auto framesize =
                         d_curr_frame_info.pls.short_fecframe ? FECFRAME_SHORT : FECFRAME_NORMAL;
-                    auto pilots = d_curr_frame_info.pls.has_pilots ? PILOTS_ON : PILOTS_OFF;
+                    auto pilots = d_curr_frame_info.pls.has_pilots;
                     auto root_code = d_gold_code; // TODO: gold_to_root()
                     auto dummy_frame = d_curr_frame_info.pls.dummy_frame;
                     dvbs2_code_rate_t code_rate;

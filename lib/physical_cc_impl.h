@@ -45,15 +45,8 @@ private:
     void pl_header_encode(unsigned char, unsigned char, int*);
     inline int parity_chk(int, int);
     inline int symbol_scrambler(void);
-    void get_slots(dvbs2_framesize_t,
-                   dvbs2_code_rate_t,
-                   dvbs2_constellation_t,
-                   dvbs2_pilots_t,
-                   int,
-                   int&,
-                   int&,
-                   int&,
-                   int&);
+    void get_slots(
+        dvbs2_framesize_t, dvbs2_code_rate_t, dvbs2_constellation_t, bool, int, int&, int&, int&, int&);
 
     const static unsigned int g[7];
     const static int ph_scram_tab[64];
@@ -61,7 +54,7 @@ private:
     const static int ph_vlsnr_seq[16][VLSNR_HEADER_LENGTH - 4];
 
 public:
-    physical_cc_impl(dvbs2_dummy_frames_t dummyframes);
+    physical_cc_impl(bool dummyframes);
     ~physical_cc_impl();
 
     // Where all the action really happens

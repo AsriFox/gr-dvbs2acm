@@ -14,7 +14,7 @@
 /* BINDTOOL_GEN_AUTOMATIC(0)                                                       */
 /* BINDTOOL_USE_PYGCCXML(0)                                                        */
 /* BINDTOOL_HEADER_FILE(ldpc_decoder_cb.h)                                        */
-/* BINDTOOL_HEADER_FILE_HASH(7ccc6966e1b413781a6ee721828a32ac)                     */
+/* BINDTOOL_HEADER_FILE_HASH(d0ae77d6e7bbac600d9c8f990bf07932)                     */
 /***********************************************************************************/
 
 #include <pybind11/complex.h>
@@ -37,9 +37,9 @@ void bind_ldpc_decoder_cb(py::module& m)
         std::shared_ptr<ldpc_decoder_cb>>(m, "ldpc_decoder_cb", D(ldpc_decoder_cb))
 
         .def(py::init(&ldpc_decoder_cb::make),
-           py::arg("outputmode"),
-           py::arg("infomode"),
-           py::arg("max_trials"),
+           py::arg("outputmode") = false,
+           py::arg("infomode") = false,
+           py::arg("max_trials") = 25,
            py::arg("debug_level") = 0,
            D(ldpc_decoder_cb,make)
         )

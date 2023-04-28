@@ -59,10 +59,8 @@ namespace dvbs2acm {
 using input_type = gr_complex;
 using output_type = unsigned char;
 
-ldpc_decoder_cb::sptr ldpc_decoder_cb::make(dvbs2_outputmode_t outputmode,
-                                            dvbs2_infomode_t infomode,
-                                            int max_trials,
-                                            int debug_level)
+ldpc_decoder_cb::sptr
+ldpc_decoder_cb::make(bool outputmode, bool infomode, int max_trials, int debug_level)
 {
     return gnuradio::make_block_sptr<ldpc_decoder_cb_impl>(
         outputmode, infomode, max_trials, debug_level);
@@ -72,8 +70,8 @@ ldpc_decoder_cb::sptr ldpc_decoder_cb::make(dvbs2_outputmode_t outputmode,
 /*
  * The private constructor
  */
-ldpc_decoder_cb_impl::ldpc_decoder_cb_impl(dvbs2_outputmode_t outputmode,
-                                           dvbs2_infomode_t infomode,
+ldpc_decoder_cb_impl::ldpc_decoder_cb_impl(bool outputmode,
+                                           bool infomode,
                                            int max_trials,
                                            int debug_level)
     : gr::block("ldpc_decoder_cb",

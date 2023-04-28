@@ -22,7 +22,7 @@ class bch_decoder_bb_impl : public bch_decoder_bb
 {
 private:
     const int d_debug_level;
-    unsigned int output_mode;
+    bool output_mode;
     uint64_t d_frame_cnt;
     uint64_t d_frame_error_cnt;
     typedef CODE::GaloisField<16, 0b10000000000101101, uint16_t> GF_NORMAL;
@@ -45,7 +45,7 @@ private:
     uint8_t* parity;
 
 public:
-    bch_decoder_bb_impl(dvbs2_outputmode_t outputmode, int debug_level);
+    bch_decoder_bb_impl(bool outputmode, int debug_level);
     ~bch_decoder_bb_impl();
 
     // Where all the action really happens

@@ -33,9 +33,12 @@ public:
 
     /*!
      * \brief Create a DVB-S2 demodulator / deinterleaver / LDPC decoder.
+     *
+     * \param outputmode Use Message block output mode instead of Codeword.
+     * \param infomode Output SNR information to console.
      */
     static sptr
-    make(dvbs2_outputmode_t outputmode, dvbs2_infomode_t infomode, int max_trials, int debug_level = 0);
+    make(bool outputmode = false, bool infomode = false, int max_trials = 25, int debug_level = 0);
 
     /*!
      * \brief Get the measured SNR.

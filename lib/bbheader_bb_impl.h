@@ -38,7 +38,7 @@ private:
     dvbs2_framesize_t framesize;
     dvbs2_code_rate_t code_rate;
     dvbs2_constellation_t constellation;
-    dvbs2_pilots_t pilots;
+    bool pilots;
     unsigned int root_code;
     unsigned char bsave;
 
@@ -54,7 +54,7 @@ public:
     bbheader_bb_impl(dvbs2_framesize_t framesize,
                      dvbs2_code_rate_t code_rate,
                      dvbs2_constellation_t constellation,
-                     dvbs2_pilots_t pilots,
+                     bool pilots,
                      dvbs2_rolloff_factor_t rolloff,
                      int goldcode);
     ~bbheader_bb_impl();

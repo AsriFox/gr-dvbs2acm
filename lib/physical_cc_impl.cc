@@ -28,7 +28,7 @@ namespace dvbs2acm {
 using input_type = gr_complex;
 using output_type = gr_complex;
 
-physical_cc::sptr physical_cc::make(dvbs2_dummy_frames_t dummyframes)
+physical_cc::sptr physical_cc::make(bool dummyframes)
 {
     return gnuradio::make_block_sptr<physical_cc_impl>(dummyframes);
 }
@@ -37,7 +37,7 @@ physical_cc::sptr physical_cc::make(dvbs2_dummy_frames_t dummyframes)
 /*
  * The private constructor
  */
-physical_cc_impl::physical_cc_impl(dvbs2_dummy_frames_t dummyframes)
+physical_cc_impl::physical_cc_impl(bool dummyframes)
     : gr::block("physical_cc",
                 gr::io_signature::make(1, 1, sizeof(input_type)),
                 gr::io_signature::make(1, 1, sizeof(output_type)))
@@ -180,7 +180,7 @@ inline int physical_cc_impl::symbol_scrambler(void)
 void physical_cc_impl::get_slots(dvbs2_framesize_t framesize,
                                  dvbs2_code_rate_t rate,
                                  dvbs2_constellation_t constellation,
-                                 dvbs2_pilots_t pilots,
+                                 bool pilots,
                                  int rootcode,
                                  int& slots,
                                  int& pilot_symbols,
@@ -197,7 +197,7 @@ void physical_cc_impl::get_slots(dvbs2_framesize_t framesize,
         type = 0;
         if (rate == C2_9_VLSNR) {
             frame_size = (FRAME_SIZE_NORMAL - NORMAL_PUNCTURING) + (EXTRA_PILOT_SYMBOLS_SET1 * 2);
-            pilots = PILOTS_ON; /* force pilots on for VL-SNR */
+            pilots = true; /* force pilots on for VL-SNR */
         }
     }
 
@@ -206,16 +206,16 @@ void physical_cc_impl::get_slots(dvbs2_framesize_t framesize,
         type = 2;
         if (rate == C1_5_VLSNR_SF2 || rate == C11_45_VLSNR_SF2) {
             frame_size = ((FRAME_SIZE_SHORT - SHORT_PUNCTURING_SET1) * 2) + EXTRA_PILOT_SYMBOLS_SET1;
-            pilots = PILOTS_ON; /* force pilots on for VL-SNR */
+            pilots = true; /* force pilots on for VL-SNR */
         }
         if (rate == C1_5_VLSNR || rate == C4_15_VLSNR || rate == C1_3_VLSNR) {
             frame_size = (FRAME_SIZE_SHORT - SHORT_PUNCTURING_SET2) + EXTRA_PILOT_SYMBOLS_SET2;
-            pilots = PILOTS_ON; /* force pilots on for VL-SNR */
+            pilots = true; /* force pilots on for VL-SNR */
         }
     } else {
         frame_size = FRAME_SIZE_MEDIUM - MEDIUM_PUNCTURING + EXTRA_PILOT_SYMBOLS_SET1;
         type = 0;
-        pilots = PILOTS_ON; /* force pilots on for VL-SNR */
+        pilots = true; /* force pilots on for VL-SNR */
     }
 
     if (pilots) {
@@ -695,7 +695,7 @@ int physical_cc_impl::general_work(int noutput_items,
         auto framesize = (dvbs2_framesize_t)((tagmodcod >> 1) & 0x7f);
         auto rate = (dvbs2_code_rate_t)((tagmodcod >> 8) & 0xff);
         auto constellation = (dvbs2_constellation_t)((tagmodcod >> 16) & 0xff);
-        auto pilots = (dvbs2_pilots_t)((tagmodcod >> 24) & 0xff);
+        auto pilots = ((tagmodcod >> 24) & 0xff) != 0;
         auto rootcode = (unsigned int)((tagmodcod >> 32) & 0x3ffff);
         get_slots(framesize,
                   rate,

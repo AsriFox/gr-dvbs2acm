@@ -68,6 +68,105 @@
 
 namespace gr {
 namespace dvbs2acm {
+
+enum dvbs2_modcod_t {
+    MC_DUMMY = 0,
+    MC_QPSK_1_4,
+    MC_QPSK_1_3,
+    MC_QPSK_2_5,
+    MC_QPSK_1_2,
+    MC_QPSK_3_5,
+    MC_QPSK_2_3,
+    MC_QPSK_3_4,
+    MC_QPSK_4_5,
+    MC_QPSK_5_6,
+    MC_QPSK_8_9,
+    MC_QPSK_9_10,
+    MC_8PSK_3_5,
+    MC_8PSK_2_3,
+    MC_8PSK_3_4,
+    MC_8PSK_5_6,
+    MC_8PSK_8_9,
+    MC_8PSK_9_10,
+    MC_16APSK_2_3,
+    MC_16APSK_3_4,
+    MC_16APSK_4_5,
+    MC_16APSK_5_6,
+    MC_16APSK_8_9,
+    MC_16APSK_9_10,
+    MC_32APSK_3_4,
+    MC_32APSK_4_5,
+    MC_32APSK_5_6,
+    MC_32APSK_8_9,
+    MC_32APSK_9_10,
+};
+
+enum dvbs2x_modcod_t {
+    // FECFRAME_NORMAL:
+    MC_QPSK_13_45 = 0x42,
+    MC_QPSK_9_20,
+    MC_QPSK_11_20,
+    MC_8APSK_5_9_L,
+    MC_8APSK_26_45_L,
+    MC_8PSK_23_36,
+    MC_8PSK_25_36,
+    MC_8PSK_13_18,
+    MC_16APSK_1_2_L,
+    MC_16APSK_8_15_L,
+    MC_16APSK_5_9_L,
+    MC_16APSK_26_45,
+    MC_16APSK_3_5,
+    MC_16APSK_3_5_L,
+    MC_16APSK_28_45,
+    MC_16APSK_23_36,
+    MC_16APSK_2_3_L,
+    MC_16APSK_25_36,
+    MC_16APSK_13_18,
+    MC_16APSK_7_9,
+    MC_16APSK_77_90,
+    MC_32APSK_2_3_L,
+    MC_32APSK_32_45,
+    MC_32APSK_11_15,
+    MC_32APSK_7_9,
+    MC_64APSK_32_45_L,
+    MC_64APSK_11_15,
+    MC_64APSK_7_9,
+    MC_64APSK_4_5,
+    MC_64APSK_5_6,
+    MC_128APSK_3_4,
+    MC_128APSK_7_9,
+    MC_256APSK_29_45_L,
+    MC_256APSK_2_3_L,
+    MC_256APSK_31_45_L,
+    MC_256APSK_32_45,
+    MC_256APSK_11_15_L,
+    MC_256APSK_3_4,
+    // FECFRAME_SHORT:
+    MC_QPSK_11_45_S,
+    MC_QPSK_4_15_S,
+    MC_QPSK_14_45_S,
+    MC_QPSK_7_15_S,
+    MC_QPSK_8_15_S,
+    MC_QPSK_32_45_S,
+    MC_8PSK_7_15_S,
+    MC_8PSK_8_15_S,
+    MC_8PSK_26_45_S,
+    MC_8PSK_32_45_S,
+    MC_16APSK_7_15_S,
+    MC_16APSK_8_15_S,
+    MC_16APSK_26_45_S,
+    MC_16APSK_3_5_S,
+    MC_16APSK_32_45_S,
+    MC_32APSK_2_3_S,
+    MC_32APSK_32_45_S,
+};
+
+enum dvbs2_framesize_t {
+    FECFRAME_NORMAL = 0,
+    FECFRAME_SHORT,
+    FECFRAME_MEDIUM,
+};
+
 enum dvbs2_code_rate_t {
     C1_4 = 0,
     C1_3,
@@ -145,59 +244,14 @@ enum dvbs2_constellation_t {
     MOD_OTHER,
 };
 
-enum dvbs2_pilots_t {
-    PILOTS_OFF = 0,
-    PILOTS_ON,
-};
-
-enum dvbs2_interpolation_t {
-    INTERPOLATION_OFF = 0,
-    INTERPOLATION_ON,
-};
-
-enum dvbs2_framesize_t {
-    FECFRAME_NORMAL = 0,
-    FECFRAME_SHORT,
-    FECFRAME_MEDIUM,
-};
-
-enum dvbs2_dummy_frames_t {
-    DUMMY_FRAMES_OFF = 0,
-    DUMMY_FRAMES_ON,
-};
-
-enum dvbs2_guardinterval_t {
-    GI_1_32 = 0,
-    GI_1_16,
-    GI_1_8,
-    GI_1_4,
-    GI_1_128,
-    GI_19_128,
-    GI_19_256,
-};
-
-enum dvbs2_outputmode_t {
-    OM_CODEWORD = 0,
-    OM_MESSAGE,
-};
-
-enum dvbs2_infomode_t {
-    INFO_OFF = 0,
-    INFO_ON,
-};
-
 } // namespace dvbs2acm
 } // namespace gr
 
+typedef gr::dvbs2acm::dvbs2_modcod_t dvbs2_modcod_t;
+typedef gr::dvbs2acm::dvbs2x_modcod_t dvbs2x_modcod_t;
+typedef gr::dvbs2acm::dvbs2_framesize_t dvbs2_framesize_t;
 typedef gr::dvbs2acm::dvbs2_code_rate_t dvbs2_code_rate_t;
 typedef gr::dvbs2acm::dvbs2_rolloff_factor_t dvbs2_rolloff_factor_t;
 typedef gr::dvbs2acm::dvbs2_constellation_t dvbs2_constellation_t;
-typedef gr::dvbs2acm::dvbs2_interpolation_t dvbs2_interpolation_t;
-typedef gr::dvbs2acm::dvbs2_pilots_t dvbs2_pilots_t;
-typedef gr::dvbs2acm::dvbs2_framesize_t dvbs2_framesize_t;
-typedef gr::dvbs2acm::dvbs2_dummy_frames_t dvbs2_dummy_frames_t;
-typedef gr::dvbs2acm::dvbs2_guardinterval_t dvbs2_guardinterval_t;
-typedef gr::dvbs2acm::dvbs2_outputmode_t dvbs2_outputmode_t;
-typedef gr::dvbs2acm::dvbs2_infomode_t dvbs2_infomode_t;
 
 #endif /* INCLUDED_DVBS2_CONFIG_H */

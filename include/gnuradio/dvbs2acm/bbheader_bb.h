@@ -32,7 +32,7 @@ public:
     /*!
      * \brief Create a baseband header formatter.
      *
-     * \param framesize FEC frame size (normal, medium or short).
+     * \param framesize FEC Baseband frame size (Normal, Short, Medium).
      * \param code_rate FEC code rate.
      * \param constellation DVB-S2 constellation.
      * \param pilots Pilot symbols (on/off).
@@ -42,7 +42,7 @@ public:
     static sptr make(dvbs2_framesize_t framesize = FECFRAME_NORMAL,
                      dvbs2_code_rate_t code_rate = C1_4,
                      dvbs2_constellation_t constellation = MOD_QPSK,
-                     dvbs2_pilots_t pilots = PILOTS_ON,
+                     bool pilots = true,
                      dvbs2_rolloff_factor_t rolloff = RO_0_20,
                      int goldcode = 0);
 };

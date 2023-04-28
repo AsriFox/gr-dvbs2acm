@@ -33,7 +33,7 @@ using output_type = unsigned char;
 bbheader_bb::sptr bbheader_bb::make(dvbs2_framesize_t framesize,
                                     dvbs2_code_rate_t code_rate,
                                     dvbs2_constellation_t constellation,
-                                    dvbs2_pilots_t pilots,
+                                    bool pilots,
                                     dvbs2_rolloff_factor_t rolloff,
                                     int goldcode)
 {
@@ -48,7 +48,7 @@ bbheader_bb::sptr bbheader_bb::make(dvbs2_framesize_t framesize,
 bbheader_bb_impl::bbheader_bb_impl(dvbs2_framesize_t framesize,
                                    dvbs2_code_rate_t code_rate,
                                    dvbs2_constellation_t constellation,
-                                   dvbs2_pilots_t pilots,
+                                   bool pilots,
                                    dvbs2_rolloff_factor_t rolloff,
                                    int goldcode)
     : gr::block("bbheader_bb",

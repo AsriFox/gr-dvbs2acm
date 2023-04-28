@@ -19,8 +19,8 @@ class ldpc_decoder_cb_impl : public ldpc_decoder_cb
 {
 private:
     const int d_debug_level;
-    unsigned int output_mode;
-    unsigned int info_mode;
+    bool output_mode;
+    bool info_mode;
     unsigned int frame;
     unsigned int chunk;
     unsigned int total_trials;
@@ -43,10 +43,7 @@ private:
     void (*init)(LDPCInterface*);
 
 public:
-    ldpc_decoder_cb_impl(dvbs2_outputmode_t outputmode,
-                         dvbs2_infomode_t infomode,
-                         int max_trials,
-                         int debug_level);
+    ldpc_decoder_cb_impl(bool outputmode, bool infomode, int max_trials, int debug_level);
     ~ldpc_decoder_cb_impl();
 
     // Where all the action really happens

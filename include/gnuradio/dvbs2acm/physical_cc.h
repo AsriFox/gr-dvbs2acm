@@ -46,7 +46,7 @@ public:
      *
      * \param dummyframes Enable dummy frames.
      */
-    static sptr make(dvbs2_dummy_frames_t dummyframes);
+    static sptr make(bool dummyframes = false);
 };
 
 } // namespace dvbs2acm

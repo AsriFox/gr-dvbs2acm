@@ -4,12 +4,9 @@ category: '[DVB]/DVB-S2 ACM/Transmitter'
 
 parameters:
 -   id: dummyframes
-    label: Dummy Frames
-    dtype: enum
-    options: [DUMMY_FRAMES_OFF, DUMMY_FRAMES_ON]
-    option_labels: ['Off', 'On']
-    option_attributes:
-        val: [dvbs2acm.DUMMY_FRAMES_OFF, dvbs2acm.DUMMY_FRAMES_ON]
+    label: Enable Dummy Frames
+    dtype: bool
+    default: False
 
 inputs:
 -   domain: stream
@@ -21,6 +18,6 @@ outputs:
 
 templates:
     imports: from gnuradio import dvbs2acm
-    make: dvbs2acm.physical_cc(${dummyframes.val})
+    make: dvbs2acm.physical_cc(${dummyframes})
 
 file_format: 1

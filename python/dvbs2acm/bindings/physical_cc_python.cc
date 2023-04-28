@@ -14,7 +14,7 @@
 /* BINDTOOL_GEN_AUTOMATIC(0)                                                       */
 /* BINDTOOL_USE_PYGCCXML(0)                                                        */
 /* BINDTOOL_HEADER_FILE(physical_cc.h)                                        */
-/* BINDTOOL_HEADER_FILE_HASH(43dafea6cef210ee6dc0ca804daf7222)                     */
+/* BINDTOOL_HEADER_FILE_HASH(b36ca358403d14fd46f015534fc485bb)                     */
 /***********************************************************************************/
 
 #include <pybind11/complex.h>
@@ -37,7 +37,7 @@ void bind_physical_cc(py::module& m)
         std::shared_ptr<physical_cc>>(m, "physical_cc", D(physical_cc))
 
         .def(py::init(&physical_cc::make),
-           py::arg("dummyframes"),
+           py::arg("dummyframes") = false,
            D(physical_cc,make)
         )
         

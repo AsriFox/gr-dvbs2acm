@@ -6,13 +6,12 @@ parameters:
 - id: framesize
   label: FECFRAME size
   dtype: enum
-  options: [FECFRAME_NORMAL, FECFRAME_MEDIUM, FECFRAME_SHORT]
-  option_labels: [Normal, Medium, Short]
+  options: [FECFRAME_NORMAL, FECFRAME_SHORT, FECFRAME_MEDIUM]
+  option_labels: [Normal, Short, Medium]
   option_attributes:
-    hide_medium: [all, none, all]
     hide_normal: [none, all, all]
-    hide_short: [all, all, none]
-    val: [dvbs2acm.FECFRAME_NORMAL, dvbs2acm.FECFRAME_MEDIUM, dvbs2acm.FECFRAME_SHORT]
+    hide_short: [all, none, all]
+    hide_medium: [all, all, none]
 - id: rate_1
   label: Code rate
   dtype: enum
@@ -24,22 +23,12 @@ parameters:
     13/45, 9/20, 90/180, 96/180, 11/20, 100/180, 104/180, 26/45, 18/30, 28/45,
     23/36, 116/180, 20/30, 124/180, 25/36, 128/180, 13/18, 132/180, 22/30, 135/180,
     140/180, 7/9, 154/180]
-  option_attributes:
-    val: [dvbs2acm.C1_4, dvbs2acm.C1_3, dvbs2acm.C2_5, dvbs2acm.C1_2, dvbs2acm.C3_5, dvbs2acm.C2_3,
-      dvbs2acm.C3_4, dvbs2acm.C4_5, dvbs2acm.C5_6, dvbs2acm.C8_9, dvbs2acm.C9_10, dvbs2acm.C2_9_VLSNR,
-      dvbs2acm.C13_45, dvbs2acm.C9_20, dvbs2acm.C90_180, dvbs2acm.C96_180, dvbs2acm.C11_20,
-      dvbs2acm.C100_180, dvbs2acm.C104_180, dvbs2acm.C26_45, dvbs2acm.C18_30, dvbs2acm.C28_45,
-      dvbs2acm.C23_36, dvbs2acm.C116_180, dvbs2acm.C20_30, dvbs2acm.C124_180, dvbs2acm.C25_36,
-      dvbs2acm.C128_180, dvbs2acm.C13_18, dvbs2acm.C132_180, dvbs2acm.C22_30, dvbs2acm.C135_180,
-      dvbs2acm.C140_180, dvbs2acm.C7_9, dvbs2acm.C154_180]
   hide: ${ framesize.hide_normal }
 - id: rate_2
   label: Code rate
   dtype: enum
   options: [C1_5_MEDIUM, C11_45_MEDIUM, C1_3_MEDIUM]
   option_labels: [1/5, 11/45, 1/3]
-  option_attributes:
-    val: [dvbs2acm.C1_5_MEDIUM, dvbs2acm.C11_45_MEDIUM, dvbs2acm.C1_3_MEDIUM]
   hide: ${ framesize.hide_medium }
 - id: rate_3
   label: Code rate
@@ -50,11 +39,6 @@ parameters:
   option_labels: [1/4, 1/3, 2/5, 1/2, 3/5, 2/3, 3/4, 4/5, 5/6, 8/9, 11/45, 4/15,
     14/45, 7/15, 8/15, 26/45, 32/45, 1/5 VL-SNR SF2, 11/45 VL-SNR SF2, 1/5 VL-SNR,
     4/15 VL-SNR, 1/3 VL-SNR]
-  option_attributes:
-    val: [dvbs2acm.C1_4, dvbs2acm.C1_3, dvbs2acm.C2_5, dvbs2acm.C1_2, dvbs2acm.C3_5, dvbs2acm.C2_3,
-      dvbs2acm.C3_4, dvbs2acm.C4_5, dvbs2acm.C5_6, dvbs2acm.C8_9, dvbs2acm.C11_45, dvbs2acm.C4_15,
-      dvbs2acm.C14_45, dvbs2acm.C7_15, dvbs2acm.C8_15, dvbs2acm.C26_45, dvbs2acm.C32_45, dvbs2acm.C1_5_VLSNR_SF2,
-      dvbs2acm.C11_45_VLSNR_SF2, dvbs2acm.C1_5_VLSNR, dvbs2acm.C4_15_VLSNR, dvbs2acm.C1_3_VLSNR]
   hide: ${ framesize.hide_short }
 - id: constellation
   label: Constellation
@@ -65,25 +49,15 @@ parameters:
   option_labels: [QPSK, 8PSK, 8APSK, 16APSK, 8+8APSK, 32APSK, 4+12+16rbAPSK, 4+8+4+16APSK,
     64APSK, 8+16+20+20APSK, 4+12+20+28APSK, 128APSK, 256APSK, PI/2 BPSK, PI/2
     BPSK-SF2]
-  option_attributes:
-    val: [dvbs2acm.MOD_QPSK, dvbs2acm.MOD_8PSK, dvbs2acm.MOD_8APSK, dvbs2acm.MOD_16APSK, dvbs2acm.MOD_8_8APSK,
-      dvbs2acm.MOD_32APSK, dvbs2acm.MOD_4_12_16APSK, dvbs2acm.MOD_4_8_4_16APSK, dvbs2acm.MOD_64APSK,
-      dvbs2acm.MOD_8_16_20_20APSK, dvbs2acm.MOD_4_12_20_28APSK, dvbs2acm.MOD_128APSK,
-      dvbs2acm.MOD_256APSK, dvbs2acm.MOD_BPSK, dvbs2acm.MOD_BPSK_SF2]
 - id: pilots
   label: Pilots
-  dtype: enum
-  options: [PILOTS_OFF, PILOTS_ON]
-  option_labels: ['Off', 'On']
-  option_attributes:
-    val: [dvbs2acm.PILOTS_OFF, dvbs2acm.PILOTS_ON]
+  dtype: bool
+  default: True
 - id: rolloff
   label: Rolloff factor
   dtype: enum
   options: [RO_0_35, RO_0_25, RO_0_20, RO_0_15, RO_0_10, RO_0_05]
   option_labels: ['0.35', '0.25', '0.20', '0.15', '0.10', '0.05']
-  option_attributes:
-    val: [dvbs2acm.RO_0_35, dvbs2acm.RO_0_25, dvbs2acm.RO_0_20, dvbs2acm.RO_0_15, dvbs2acm.RO_0_10, dvbs2acm.RO_0_05]
 - id: goldcode
   label: Gold Code
   dtype: int
@@ -102,17 +76,17 @@ templates:
   imports: from gnuradio import dvbs2acm
   make: |-
     dvbs2acm.bbheader_bb(
-      ${framesize.val},
+      dvbs2acm.${framesize},
       % if str(framesize) == 'FECFRAME_NORMAL':
-        ${rate_1.val},
+        dvbs2acm.${rate_1},
       % elif str(framesize) == 'FECFRAME_SHORT':
-        ${rate_2.val},
+        dvbs2acm.${rate_2},
       % else:
-        ${rate_3.val},
+        dvbs2acm.${rate_3},
       % endif
-      ${constellation.val},
-      ${pilots.val},
-      ${rolloff.val},
+      dvbs2acm.${constellation},
+      ${pilots},
+      dvbs2acm.${rolloff},
       ${goldcode})
 
 file_format: 1

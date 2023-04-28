@@ -14,7 +14,7 @@
 /* BINDTOOL_GEN_AUTOMATIC(0)                                                       */
 /* BINDTOOL_USE_PYGCCXML(0)                                                        */
 /* BINDTOOL_HEADER_FILE(bbheader_bb.h)                                        */
-/* BINDTOOL_HEADER_FILE_HASH(b0f4e22c1fb6f943981aa739ad6d461a)                     */
+/* BINDTOOL_HEADER_FILE_HASH(132f874764e6040187a32d5c2d3f93ae)                     */
 /***********************************************************************************/
 
 #include <pybind11/complex.h>
@@ -40,7 +40,7 @@ void bind_bbheader_bb(py::module& m)
              py::arg("framesize"),
              py::arg("code_rate"),
              py::arg("constellation"),
-             py::arg("pilots"),
+             py::arg("pilots") = true,
              py::arg("rolloff"),
              py::arg("goldcode") = 0,
              D(bbheader_bb, make))

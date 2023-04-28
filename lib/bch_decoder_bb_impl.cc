@@ -22,7 +22,7 @@ namespace dvbs2acm {
 using input_type = unsigned char;
 using output_type = unsigned char;
 
-bch_decoder_bb::sptr bch_decoder_bb::make(dvbs2_outputmode_t outputmode, int debug_level)
+bch_decoder_bb::sptr bch_decoder_bb::make(bool outputmode, int debug_level)
 {
     return gnuradio::make_block_sptr<bch_decoder_bb_impl>(outputmode, debug_level);
 }
@@ -31,7 +31,7 @@ bch_decoder_bb::sptr bch_decoder_bb::make(dvbs2_outputmode_t outputmode, int deb
 /*
  * The private constructor
  */
-bch_decoder_bb_impl::bch_decoder_bb_impl(dvbs2_outputmode_t outputmode, int debug_level)
+bch_decoder_bb_impl::bch_decoder_bb_impl(bool outputmode, int debug_level)
     : gr::block("bch_decoder_bb",
                 gr::io_signature::make(1, 1, sizeof(input_type)),
                 gr::io_signature::make(1, 1, sizeof(output_type))),

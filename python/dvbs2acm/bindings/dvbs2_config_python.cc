@@ -14,7 +14,7 @@
 /* BINDTOOL_GEN_AUTOMATIC(0)                                                       */
 /* BINDTOOL_USE_PYGCCXML(0)                                                        */
 /* BINDTOOL_HEADER_FILE(dvbs2_config.h)                                        */
-/* BINDTOOL_HEADER_FILE_HASH(b93c493af7dafc3e8da1c2073b6af995)                     */
+/* BINDTOOL_HEADER_FILE_HASH(8524f6ed358ba9a5b092e40235ea2ca3)                     */
 /***********************************************************************************/
 
 #include <pybind11/complex.h>
@@ -29,6 +29,11 @@ namespace py = pybind11;
 
 void bind_dvbs2_config(py::module& m)
 {
+    py::enum_<::gr::dvbs2acm::dvbs2_framesize_t>(m, "dvbs2_framesize_t")
+        .value("FECFRAME_NORMAL", ::gr::dvbs2acm::FECFRAME_NORMAL) // 0
+        .value("FECFRAME_SHORT", ::gr::dvbs2acm::FECFRAME_SHORT)   // 1
+        .value("FECFRAME_MEDIUM", ::gr::dvbs2acm::FECFRAME_MEDIUM) // 2
+        .export_values();
     py::enum_<::gr::dvbs2acm::dvbs2_code_rate_t>(m, "dvbs2_code_rate_t")
         .value("C1_4", ::gr::dvbs2acm::C1_4)                         // 0
         .value("C1_3", ::gr::dvbs2acm::C1_3)                         // 1
@@ -102,48 +107,5 @@ void bind_dvbs2_config(py::module& m)
         .value("MOD_BPSK", ::gr::dvbs2acm::MOD_BPSK)                 // 8
         .value("MOD_BPSK_SF2", ::gr::dvbs2acm::MOD_BPSK_SF2)         // 9
         .value("MOD_OTHER", ::gr::dvbs2acm::MOD_OTHER)               // 10
-        .export_values();
-    py::enum_<::gr::dvbs2acm::dvbs2_pilots_t>(m, "dvbs2_pilots_t")
-        .value("PILOTS_OFF", ::gr::dvbs2acm::PILOTS_OFF) // 0
-        .value("PILOTS_ON", ::gr::dvbs2acm::PILOTS_ON)   // 1
-        .export_values();
-    // py::enum_<::gr::dvbs2rx::dvbs2_rolloff_factor_t>(m, "dvbs2_rolloff_factor_t")
-    //     .value("RO_0_35", ::gr::dvbs2rx::RO_0_35)         // 0
-    //     .value("RO_0_25", ::gr::dvbs2rx::RO_0_25)         // 1
-    //     .value("RO_0_20", ::gr::dvbs2rx::RO_0_20)         // 2
-    //     .value("RO_RESERVED", ::gr::dvbs2rx::RO_RESERVED) // 3
-    //     .value("RO_0_15", ::gr::dvbs2rx::RO_0_15)         // 4
-    //     .value("RO_0_10", ::gr::dvbs2rx::RO_0_10)         // 5
-    //     .value("RO_0_05", ::gr::dvbs2rx::RO_0_05)         // 6
-    //     .export_values();
-    py::enum_<::gr::dvbs2acm::dvbs2_interpolation_t>(m, "dvbs2_interpolation_t")
-        .value("INTERPOLATION_OFF", ::gr::dvbs2acm::INTERPOLATION_OFF) // 0
-        .value("INTERPOLATION_ON", ::gr::dvbs2acm::INTERPOLATION_ON)   // 1
-        .export_values();
-    py::enum_<::gr::dvbs2acm::dvbs2_framesize_t>(m, "dvbs2_framesize_t")
-        .value("FECFRAME_NORMAL", ::gr::dvbs2acm::FECFRAME_NORMAL) // 0
-        .value("FECFRAME_SHORT", ::gr::dvbs2acm::FECFRAME_SHORT)   // 1
-        .value("FECFRAME_MEDIUM", ::gr::dvbs2acm::FECFRAME_MEDIUM) // 2
-        .export_values();
-    py::enum_<::gr::dvbs2acm::dvbs2_dummy_frames_t>(m, "dvbs2_dummy_frames_t")
-        .value("DUMMY_FRAMES_OFF", ::gr::dvbs2acm::DUMMY_FRAMES_OFF) // 0
-        .value("DUMMY_FRAMES_ON", ::gr::dvbs2acm::DUMMY_FRAMES_ON)   // 1
-        .export_values();
-    py::enum_<::gr::dvbs2acm::dvbs2_guardinterval_t>(m, "dvb_guardinterval_t")
-        .value("GI_1_32", ::gr::dvbs2acm::GI_1_32)     // 0
-        .value("GI_1_16", ::gr::dvbs2acm::GI_1_16)     // 1
-        .value("GI_1_8", ::gr::dvbs2acm::GI_1_8)       // 2
-        .value("GI_1_4", ::gr::dvbs2acm::GI_1_4)       // 3
-        .value("GI_1_128", ::gr::dvbs2acm::GI_1_128)   // 4
-        .value("GI_19_128", ::gr::dvbs2acm::GI_19_128) // 5
-        .value("GI_19_256", ::gr::dvbs2acm::GI_19_256) // 6
-        .export_values();
-    py::enum_<::gr::dvbs2acm::dvbs2_outputmode_t>(m, "dvb_outputmode_t")
-        .value("OM_CODEWORD", ::gr::dvbs2acm::OM_CODEWORD) // 0
-        .value("OM_MESSAGE", ::gr::dvbs2acm::OM_MESSAGE)   // 1
-        .export_values();
-    py::enum_<::gr::dvbs2acm::dvbs2_infomode_t>(m, "dvb_infomode_t")
-        .value("INFO_OFF", ::gr::dvbs2acm::INFO_OFF) // 0
-        .value("INFO_ON", ::gr::dvbs2acm::INFO_ON)   // 1
         .export_values();
 }
