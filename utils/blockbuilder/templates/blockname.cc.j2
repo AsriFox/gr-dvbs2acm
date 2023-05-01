@@ -1,0 +1,121 @@
+{% import 'macros.j2' as macros -%}
+{{ macros.header() }}
+
+#include <gnuradio/{{module}}/{{block}}.h>
+#include <gnuradio/registry.h>
+#include <nlohmann/json.hpp>
+
+namespace gr {
+namespace {{module}} {
+
+{{block}}::sptr {{block}}::make(const block_args& args, available_impl impl)
+{
+    {% set vars = {'pyshell': False} %}
+    switch (impl) {
+    {% for impl in implementations %}
+    {% if 'lang' not in impl or impl['lang'] == 'cpp' -%}
+    #ifdef HAVE_{{ impl['id'] | upper }}
+    case available_impl::{{ impl['id'] | upper }}:
+        return make_{{ impl['id'] | lower }}(args);
+        break;
+    #endif
+    {% elif 'lang' in impl and impl['lang'] == 'python' and GR_ENABLE_PYTHON-%}
+    case available_impl::{{ impl['id'] | upper }}:
+        return make_pyshell("{{ impl['id'] | lower }}", args);
+        break;
+    {% if vars.update({'pyshell': True}) %} {% endif %}
+    {% endif -%}
+    {% endfor %}
+        
+    default:
+        throw std::invalid_argument(
+            "invalid implementation specified");
+    }
+}
+
+{{block}}::sptr {{block}}::make_from_params(const std::string& json_str, available_impl impl)
+{
+    block_args args;
+
+    // Parse the json string
+    using json = nlohmann::json;
+    auto json_obj = json::parse(json_str);
+
+    {% for p in parameters -%}
+    {% if ('cotr' not in p or p['cotr']) and ('serializable' not in p or p['serializable'])%}
+    args.{{p['id']}} = pmtv::cast<{{ p['dtype']|cpp_type(vec=p['container']=='vector')}}>(pmtv::from_base64(json_obj["{{p['id']}}"].get<std::string>()));
+    {% endif %}
+    {% endfor -%}
+
+    return make(args, impl);
+}
+
+{% for impl in implementations %}
+{% if 'lang' not in impl or impl['lang'] == 'cpp' -%}
+{{block}}::sptr {{block}}::make_from_params_{{impl['id']}}(std::map<std::string, pmtv::pmt>& param_map)
+{
+    block_args args;
+
+    {% for p in parameters -%}
+    {% if ('cotr' not in p or p['cotr']) and ('serializable' not in p or p['serializable'])%}
+    args.{{p['id']}} = {{'('+p['dtype']|cpp_type+')' if p['is_enum']}}pmtv::cast<{{ 'int' if p['is_enum'] else p['dtype']|cpp_type(vec=p['container']=='vector')}}>(param_map["{{p['id']}}"]);
+    {% endif %}
+    {% endfor -%}
+
+    return make(args, available_impl::{{impl['id'] | upper }});
+}
+{% endif %}
+{% endfor %}
+
+{{block}}::{{block}}(const block_args& args) : {{blocktype}}("{{ block }}", "{{ module }}") {
+ {{ macros.ports(ports, parameters) }}
+ {{ macros.parameter_instantiations(parameters) }}
+}
+
+// Settable Parameters
+{% if parameters %}
+{% for p in parameters -%}
+{% if p['settable']%}
+void {{block}}::set_{{p['id']}}({{p['dtype']|cpp_type(vec=p['container']=='vector')}} {{p['id']}})
+{
+    return request_parameter_change(params::id_{{p['id']}},{{p['id']}});
+}
+{% endif -%}
+{% if p['settable'] and not 'gettable' in p or p['gettable'] %}
+{{ p['dtype']|cpp_type(vec=p['container']=='vector')}} {{block}}::{{p['id']}}()
+{
+{% if p['is_enum'] %}
+{% if 'container' in p and p['container'] == 'vector' %}
+    return pmtv::cast<{{ 'std::vector<int>' }}>(request_parameter_query(params::id_{{p['id']}}));
+{% else %}
+    return ({{p['dtype']|cpp_type}}) pmtv::cast<int>(request_parameter_query(params::id_{{p['id']}}));
+{% endif %}
+{% else %}
+    return pmtv::cast<{{ p['dtype']|cpp_type(vec=p['container']=='vector')}}>(request_parameter_query(params::id_{{p['id']}}));
+{% endif %}
+}
+{% endif %}
+{% endfor -%}
+{% endif %}
+
+{% if parameters %}{% for p in parameters -%}
+[[maybe_unused]] static auto reg_{{module}}_{{block}}_{{p['id']}} = gr::registry::register_parameter("{{module}}","{{block}}", 
+{
+  "{{p['id']}}",
+  "{{p['label']}}",
+  "{{p['dtype'] }}",
+  {{p['settable']|lower if p['settable'] else 'false'}},
+  {{p['gettable']|lower if p['gettable'] else 'true'}},
+  "{{p['container'] if p['container'] else 'scalar'}}",
+  {{p['cotr']|lower if p['cotr'] else 'true'}},
+  {{p['is_enum']|lower if p['is_enum'] else 'false'}},
+});
+{% endfor -%}{% endif %}
+{% for impl in implementations -%}
+{% if 'lang' not in impl or impl['lang'] == 'cpp' -%}
+[[maybe_unused]] static auto reg_{{module}}_{{block}}_{{impl['id']}} = gr::registry::register_class("{{module}}","{{block}}","{{impl['id']}}",{{block}}::make_from_params_{{impl['id']}});
+{% endif -%}
+{% endfor -%}
+
+} // namespace {{ module }}
+} // namespace gr

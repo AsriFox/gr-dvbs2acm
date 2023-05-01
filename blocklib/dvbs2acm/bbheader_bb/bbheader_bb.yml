@@ -1,0 +1,34 @@
+module: dvbs2acm
+block: bbheader_bb
+label: bbheader_bb
+blocktype: sync_block
+
+# Example Parameters
+parameters:
+-   id: itemsize
+    label: Item Size
+    dtype: size
+    settable: false
+    default: 0
+    grc:
+        hide: part
+
+# Example Ports
+ports:
+-   domain: stream
+    id: in
+    direction: input
+    type: untyped
+    size: parameters/itemsize
+
+-   domain: stream
+    id: out
+    direction: output
+    type: untyped
+    size: parameters/itemsize
+
+implementations:
+-   id: cpu
+# -   id: cuda
+
+file_format: 1

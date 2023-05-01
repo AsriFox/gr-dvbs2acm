@@ -1,0 +1,47 @@
+{% import 'macros.j2' as macros -%}
+{{ macros.header() }}
+#pragma once
+
+#include <gnuradio/{{blocktype}}.h>
+#include <gnuradio/types.h>
+
+{{ macros.includes(includes) }}
+
+{% set vars = {'py_incl': False} %}
+{% for impl in implementations -%}
+{% if 'lang' in impl and impl['lang'] == 'python' and not vars.py_incl and GR_ENABLE_PYTHON -%}
+#include <pybind11/pybind11.h> // must be first
+namespace py = pybind11;
+{% if vars.update({'py_incl': True}) %} {% endif %}{% endif %}
+{%- endfor -%}
+
+namespace gr {
+namespace {{module}} {
+
+{{ macros.class_statement(block, blocktype, inherits) }}
+{
+public:
+{{ macros.block_args(parameters) }}
+    
+    using sptr = std::shared_ptr<{{ block }}>;
+    {{ macros.cotr_statement(block) }};
+
+    {{ macros.implementations(implementations) }}
+
+    {{ macros.callbacks(callbacks) }}    
+
+    {% set vars = {'py_impl': False} %}
+    {% for impl in implementations -%}
+    {% if 'lang' in impl and impl['lang'] == 'python' and not vars.py_impl and GR_ENABLE_PYTHON -%}
+    virtual py::object py_method(const std::string& name, py::tuple args = py::tuple(), py::dict kwargs = py::dict()) {throw std::runtime_error("py_method only defined for python implementations");};
+    {% if vars.update({'py_impl': True}) %} {% endif %}{% endif %}
+    {%- endfor -%}
+
+protected:
+    {{ macros.message_ports(ports) }} 
+
+{{ macros.parameter_declarations(parameters) }}
+};
+
+} // namespace {{ module }}
+} // namespace gr

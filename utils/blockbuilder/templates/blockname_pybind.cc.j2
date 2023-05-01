@@ -1,0 +1,63 @@
+{% import 'macros.j2' as macros -%}
+#include <pybind11/complex.h>
+#include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
+
+namespace py = pybind11;
+
+#include <gnuradio/{{module}}/{{block}}.h>
+using namespace gr::{{module}};
+
+
+void bind_{{block}}(py::module& m)
+{
+    using {{block}} = ::gr::{{module}}::{{block}};
+
+    py::class_<{{block}}, {% if inherits %}{% for inh in inherits%}{{inh}},{%endfor%}{%endif%}{% if blocktype != 'block'%} gr::{{blocktype}},{% endif %}
+    gr::block, gr::node,
+    std::shared_ptr<{{block}}>> {{block}}_class(m, "{{block}}"{{macros.block_docstring(doc,parameters,ports)}});
+
+    py::enum_<::gr::{{ module }}::{{ block }}::available_impl>({{block}}_class, "available_impl")
+    {% for impl in implementations -%}
+        .value("{{ impl['id'] | lower }}", ::gr::{{module}}::{{block}}::available_impl::{{ impl['id'] | upper }}) 
+    {% endfor -%}
+        .export_values();
+
+    {{block}}_class.def(py::init([]({% if parameters %}{% for param in parameters -%}{% if 'cotr' not in param or param['cotr']%}{{ param['dtype']|cpp_type(vec=param['container']=='vector')}} {{ param['id'] }},{%endif%} {%endfor%}{% endif %} typename gr::{{module}}::{{block}}::available_impl impl) {
+                       return {{block}}::make({ {% if parameters %}{% for param in parameters -%}{% if 'cotr' not in param or param['cotr']%}{{ param['id'] }}{{ ", " if not loop.last }}{% endif %}{%endfor%}{% endif %} }, impl);
+                   }),
+        {% if parameters %} {% for param in parameters -%}{% if 'cotr' not in param or param['cotr']%}
+        py::arg("{{ param['id'] }}"){% if 'default' in param %} = {{param['default']}}{% endif %},{% endif %}
+        {% endfor -%}{% endif %}
+                   py::arg("impl") = gr::{{module}}::{{block}}::available_impl::{{ implementations[0]['id'] | upper }})
+        .def_static("make_from_params", &::gr::{{module}}::{{block}}::make_from_params, 
+        py::arg("json_str"),
+        py::arg("impl") = gr::{{module}}::{{block}}::available_impl::{{ implementations[0]['id'] | upper }})
+        {% for cb in callbacks -%}
+        {% if 'inherited' not in cb or not cb['inherited']%}
+        {% if 'binding' in cb %}
+        .def("{{cb['id']}}", {{cb['binding']}})
+        {% else %}
+        .def("{{cb['id']}}", &gr::{{module}}::{{block}}::{{cb['id']}})
+        {% endif -%}
+        {% endif -%}
+        {% endfor %}
+        {% if parameters %}{% for p in parameters -%}
+        {% if p['settable'] %}
+        .def("set_{{p['id']}}", &gr::{{module}}::{{block}}::set_{{p['id']}},py::arg("{{p['id']}}"))
+        {% endif -%}
+        {% if p['settable'] and not 'gettable' in p or p['gettable'] %}
+        .def("{{p['id']}}", &gr::{{module}}::{{block}}::{{p['id']}})
+        {% endif -%}
+        {% endfor %}{% endif %}  
+    {% set vars = {'py_impl': False} %}
+    {% for impl in implementations -%}
+    {% if 'lang' in impl and impl['lang'] == 'python' and not vars.py_impl -%}
+        .def("py_method", &gr::{{module}}::{{block}}::py_method,
+            py::arg("name"),
+            py::arg("args") = py::tuple(),
+            py::arg("kwargs") = py::dict())
+    {% if vars.update({'py_impl': True}) %} {% endif %}{% endif %}
+    {%- endfor -%}
+                   ;
+}
