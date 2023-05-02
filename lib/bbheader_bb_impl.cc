@@ -22,6 +22,7 @@
 #include "bb_header.hh"
 #include "bbheader_bb_impl.h"
 #include "bch_code.h"
+#include "modcod.hh"
 #include <gnuradio/io_signature.h>
 #include <pmt/pmt.h>
 
@@ -30,38 +31,42 @@ namespace dvbs2acm {
 using input_type = unsigned char;
 using output_type = unsigned char;
 
-bbheader_bb::sptr bbheader_bb::make(dvbs2_framesize_t framesize,
-                                    dvbs2_code_rate_t code_rate,
-                                    dvbs2_constellation_t constellation,
-                                    bool pilots,
-                                    dvbs2_rolloff_factor_t rolloff,
-                                    int goldcode)
+bbheader_bb::sptr
+bbheader_bb::make(int modcod, bool pilots, dvbs2_rolloff_factor_t rolloff, int goldcode)
 {
-    return gnuradio::make_block_sptr<bbheader_bb_impl>(
-        framesize, code_rate, constellation, pilots, rolloff, goldcode);
+    return gnuradio::make_block_sptr<bbheader_bb_impl>(modcod, pilots, rolloff, goldcode);
 }
 
 
 /*
  * The private constructor
  */
-bbheader_bb_impl::bbheader_bb_impl(dvbs2_framesize_t framesize,
-                                   dvbs2_code_rate_t code_rate,
-                                   dvbs2_constellation_t constellation,
+bbheader_bb_impl::bbheader_bb_impl(int modcod,
                                    bool pilots,
                                    dvbs2_rolloff_factor_t rolloff,
                                    int goldcode)
     : gr::block("bbheader_bb",
                 gr::io_signature::make(1, 1, sizeof(input_type)),
-                gr::io_signature::make(1, 1, sizeof(output_type))),
-      framesize(framesize),
-      code_rate(code_rate),
-      constellation(constellation),
-      pilots(pilots)
+                gr::io_signature::make(1, 1, sizeof(output_type)))
 {
+    if (modcod < 0 || modcod > 128) {
+        GR_LOG_WARN(d_logger, "Provided MODCOD value is out of range.");
+        GR_LOG_WARN(d_logger, "MODCOD set to DUMMY.");
+        this->modcod = 0;
+    } else if (modcod < 2 || (modcod > 57 && modcod < MC_QPSK_13_45) || modcod > MC_32APSK_32_45_S) {
+        GR_LOG_WARN(d_logger, "Provided MODCOD value is reserved.");
+        GR_LOG_WARN(d_logger, "MODCOD set to DUMMY.");
+        if (modcod < 64) {             // DVB-S2
+            this->modcod = modcod & 1; // Select framesize
+        } else {                       // DVB-S2X
+            this->modcod = 0;
+        }
+    }
+    this->modcod = (modcod << 1) | pilots;
+
     if (goldcode < 0 || goldcode > 262141) {
-        GR_LOG_WARN(d_logger, "Gold Code 1 must be between 0 and 262141 inclusive.");
-        GR_LOG_WARN(d_logger, "Gold Code 1 set to 0.");
+        GR_LOG_WARN(d_logger, "Gold Code must be between 0 and 262141 inclusive.");
+        GR_LOG_WARN(d_logger, "Gold Code set to 0.");
         goldcode = 0;
     }
     root_code = gold_to_root(goldcode);
@@ -73,7 +78,7 @@ bbheader_bb_impl::bbheader_bb_impl(dvbs2_framesize_t framesize,
     header.issyi = ISSYI_NOT_ACTIVE;
     header.upl = 0;  // TODO: GSE
     header.sync = 0; // TODO: GSE
-    if (rolloff & 0x4) {
+    if (rolloff & 0x4 || modcod >= MC_QPSK_13_45) {
         dvbs2x = true;
     }
     header.ro = rolloff & 0x3;
@@ -120,6 +125,12 @@ int bbheader_bb_impl::general_work(int noutput_items,
 
     while (kbch + produced <= (unsigned int)noutput_items) {
         const uint64_t tagoffset = this->nitems_written(0);
+
+        auto framesize = (modcod & 2) ? FECFRAME_SHORT : FECFRAME_NORMAL;
+        auto pilots = (modcod & 1);
+        auto constellation = modcod_constellation(modcod);
+        auto code_rate = modcod_rate(modcod);
+
         const uint64_t tagmodcod = (uint64_t(root_code) << 32) | (uint64_t(pilots) << 24) |
                                    (uint64_t(constellation) << 16) | (uint64_t(code_rate) << 8) |
                                    (uint64_t(framesize) << 1) | uint64_t(0);

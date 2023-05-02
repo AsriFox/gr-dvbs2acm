@@ -32,16 +32,12 @@ public:
     /*!
      * \brief Create a baseband header formatter.
      *
-     * \param framesize FEC Baseband frame size (Normal, Short, Medium).
-     * \param code_rate FEC code rate.
-     * \param constellation DVB-S2 constellation.
+     * \param modcod DVB-S2 FEC code rate and constellation (MODCOD).
      * \param pilots Pilot symbols (on/off).
      * \param rolloff DVB-S2 root-raised-cosine filter roll-off factor.
      * \param goldcode PL scrambler Gold code (0 to 262141 inclusive).
      */
-    static sptr make(dvbs2_framesize_t framesize = FECFRAME_NORMAL,
-                     dvbs2_code_rate_t code_rate = C1_4,
-                     dvbs2_constellation_t constellation = MOD_QPSK,
+    static sptr make(int modcod = 2,
                      bool pilots = true,
                      dvbs2_rolloff_factor_t rolloff = RO_0_20,
                      int goldcode = 0);
