@@ -11,7 +11,6 @@
 #include "bbdeheader_bb_impl.h"
 #include "bch_code.h"
 #include "debug_level.h"
-#include <gnuradio/dvbs2acm/dvbs2_config.h>
 #include <gnuradio/io_signature.h>
 #include <gnuradio/logger.h>
 
@@ -83,7 +82,17 @@ int bbdeheader_bb_impl::general_work(int noutput_items,
         auto tagmodcod = pmt::to_uint64(tag.value);
         auto framesize = (dvbs2_framesize_t)((tagmodcod >> 1) & 0x7f);
         auto rate = (dvbs2_code_rate_t)((tagmodcod >> 8) & 0xff);
-        auto kbch = bch_code::select(framesize, rate).kbch;
+        unsigned int kbch = 0;
+        switch (framesize) {
+        case FECFRAME_NORMAL:
+            kbch = bch_code::select_normal(rate).kbch;
+            break;
+        case FECFRAME_SHORT:
+            kbch = bch_code::select_short(rate).kbch;
+            break;
+        default:
+            break;
+        }
         auto max_dfl = kbch - BB_HEADER_LENGTH_BITS;
 
         if (produced + max_dfl > (unsigned)noutput_items) {

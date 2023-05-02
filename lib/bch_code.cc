@@ -1,4 +1,5 @@
 #include "bch_code.h"
+#include "modcod.hh"
 #include <cstring>
 
 namespace gr {
@@ -64,9 +65,19 @@ void poly_reverse(int* pin, int* pout, int len)
     }
 }
 
-bch_code::bch_code(unsigned int kbch, unsigned int nbch, unsigned int code)
-    : kbch(kbch), nbch(nbch), code(code)
+bch_code::bch_code(unsigned int code) : code(code)
 {
+    switch (code) {
+    case BCH_CODE_N8:
+    case BCH_CODE_N10:
+    case BCH_CODE_N12:
+    case BCH_CODE_S12:
+    case BCH_CODE_M12:
+        break;
+    default:
+        return;
+    }
+
     // Normal polynomials
     const int polyn01[] = { 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 };
     const int polyn02[] = { 1, 1, 0, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1 };
@@ -305,87 +316,180 @@ void bch_code::encode(const unsigned char* in, unsigned char* out)
     }
 }
 
-bch_code bch_code::select(dvbs2_framesize_t framesize, dvbs2_code_rate_t rate)
-{
-    if (framesize == FECFRAME_NORMAL) {
-        switch (rate) {
-        case C1_4:
-            return bch_code_1_2N;
-        case C1_3:
-            return bch_code_1_3N;
-        case C2_5:
-            return bch_code_2_5N;
-        case C1_2:
-            return bch_code_1_2N;
-        case C3_5:
-            return bch_code_3_5N;
-        case C2_3:
-            return bch_code_2_3N;
-        case C3_4:
-            return bch_code_3_4N;
-        case C4_5:
-            return bch_code_4_5N;
-        case C5_6:
-            return bch_code_5_6N;
-        case C8_9:
-            return bch_code_8_9N;
-        case C9_10:
-            return bch_code_9_10N;
-        default:
-            return { 0, 0, 0 };
-        }
-    } else if (framesize == FECFRAME_SHORT) {
-        switch (rate) {
-        case C1_4:
-            return bch_code_1_2S;
-        case C1_3:
-            return bch_code_1_3S;
-        case C2_5:
-            return bch_code_2_5S;
-        case C1_2:
-            return bch_code_1_2S;
-        case C3_5:
-            return bch_code_3_5S;
-        case C2_3:
-            return bch_code_2_3S;
-        case C3_4:
-            return bch_code_3_4S;
-        case C4_5:
-            return bch_code_4_5S;
-        case C5_6:
-            return bch_code_5_6S;
-        case C8_9:
-            return bch_code_8_9S;
-        default:
-            return { 0, 0, 0 };
-        }
+#define BCH_N12(KBCH, NBCH)    \
+    {                          \
+        auto b = bch_code_N12; \
+        b.kbch = KBCH;         \
+        b.nbch = NBCH;         \
+        return b;              \
     }
-    // TODO: DVB-S2X
-    return { 0, 0, 0 };
+
+#define BCH_N10(KBCH, NBCH)    \
+    {                          \
+        auto b = bch_code_N10; \
+        b.kbch = KBCH;         \
+        b.nbch = NBCH;         \
+        return b;              \
+    }
+
+#define BCH_N8(KBCH, NBCH)    \
+    {                         \
+        auto b = bch_code_N8; \
+        b.kbch = KBCH;        \
+        b.nbch = NBCH;        \
+        return b;             \
+    }
+
+#define BCH_S12(KBCH, NBCH)    \
+    {                          \
+        auto b = bch_code_S12; \
+        b.kbch = KBCH;         \
+        b.nbch = NBCH;         \
+        return b;              \
+    }
+
+#define BCH_M12(KBCH, NBCH)    \
+    {                          \
+        auto b = bch_code_M12; \
+        b.kbch = KBCH;         \
+        b.nbch = NBCH;         \
+        return b;              \
+    }
+
+bch_code bch_code::select(int modcod)
+{
+    auto rate = modcod_rate(modcod);
+    if ((modcod <= 64 && (bool)(modcod & 1)) || (modcod >= MC_QPSK_11_45_S)) {
+        return select_short(rate);
+    } else {
+        return select_normal(rate);
+    }
 }
 
-const bch_code bch_code::bch_code_1_4N = { 16008, 16200, BCH_CODE_N12 };
-const bch_code bch_code::bch_code_1_3N = { 21408, 21600, BCH_CODE_N12 };
-const bch_code bch_code::bch_code_2_5N = { 25728, 25920, BCH_CODE_N12 };
-const bch_code bch_code::bch_code_1_2N = { 32208, 32400, BCH_CODE_N12 };
-const bch_code bch_code::bch_code_3_5N = { 38688, 38880, BCH_CODE_N12 };
-const bch_code bch_code::bch_code_2_3N = { 43040, 43200, BCH_CODE_N10 };
-const bch_code bch_code::bch_code_3_4N = { 48408, 48600, BCH_CODE_N12 };
-const bch_code bch_code::bch_code_4_5N = { 51648, 51840, BCH_CODE_N12 };
-const bch_code bch_code::bch_code_5_6N = { 53840, 54000, BCH_CODE_N10 };
-const bch_code bch_code::bch_code_8_9N = { 57472, 57600, BCH_CODE_N8 };
-const bch_code bch_code::bch_code_9_10N = { 58192, 58320, BCH_CODE_N8 };
+bch_code bch_code::select_normal(dvbs2_code_rate_t rate)
+{
+    switch (rate) {
+    case C1_4:
+        BCH_N12(16008, 16200)
+    case C1_3:
+        BCH_N12(21408, 21600)
+    case C2_5:
+        BCH_N12(25728, 25920)
+    case C1_2:
+        BCH_N12(32208, 32400)
+    case C3_5:
+        BCH_N12(38688, 38880)
+    case C2_3:
+        BCH_N10(43040, 43200)
+    case C3_4:
+        BCH_N12(48408, 48600)
+    case C4_5:
+        BCH_N12(51648, 51840)
+    case C5_6:
+        BCH_N10(53840, 54000)
+    case C8_9:
+        BCH_N8(57472, 57600)
+    case C9_10:
+        BCH_N8(58192, 58320)
+    case C13_45:
+        BCH_N12(18528, 18720)
+    case C9_20:
+        BCH_N12(28968, 29160)
+    case C90_180:
+        BCH_N12(32208, 32400)
+    case C96_180:
+        BCH_N12(34368, 34560)
+    case C11_20:
+        BCH_N12(35448, 35640)
+    case C100_180:
+        BCH_N12(35808, 36000)
+    case C104_180:
+        BCH_N12(37248, 37440)
+    case C26_45:
+        BCH_N12(37248, 37440)
+    case C18_30:
+        BCH_N12(38688, 38880)
+    case C28_45:
+        BCH_N12(40128, 40320)
+    case C23_36:
+        BCH_N12(41208, 41400)
+    case C116_180:
+        BCH_N12(41568, 41760)
+    case C20_30:
+        BCH_N12(43008, 43200)
+    case C124_180:
+        BCH_N12(44448, 44640)
+    case C25_36:
+        BCH_N12(44808, 45000)
+    case C128_180:
+        BCH_N12(45888, 46080)
+    case C13_18:
+        BCH_N12(46608, 46800)
+    case C132_180:
+        BCH_N12(47328, 47520)
+    case C22_30:
+        BCH_N12(47328, 47520)
+    case C135_180:
+        BCH_N12(48408, 48600)
+    case C140_180:
+        BCH_N12(50208, 50400)
+    case C7_9:
+        BCH_N12(50208, 50400)
+    case C154_180:
+        BCH_N12(55248, 55440)
+    default:
+        return bch_code_invalid;
+    }
+}
 
-const bch_code bch_code::bch_code_1_4S = { 3072, 3240, BCH_CODE_S12 };
-const bch_code bch_code::bch_code_1_3S = { 5232, 5400, BCH_CODE_S12 };
-const bch_code bch_code::bch_code_2_5S = { 6312, 6480, BCH_CODE_S12 };
-const bch_code bch_code::bch_code_1_2S = { 7032, 7200, BCH_CODE_S12 };
-const bch_code bch_code::bch_code_3_5S = { 9552, 9720, BCH_CODE_S12 };
-const bch_code bch_code::bch_code_2_3S = { 10632, 10800, BCH_CODE_S12 };
-const bch_code bch_code::bch_code_3_4S = { 11712, 11880, BCH_CODE_S12 };
-const bch_code bch_code::bch_code_4_5S = { 12432, 12600, BCH_CODE_S12 };
-const bch_code bch_code::bch_code_5_6S = { 13152, 13320, BCH_CODE_S12 };
-const bch_code bch_code::bch_code_8_9S = { 14232, 14400, BCH_CODE_S12 };
+bch_code bch_code::select_short(dvbs2_code_rate_t rate)
+{
+    switch (rate) {
+    case C1_4:
+        BCH_S12(3072, 3240)
+    case C1_3:
+        BCH_S12(5232, 5400)
+    case C2_5:
+        BCH_S12(6312, 6480)
+    case C1_2:
+        BCH_S12(7032, 7200)
+    case C3_5:
+        BCH_S12(9552, 9720)
+    case C2_3:
+        BCH_S12(10632, 10800)
+    case C3_4:
+        BCH_S12(11712, 11880)
+    case C4_5:
+        BCH_S12(12432, 12600)
+    case C5_6:
+        BCH_S12(13152, 13320)
+    case C8_9:
+        BCH_S12(14232, 14400)
+    case C11_45:
+        BCH_S12(3792, 3960)
+    case C4_15:
+        BCH_S12(4152, 4320)
+    case C14_45:
+        BCH_S12(4872, 5040)
+    case C7_15:
+        BCH_S12(7392, 7560)
+    case C8_15:
+        BCH_S12(8472, 8640)
+    case C26_45:
+        BCH_S12(9192, 9360)
+    case C32_45:
+        BCH_S12(11352, 11520)
+    default:
+        return bch_code_invalid;
+    }
+}
+
+const bch_code bch_code::bch_code_invalid = { 0xFF };
+const bch_code bch_code::bch_code_N8 = { BCH_CODE_N8 };
+const bch_code bch_code::bch_code_N10 = { BCH_CODE_N10 };
+const bch_code bch_code::bch_code_N12 = { BCH_CODE_N12 };
+const bch_code bch_code::bch_code_S12 = { BCH_CODE_S12 };
+const bch_code bch_code::bch_code_M12 = { BCH_CODE_M12 };
 
 } // namespace dvbs2acm
 } // namespace gr

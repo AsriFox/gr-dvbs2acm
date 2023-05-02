@@ -38,35 +38,20 @@ public:
     void encode(const unsigned char* in, unsigned char* out);
 
 private:
-    bch_code(unsigned int kbch, unsigned int nbch, unsigned int code);
+    bch_code(unsigned int code);
 
 public:
-    static bch_code select(dvbs2_framesize_t, dvbs2_code_rate_t);
+    static bch_code select(int modcod);
+    static bch_code select_normal(dvbs2_code_rate_t);
+    static bch_code select_short(dvbs2_code_rate_t);
+    // static bch_code select_vlsnr(dvbs2_code_rate_t);
 
-    // FECFRAME_NORMAL
-    static const bch_code bch_code_1_4N;
-    static const bch_code bch_code_1_3N;
-    static const bch_code bch_code_2_5N;
-    static const bch_code bch_code_1_2N;
-    static const bch_code bch_code_3_5N;
-    static const bch_code bch_code_2_3N;
-    static const bch_code bch_code_3_4N;
-    static const bch_code bch_code_4_5N;
-    static const bch_code bch_code_5_6N;
-    static const bch_code bch_code_8_9N;
-    static const bch_code bch_code_9_10N;
-
-    // FECFRAME_SHORT
-    static const bch_code bch_code_1_4S;
-    static const bch_code bch_code_1_3S;
-    static const bch_code bch_code_2_5S;
-    static const bch_code bch_code_1_2S;
-    static const bch_code bch_code_3_5S;
-    static const bch_code bch_code_2_3S;
-    static const bch_code bch_code_3_4S;
-    static const bch_code bch_code_4_5S;
-    static const bch_code bch_code_5_6S;
-    static const bch_code bch_code_8_9S;
+    static const bch_code bch_code_invalid;
+    static const bch_code bch_code_N8;
+    static const bch_code bch_code_N10;
+    static const bch_code bch_code_N12;
+    static const bch_code bch_code_S12;
+    static const bch_code bch_code_M12;
 };
 
 } // namespace dvbs2acm

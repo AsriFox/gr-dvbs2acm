@@ -110,7 +110,10 @@ int bch_decoder_bb_impl::general_work(int noutput_items,
         auto tagmodcod = pmt::to_uint64(tag.value);
         auto framesize = (dvbs2_framesize_t)((tagmodcod >> 1) & 0x7f);
         auto rate = (dvbs2_code_rate_t)((tagmodcod >> 8) & 0xff);
-        auto params = bch_code::select(framesize, rate);
+        auto params = (framesize == FECFRAME_NORMAL)
+                          ? bch_code::select_normal(rate)
+                          : ((framesize == FECFRAME_SHORT) ? bch_code::select_short(rate)
+                                                           : bch_code::bch_code_invalid);
         if (params.nbch + produced > (unsigned int)noutput_items) {
             break;
         }

@@ -129,15 +129,25 @@ int bbheader_bb_impl::general_work(int noutput_items,
         auto framesize = (modcod & 2) ? FECFRAME_SHORT : FECFRAME_NORMAL;
         auto pilots = (modcod & 1);
         auto constellation = modcod_constellation(modcod);
-        auto code_rate = modcod_rate(modcod);
+        auto rate = modcod_rate(modcod);
 
         const uint64_t tagmodcod = (uint64_t(root_code) << 32) | (uint64_t(pilots) << 24) |
-                                   (uint64_t(constellation) << 16) | (uint64_t(code_rate) << 8) |
+                                   (uint64_t(constellation) << 16) | (uint64_t(rate) << 8) |
                                    (uint64_t(framesize) << 1) | uint64_t(0);
         pmt::pmt_t key = pmt::string_to_symbol("modcod");
         pmt::pmt_t value = pmt::from_uint64(tagmodcod);
         this->add_item_tag(0, tagoffset, key, value);
-        auto kbch = bch_code::select(framesize, code_rate).kbch;
+        kbch = 0;
+        switch (framesize) {
+        case FECFRAME_NORMAL:
+            kbch = bch_code::select_normal(rate).kbch;
+            break;
+        case FECFRAME_SHORT:
+            kbch = bch_code::select_short(rate).kbch;
+            break;
+        default:
+            break;
+        }
         header.dfl = kbch - BB_HEADER_LENGTH_BITS;
         if (framesize != FECFRAME_MEDIUM) {
             header.add_to_frame(&out[offset], count, nibble, dvbs2x && alternate);

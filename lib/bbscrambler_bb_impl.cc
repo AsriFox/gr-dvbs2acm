@@ -79,7 +79,17 @@ int bbscrambler_bb_impl::work(int noutput_items,
         auto tagmodcod = pmt::to_uint64(tag.value);
         auto framesize = (dvbs2_framesize_t)((tagmodcod >> 1) & 0x7f);
         auto rate = (dvbs2_code_rate_t)((tagmodcod >> 8) & 0xff);
-        kbch = bch_code::select(framesize, rate).kbch;
+        kbch = 0;
+        switch (framesize) {
+        case FECFRAME_NORMAL:
+            kbch = bch_code::select_normal(rate).kbch;
+            break;
+        case FECFRAME_SHORT:
+            kbch = bch_code::select_short(rate).kbch;
+            break;
+        default:
+            break;
+        }
         if (kbch + produced <= (unsigned int)noutput_items) {
             for (int j = 0; j < (int)kbch; j++) {
                 out[produced + j] = in[produced + j] ^ bb_randomize[j];
