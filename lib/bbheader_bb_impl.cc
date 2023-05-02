@@ -47,22 +47,24 @@ bbheader_bb_impl::bbheader_bb_impl(int modcod,
                                    int goldcode)
     : gr::block("bbheader_bb",
                 gr::io_signature::make(1, 1, sizeof(input_type)),
-                gr::io_signature::make(1, 1, sizeof(output_type)))
+                gr::io_signature::make(1, 1, sizeof(output_type))),
+      pilots(pilots)
 {
     if (modcod < 0 || modcod > 128) {
         GR_LOG_WARN(d_logger, "Provided MODCOD value is out of range.");
         GR_LOG_WARN(d_logger, "MODCOD set to DUMMY.");
-        this->modcod = 0;
+        this->modcod = MC_DUMMY;
     } else if (modcod < 2 || (modcod > 57 && modcod < MC_QPSK_13_45) || modcod > MC_32APSK_32_45_S) {
         GR_LOG_WARN(d_logger, "Provided MODCOD value is reserved.");
         GR_LOG_WARN(d_logger, "MODCOD set to DUMMY.");
-        if (modcod < 64) {             // DVB-S2
-            this->modcod = modcod & 1; // Select framesize
-        } else {                       // DVB-S2X
-            this->modcod = 0;
+        if (modcod < 64) { // DVB-S2
+            this->modcod = (modcod & 1) ? MC_DUMMY_S : MC_DUMMY;
+        } else { // DVB-S2X
+            this->modcod = MC_DUMMY;
         }
+    } else {
+        this->modcod = (dvbs2_modcod_t)modcod;
     }
-    this->modcod = (modcod << 1) | pilots;
 
     if (goldcode < 0 || goldcode > 262141) {
         GR_LOG_WARN(d_logger, "Gold Code must be between 0 and 262141 inclusive.");
@@ -127,27 +129,13 @@ int bbheader_bb_impl::general_work(int noutput_items,
         const uint64_t tagoffset = this->nitems_written(0);
 
         auto framesize = (modcod & 2) ? FECFRAME_SHORT : FECFRAME_NORMAL;
-        auto pilots = (modcod & 1);
-        auto constellation = modcod_constellation(modcod);
-        auto rate = modcod_rate(modcod);
 
-        const uint64_t tagmodcod = (uint64_t(root_code) << 32) | (uint64_t(pilots) << 24) |
-                                   (uint64_t(constellation) << 16) | (uint64_t(rate) << 8) |
-                                   (uint64_t(framesize) << 1) | uint64_t(0);
+        const uint64_t tagmodcod = (uint64_t(root_code) << 32) | (uint64_t(vlsnr_header) << 9) |
+                                   (uint64_t(modcod) << 2) | (uint64_t(pilots) << 1) | uint64_t(0);
         pmt::pmt_t key = pmt::string_to_symbol("modcod");
         pmt::pmt_t value = pmt::from_uint64(tagmodcod);
         this->add_item_tag(0, tagoffset, key, value);
-        kbch = 0;
-        switch (framesize) {
-        case FECFRAME_NORMAL:
-            kbch = bch_code::select_normal(rate).kbch;
-            break;
-        case FECFRAME_SHORT:
-            kbch = bch_code::select_short(rate).kbch;
-            break;
-        default:
-            break;
-        }
+        kbch = bch_code::select(modcod, vlsnr_header).kbch;
         header.dfl = kbch - BB_HEADER_LENGTH_BITS;
         if (framesize != FECFRAME_MEDIUM) {
             header.add_to_frame(&out[offset], count, nibble, dvbs2x && alternate);

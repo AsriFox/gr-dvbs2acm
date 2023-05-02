@@ -35,7 +35,9 @@ private:
     unsigned int kbch;
     unsigned int count;
     unsigned char crc;
-    int modcod;
+    dvbs2_modcod_t modcod;
+    dvbs2_vlsnr_header_t vlsnr_header;
+    bool pilots;
     unsigned int root_code;
     unsigned char bsave;
 
@@ -48,7 +50,7 @@ private:
     int gold_to_root(int);
 
 public:
-    bbheader_bb_impl(int modcod, bool pilots, dvbs2_rolloff_factor_t rolloff, int goldcode);
+    bbheader_bb_impl(int, bool, dvbs2_rolloff_factor_t, int);
     ~bbheader_bb_impl();
 
     void forecast(int noutput_items, gr_vector_int& ninput_items_required);

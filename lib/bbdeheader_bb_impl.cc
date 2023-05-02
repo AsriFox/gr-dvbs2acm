@@ -80,19 +80,9 @@ int bbdeheader_bb_impl::general_work(int noutput_items,
 
     for (tag_t tag : tags) {
         auto tagmodcod = pmt::to_uint64(tag.value);
-        auto framesize = (dvbs2_framesize_t)((tagmodcod >> 1) & 0x7f);
-        auto rate = (dvbs2_code_rate_t)((tagmodcod >> 8) & 0xff);
-        unsigned int kbch = 0;
-        switch (framesize) {
-        case FECFRAME_NORMAL:
-            kbch = bch_code::select_normal(rate).kbch;
-            break;
-        case FECFRAME_SHORT:
-            kbch = bch_code::select_short(rate).kbch;
-            break;
-        default:
-            break;
-        }
+        auto modcod = (dvbs2_modcod_t)((tagmodcod >> 2) & 0x7f);
+        auto vlsnr_header = (dvbs2_vlsnr_header_t)((tagmodcod >> 9) & 0x0f);
+        auto kbch = bch_code::select(modcod, vlsnr_header).kbch;
         auto max_dfl = kbch - BB_HEADER_LENGTH_BITS;
 
         if (produced + max_dfl > (unsigned)noutput_items) {

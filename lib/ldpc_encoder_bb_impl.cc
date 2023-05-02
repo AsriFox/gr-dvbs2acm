@@ -21,6 +21,7 @@
 
 #include "ldpc_encode_tables.h"
 #include "ldpc_encoder_bb_impl.h"
+#include "modcod.hh"
 #include <gnuradio/io_signature.h>
 #include <vector>
 
@@ -81,8 +82,14 @@ int ldpc_encoder_bb_impl::general_work(int noutput_items,
 
     for (tag_t tag : tags) {
         auto tagmodcod = pmt::to_uint64(tag.value);
-        auto framesize = (dvbs2_framesize_t)((tagmodcod >> 1) & 0x7f);
-        auto rate = (dvbs2_code_rate_t)((tagmodcod >> 8) & 0xff);
+        auto modcod = (dvbs2_modcod_t)((tagmodcod >> 2) & 0x7f);
+        auto framesize = modcod_framesize(modcod);
+        auto rate = modcod_rate(modcod);
+        if (modcod == MC_VLSNR_SET1 || modcod == MC_VLSNR_SET2) {
+            auto vlsnr_header = (dvbs2_vlsnr_header_t)((tagmodcod >> 9) & 0x0f);
+            framesize = vlsnr_framesize(vlsnr_header);
+            rate = vlsnr_rate(vlsnr_header);
+        }
         auto params = ldpc_encode_table::select(framesize, rate);
         if (params.frame_size + produced > (unsigned)noutput_items) {
             break;

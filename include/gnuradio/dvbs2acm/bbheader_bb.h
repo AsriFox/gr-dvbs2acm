@@ -37,10 +37,8 @@ public:
      * \param rolloff DVB-S2 root-raised-cosine filter roll-off factor.
      * \param goldcode PL scrambler Gold code (0 to 262141 inclusive).
      */
-    static sptr make(int modcod = 2,
-                     bool pilots = true,
-                     dvbs2_rolloff_factor_t rolloff = RO_0_20,
-                     int goldcode = 0);
+    static sptr
+    make(int modcod, bool pilots = true, dvbs2_rolloff_factor_t rolloff = RO_0_20, int goldcode = 0);
 };
 
 } // namespace dvbs2acm

@@ -356,10 +356,13 @@ void bch_code::encode(const unsigned char* in, unsigned char* out)
         return b;              \
     }
 
-bch_code bch_code::select(int modcod)
+bch_code bch_code::select(dvbs2_modcod_t modcod, dvbs2_vlsnr_header_t vlsnr_header)
 {
+    if (modcod == MC_VLSNR_SET1 || modcod == MC_VLSNR_SET2) {
+        return select_vlsnr(vlsnr_header);
+    }
     auto rate = modcod_rate(modcod);
-    if ((modcod <= 64 && (bool)(modcod & 1)) || (modcod >= MC_QPSK_11_45_S)) {
+    if ((modcod < 64 && (bool)(modcod & 1)) || (modcod >= MC_QPSK_11_45_S)) {
         return select_short(rate);
     } else {
         return select_normal(rate);
@@ -479,6 +482,32 @@ bch_code bch_code::select_short(dvbs2_code_rate_t rate)
         BCH_S12(9192, 9360)
     case C32_45:
         BCH_S12(11352, 11520)
+    default:
+        return bch_code_invalid;
+    }
+}
+
+bch_code bch_code::select_vlsnr(dvbs2_vlsnr_header_t vlsnr_header)
+{
+    switch (vlsnr_header) {
+    case VLSNR_N_QPSK_2_9:
+        BCH_N12(14208, 14400)
+    case VLSNR_M_BPSK_1_5:
+        BCH_M12(5660, 5840)
+    case VLSNR_M_BPSK_11_45:
+        BCH_M12(7740, 7920)
+    case VLSNR_M_BPSK_1_3:
+        BCH_M12(10620, 10800)
+    case VLSNR_S_BPSK_SF2_1_5:
+        BCH_S12(2512, 2680)
+    case VLSNR_S_BPSK_SF2_11_45:
+        BCH_S12(3792, 3960)
+    case VLSNR_S_BPSK_1_5:
+        BCH_S12(3072, 3240)
+    case VLSNR_S_BPSK_4_15:
+        BCH_S12(4152, 4320)
+    case VLSNR_S_BPSK_1_3:
+        BCH_S12(5232, 5400)
     default:
         return bch_code_invalid;
     }

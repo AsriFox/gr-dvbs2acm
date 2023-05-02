@@ -6,12 +6,10 @@ parameters:
 - id: framesize
   label: FECFRAME size
   dtype: enum
-  options: [FECFRAME_NORMAL, FECFRAME_SHORT]
-  option_labels: [Normal, Short]
+  options: [Normal, Short]
   option_attributes:
     hide_normal: [none, all]
     hide_short: [all, none]
-    val: [False, True]
 - id: modcod_normal
   label: MODCOD
   dtype: enum
@@ -77,7 +75,7 @@ parameters:
 - id: goldcode
   label: Gold Code
   dtype: int
-  default: '0'
+  default: 0
 
 inputs:
 - domain: stream
@@ -92,11 +90,10 @@ templates:
   imports: from gnuradio import dvbs2acm
   make: |-
     dvbs2acm.bbheader_bb(
-      ${framesize},
-      % if framesize:
-        ${modcod_short},
-      % else:
+      % if str(framesize) == 'Normal':
         ${modcod_normal},
+      % else:
+        ${modcod_short},
       % endif
       ${pilots},
       dvbs2acm.${rolloff},

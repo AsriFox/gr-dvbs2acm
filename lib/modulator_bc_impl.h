@@ -41,7 +41,7 @@ private:
     gr_complex m_32apsk[32][5];
     gr_complex m_4_12_16apsk[32][3];
     gr_complex m_4_8_4_16apsk[32][3];
-    void get_items(dvbs2_framesize_t, dvbs2_code_rate_t, dvbs2_constellation_t, int&, int&);
+    dvbs2_constellation_t get_items(dvbs2_modcod_t, dvbs2_vlsnr_header_t, int&, int&);
 
 public:
     modulator_bc_impl();

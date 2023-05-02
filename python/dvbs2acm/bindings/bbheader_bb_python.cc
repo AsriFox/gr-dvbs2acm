@@ -14,7 +14,7 @@
 /* BINDTOOL_GEN_AUTOMATIC(0)                                                       */
 /* BINDTOOL_USE_PYGCCXML(0)                                                        */
 /* BINDTOOL_HEADER_FILE(bbheader_bb.h)                                        */
-/* BINDTOOL_HEADER_FILE_HASH(b4c16386937263dd0b4f3b846f2e1ebf)                     */
+/* BINDTOOL_HEADER_FILE_HASH(09384ee6309caee49ececda062cc1193)                     */
 /***********************************************************************************/
 
 #include <pybind11/complex.h>
@@ -37,7 +37,7 @@ void bind_bbheader_bb(py::module& m)
         std::shared_ptr<bbheader_bb>>(m, "bbheader_bb", D(bbheader_bb))
 
         .def(py::init(&bbheader_bb::make),
-           py::arg("modcod") = 2,
+           py::arg("modcod"),
            py::arg("pilots") = true,
            py::arg("rolloff") = ::gr::dvbs2acm::dvbs2_rolloff_factor_t::RO_0_20,
            py::arg("goldcode") = 0,

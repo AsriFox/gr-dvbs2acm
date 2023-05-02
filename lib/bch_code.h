@@ -41,10 +41,10 @@ private:
     bch_code(unsigned int code);
 
 public:
-    static bch_code select(int modcod);
+    static bch_code select(dvbs2_modcod_t, dvbs2_vlsnr_header_t);
     static bch_code select_normal(dvbs2_code_rate_t);
     static bch_code select_short(dvbs2_code_rate_t);
-    // static bch_code select_vlsnr(dvbs2_code_rate_t);
+    static bch_code select_vlsnr(dvbs2_vlsnr_header_t);
 
     static const bch_code bch_code_invalid;
     static const bch_code bch_code_N8;

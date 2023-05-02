@@ -19,6 +19,7 @@
  * Boston, MA 02110-1301, USA.
  */
 
+#include "modcod.hh"
 #include "modulator_bc_impl.h"
 #include <gnuradio/io_signature.h>
 
@@ -296,12 +297,20 @@ void modulator_bc_impl::forecast(int noutput_items, gr_vector_int& ninput_items_
     ninput_items_required[0] = noutput_items;
 }
 
-void modulator_bc_impl::get_items(dvbs2_framesize_t framesize,
-                                  dvbs2_code_rate_t rate,
-                                  dvbs2_constellation_t constellation,
-                                  int& num_items,
-                                  int& constellation_index)
+dvbs2_constellation_t modulator_bc_impl::get_items(dvbs2_modcod_t modcod,
+                                                   dvbs2_vlsnr_header_t vlsnr_header,
+                                                   int& num_items,
+                                                   int& constellation_index)
 {
+    auto framesize = modcod_framesize(modcod);
+    auto constellation = modcod_constellation(modcod);
+    auto rate = modcod_rate(modcod);
+    if (modcod == MC_VLSNR_SET1 || modcod == MC_VLSNR_SET2) {
+        framesize = vlsnr_framesize(vlsnr_header);
+        constellation = vlsnr_constellation(vlsnr_header);
+        rate = vlsnr_rate(vlsnr_header);
+    }
+
     switch (constellation) {
     case MOD_BPSK:
         num_items = FRAME_SIZE_SHORT - SHORT_PUNCTURING_SET2;
@@ -530,6 +539,8 @@ void modulator_bc_impl::get_items(dvbs2_framesize_t framesize,
         constellation_index = 0;
         break;
     }
+
+    return constellation;
 }
 
 int modulator_bc_impl::general_work(int noutput_items,
@@ -550,10 +561,9 @@ int modulator_bc_impl::general_work(int noutput_items,
 
     for (tag_t tag : tags) {
         const uint64_t tagmodcod = pmt::to_uint64(tag.value);
-        auto framesize = (dvbs2_framesize_t)((tagmodcod >> 1) & 0x7f);
-        auto rate = (dvbs2_code_rate_t)((tagmodcod >> 8) & 0xff);
-        auto constellation = (dvbs2_constellation_t)((tagmodcod >> 16) & 0xff);
-        get_items(framesize, rate, constellation, num_items, constellation_index);
+        auto modcod = (dvbs2_modcod_t)((tagmodcod >> 2) & 0x7f);
+        auto vlsnr_header = (dvbs2_vlsnr_header_t)((tagmodcod >> 9) & 0x0f);
+        auto constellation = get_items(modcod, vlsnr_header, num_items, constellation_index);
         if (produced + num_items > noutput_items) {
             break;
         }

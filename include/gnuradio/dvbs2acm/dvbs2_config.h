@@ -59,10 +59,6 @@
 #define SHORT_PUNCTURING_SET1 810
 #define SHORT_PUNCTURING_SET2 1224
 
-#define VLSNR_OFF 0
-#define VLSNR_SET1 1
-#define VLSNR_SET2 2
-
 #define EXTRA_PILOT_SYMBOLS_SET1 ((18 * 34) + (3 * 36))
 #define EXTRA_PILOT_SYMBOLS_SET2 ((9 * 32) + 36)
 
@@ -71,38 +67,68 @@ namespace dvbs2acm {
 
 enum dvbs2_modcod_t {
     MC_DUMMY = 0,
+    MC_DUMMY_S,
+    // DVB-S2:
     MC_QPSK_1_4,
+    MC_QPSK_1_4_S,
     MC_QPSK_1_3,
+    MC_QPSK_1_3_S,
     MC_QPSK_2_5,
+    MC_QPSK_2_5_S,
     MC_QPSK_1_2,
+    MC_QPSK_1_2_S,
     MC_QPSK_3_5,
+    MC_QPSK_3_5_S,
     MC_QPSK_2_3,
+    MC_QPSK_2_3_S,
     MC_QPSK_3_4,
+    MC_QPSK_3_4_S,
     MC_QPSK_4_5,
+    MC_QPSK_4_5_S,
     MC_QPSK_5_6,
+    MC_QPSK_5_6_S,
     MC_QPSK_8_9,
+    MC_QPSK_8_9_S,
     MC_QPSK_9_10,
+    MC_QPSK_9_10_S,
     MC_8PSK_3_5,
+    MC_8PSK_3_5_S,
     MC_8PSK_2_3,
+    MC_8PSK_2_3_S,
     MC_8PSK_3_4,
+    MC_8PSK_3_4_S,
     MC_8PSK_5_6,
+    MC_8PSK_5_6_S,
     MC_8PSK_8_9,
+    MC_8PSK_8_9_S,
     MC_8PSK_9_10,
+    MC_8PSK_9_10_S,
     MC_16APSK_2_3,
+    MC_16APSK_2_3_S,
     MC_16APSK_3_4,
+    MC_16APSK_3_4_S,
     MC_16APSK_4_5,
+    MC_16APSK_4_5_S,
     MC_16APSK_5_6,
+    MC_16APSK_5_6_S,
     MC_16APSK_8_9,
+    MC_16APSK_8_9_S,
     MC_16APSK_9_10,
+    MC_16APSK_9_10_S,
     MC_32APSK_3_4,
+    MC_32APSK_3_4_S,
     MC_32APSK_4_5,
+    MC_32APSK_4_5_S,
     MC_32APSK_5_6,
+    MC_32APSK_5_6_S,
     MC_32APSK_8_9,
+    MC_32APSK_8_9_S,
     MC_32APSK_9_10,
-};
-
-enum dvbs2x_modcod_t {
-    // FECFRAME_NORMAL:
+    MC_32APSK_9_10_S,
+    // DVB-S2X VL-SNR:
+    MC_VLSNR_SET1 = 0x40,
+    MC_VLSNR_SET2 = 0x41,
+    // DVB-S2X NORMAL:
     MC_QPSK_13_45 = 0x42,
     MC_QPSK_9_20,
     MC_QPSK_11_20,
@@ -141,7 +167,7 @@ enum dvbs2x_modcod_t {
     MC_256APSK_32_45,
     MC_256APSK_11_15_L,
     MC_256APSK_3_4,
-    // FECFRAME_SHORT:
+    // DVB-S2X SHORT:
     MC_QPSK_11_45_S,
     MC_QPSK_4_15_S,
     MC_QPSK_14_45_S,
@@ -159,6 +185,19 @@ enum dvbs2x_modcod_t {
     MC_16APSK_32_45_S,
     MC_32APSK_2_3_S,
     MC_32APSK_32_45_S,
+};
+
+enum dvbs2_vlsnr_header_t {
+    VLSNR_N_QPSK_2_9 = 0,
+    VLSNR_M_BPSK_1_5,
+    VLSNR_M_BPSK_11_45,
+    VLSNR_M_BPSK_1_3,
+    VLSNR_S_BPSK_SF2_1_5,
+    VLSNR_S_BPSK_SF2_11_45,
+    VLSNR_S_BPSK_1_5 = 9,
+    VLSNR_S_BPSK_4_15,
+    VLSNR_S_BPSK_1_3,
+    VLSNR_DUMMY,
 };
 
 enum dvbs2_framesize_t {
@@ -248,7 +287,7 @@ enum dvbs2_constellation_t {
 } // namespace gr
 
 typedef gr::dvbs2acm::dvbs2_modcod_t dvbs2_modcod_t;
-typedef gr::dvbs2acm::dvbs2x_modcod_t dvbs2x_modcod_t;
+typedef gr::dvbs2acm::dvbs2_vlsnr_header_t dvbs2_vlsnr_header_t;
 typedef gr::dvbs2acm::dvbs2_framesize_t dvbs2_framesize_t;
 typedef gr::dvbs2acm::dvbs2_code_rate_t dvbs2_code_rate_t;
 typedef gr::dvbs2acm::dvbs2_rolloff_factor_t dvbs2_rolloff_factor_t;

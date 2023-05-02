@@ -19,6 +19,7 @@
  * Boston, MA 02110-1301, USA.
  */
 
+#include "modcod.hh"
 #include "physical_cc_impl.h"
 #include <gnuradio/io_signature.h>
 
@@ -59,8 +60,8 @@ physical_cc_impl::physical_cc_impl(bool dummyframes)
     for (int i = 0; i < 26; i++) {
         b[i] = ph_sync_seq[i];
     }
-    // Add the mode and code
-    pl_header_encode(0, 0, &b[26]);
+    // Add the MODCOD
+    b_64_8_code(0, &b[26]);
 
     // BPSK modulate and create the header
     for (int i = 0; i < 26; i++) {
@@ -124,19 +125,6 @@ void physical_cc_impl::b_64_8_code(unsigned char in, int* out)
     }
 }
 
-void physical_cc_impl::pl_header_encode(unsigned char modcod, unsigned char type, int* out)
-{
-    unsigned char code;
-
-    if (modcod & 0x80) {
-        code = modcod | (type & 0x1);
-    } else {
-        code = (modcod << 2) | type;
-    }
-    // Add the modcod and type information and scramble it
-    b_64_8_code(code, out);
-}
-
 inline int physical_cc_impl::parity_chk(int a, int b)
 {
     a = a & b;
@@ -177,473 +165,91 @@ inline int physical_cc_impl::symbol_scrambler(void)
     return (rn);
 }
 
-void physical_cc_impl::get_slots(dvbs2_framesize_t framesize,
-                                 dvbs2_code_rate_t rate,
-                                 dvbs2_constellation_t constellation,
-                                 bool pilots,
-                                 int rootcode,
-                                 int& slots,
-                                 int& pilot_symbols,
-                                 int& vlsnr_set,
-                                 int& vlsnr_header)
+int get_slots(dvbs2_modcod_t modcod, dvbs2_vlsnr_header_t vlsnr_header)
 {
-    int type, modcod, frame_size;
-    int slots_temp = 0;
-    int pilot_symbols_temp = 0;
-
-    modcod = 0;
-    if (framesize == FECFRAME_NORMAL) {
-        frame_size = FRAME_SIZE_NORMAL;
-        type = 0;
-        if (rate == C2_9_VLSNR) {
+    int frame_size;
+    if (modcod == MC_VLSNR_SET1) {
+        switch (vlsnr_header) {
+        case VLSNR_N_QPSK_2_9:
             frame_size = (FRAME_SIZE_NORMAL - NORMAL_PUNCTURING) + (EXTRA_PILOT_SYMBOLS_SET1 * 2);
-            pilots = true; /* force pilots on for VL-SNR */
-        }
-    }
-
-    else if (framesize == FECFRAME_SHORT) {
-        frame_size = FRAME_SIZE_SHORT;
-        type = 2;
-        if (rate == C1_5_VLSNR_SF2 || rate == C11_45_VLSNR_SF2) {
+            break;
+        case VLSNR_M_BPSK_1_5:
+        case VLSNR_M_BPSK_11_45:
+        case VLSNR_M_BPSK_1_3:
+            frame_size = FRAME_SIZE_MEDIUM - MEDIUM_PUNCTURING + EXTRA_PILOT_SYMBOLS_SET1;
+            break;
+        case VLSNR_S_BPSK_SF2_1_5:
+        case VLSNR_S_BPSK_SF2_11_45:
             frame_size = ((FRAME_SIZE_SHORT - SHORT_PUNCTURING_SET1) * 2) + EXTRA_PILOT_SYMBOLS_SET1;
-            pilots = true; /* force pilots on for VL-SNR */
+            break;
+        default:
+            return 0;
         }
-        if (rate == C1_5_VLSNR || rate == C4_15_VLSNR || rate == C1_3_VLSNR) {
+    } else if (modcod == MC_VLSNR_SET2) {
+        switch (vlsnr_header) {
+        case VLSNR_S_BPSK_1_5:
+        case VLSNR_S_BPSK_4_15:
+        case VLSNR_S_BPSK_1_3:
             frame_size = (FRAME_SIZE_SHORT - SHORT_PUNCTURING_SET2) + EXTRA_PILOT_SYMBOLS_SET2;
-            pilots = true; /* force pilots on for VL-SNR */
+            break;
+        default:
+            return 0;
         }
     } else {
-        frame_size = FRAME_SIZE_MEDIUM - MEDIUM_PUNCTURING + EXTRA_PILOT_SYMBOLS_SET1;
-        type = 0;
-        pilots = true; /* force pilots on for VL-SNR */
+        switch (modcod_framesize(modcod)) {
+        case FECFRAME_NORMAL:
+            frame_size = FRAME_SIZE_NORMAL;
+            break;
+        case FECFRAME_SHORT:
+            frame_size = FRAME_SIZE_SHORT;
+            break;
+        default:
+            return 0;
+        }
     }
 
-    if (pilots) {
-        type |= 1;
-    }
-
-    vlsnr_set = VLSNR_OFF;
-    switch (rate) {
-    case C2_9_VLSNR:
-        vlsnr_header = 0;
-        vlsnr_set = VLSNR_SET1;
-        break;
-    case C1_5_MEDIUM:
-        vlsnr_header = 1;
-        vlsnr_set = VLSNR_SET1;
-        break;
-    case C11_45_MEDIUM:
-        vlsnr_header = 2;
-        vlsnr_set = VLSNR_SET1;
-        break;
-    case C1_3_MEDIUM:
-        vlsnr_header = 3;
-        vlsnr_set = VLSNR_SET1;
-        break;
-    case C1_5_VLSNR_SF2:
-        vlsnr_header = 4;
-        vlsnr_set = VLSNR_SET1;
-        break;
-    case C11_45_VLSNR_SF2:
-        vlsnr_header = 5;
-        vlsnr_set = VLSNR_SET1;
-        break;
-    case C1_5_VLSNR:
-        vlsnr_header = 9;
-        vlsnr_set = VLSNR_SET2;
-        break;
-    case C4_15_VLSNR:
-        vlsnr_header = 10;
-        vlsnr_set = VLSNR_SET2;
-        break;
-    case C1_3_VLSNR:
-        vlsnr_header = 11;
-        vlsnr_set = VLSNR_SET2;
-        break;
+    switch (modcod_constellation(modcod)) {
+    case MOD_BPSK:
+    case MOD_BPSK_SF2:
+        return frame_size / 90;
+    case MOD_QPSK:
+        return frame_size / 2 / 90;
+    case MOD_8PSK:
+    case MOD_8APSK:
+        return frame_size / 3 / 90;
+    case MOD_16APSK:
+    case MOD_8_8APSK:
+        return frame_size / 4 / 90;
+    case MOD_32APSK:
+    case MOD_4_12_16APSK:
+    case MOD_4_8_4_16APSK:
+        return frame_size / 5 / 90;
     default:
-        vlsnr_header = 12;
-        break;
+        return 0;
     }
-    // Mode and code rate
-    if (constellation == MOD_BPSK) {
-        slots_temp = (frame_size / 1) / 90;
-        pilot_symbols_temp = (slots_temp / 16) * 36;
-        if (!(slots_temp % 16)) {
-            pilot_symbols_temp -= 36;
-        }
-        switch (rate) {
-        case C1_5_MEDIUM:
-        case C11_45_MEDIUM:
-        case C1_3_MEDIUM:
-            modcod = 128;
-            break;
-        case C1_5_VLSNR:
-        case C4_15_VLSNR:
-        case C1_3_VLSNR:
-            modcod = 130;
-            break;
-        default:
-            modcod = 0;
-            break;
-        }
-    }
+}
 
-    if (constellation == MOD_BPSK_SF2) {
-        slots_temp = (frame_size / 1) / 90;
-        pilot_symbols_temp = (slots_temp / 16) * 36;
-        if (!(slots_temp % 16)) {
-            pilot_symbols_temp -= 36;
-        }
-        switch (rate) {
-        case C1_5_VLSNR_SF2:
-        case C11_45_VLSNR_SF2:
-            modcod = 128;
-            break;
-        default:
-            modcod = 0;
-            break;
-        }
-    }
-
-    if (constellation == MOD_QPSK) {
-        slots_temp = (frame_size / 2) / 90;
-        pilot_symbols_temp = (slots_temp / 16) * 36;
-        if (!(slots_temp % 16)) {
-            pilot_symbols_temp -= 36;
-        }
-        switch (rate) {
-        case C2_9_VLSNR:
-            modcod = 128;
-            break;
-        case C1_4:
-            modcod = 1;
-            break;
-        case C1_3:
-            modcod = 2;
-            break;
-        case C2_5:
-            modcod = 3;
-            break;
-        case C1_2:
-            modcod = 4;
-            break;
-        case C3_5:
-            modcod = 5;
-            break;
-        case C2_3:
-            modcod = 6;
-            break;
-        case C3_4:
-            modcod = 7;
-            break;
-        case C4_5:
-            modcod = 8;
-            break;
-        case C5_6:
-            modcod = 9;
-            break;
-        case C8_9:
-            modcod = 10;
-            break;
-        case C9_10:
-            modcod = 11;
-            break;
-        case C13_45:
-            modcod = 132;
-            break;
-        case C9_20:
-            modcod = 134;
-            break;
-        case C11_20:
-            modcod = 136;
-            break;
-        case C11_45:
-            modcod = 216;
-            break;
-        case C4_15:
-            modcod = 218;
-            break;
-        case C14_45:
-            modcod = 220;
-            break;
-        case C7_15:
-            modcod = 222;
-            break;
-        case C8_15:
-            modcod = 224;
-            break;
-        case C32_45:
-            modcod = 226;
-            break;
-        default:
-            modcod = 0;
-            break;
-        }
-    }
-
-    if (constellation == MOD_8PSK) {
-        slots_temp = (frame_size / 3) / 90;
-        pilot_symbols_temp = (slots_temp / 16) * 36;
-        if (!(slots_temp % 16)) {
-            pilot_symbols_temp -= 36;
-        }
-        switch (rate) {
-        case C3_5:
-            modcod = 12;
-            break;
-        case C2_3:
-            modcod = 13;
-            break;
-        case C3_4:
-            modcod = 14;
-            break;
-        case C5_6:
-            modcod = 15;
-            break;
-        case C8_9:
-            modcod = 16;
-            break;
-        case C9_10:
-            modcod = 17;
-            break;
-        case C23_36:
-            modcod = 142;
-            break;
-        case C25_36:
-            modcod = 144;
-            break;
-        case C13_18:
-            modcod = 146;
-            break;
-        case C7_15:
-            modcod = 228;
-            break;
-        case C8_15:
-            modcod = 230;
-            break;
-        case C26_45:
-            modcod = 232;
-            break;
-        case C32_45:
-            modcod = 234;
-            break;
-        default:
-            modcod = 0;
-            break;
-        }
-    }
-
-    if (constellation == MOD_8APSK) {
-        slots_temp = (frame_size / 3) / 90;
-        pilot_symbols_temp = (slots_temp / 16) * 36;
-        if (!(slots_temp % 16)) {
-            pilot_symbols_temp -= 36;
-        }
-        switch (rate) {
-        case C100_180:
-            modcod = 138;
-            break;
-        case C104_180:
-            modcod = 140;
-            break;
-        default:
-            modcod = 0;
-            break;
-        }
-    }
-
-    if (constellation == MOD_16APSK) {
-        slots_temp = (frame_size / 4) / 90;
-        pilot_symbols_temp = (slots_temp / 16) * 36;
-        if (!(slots_temp % 16)) {
-            pilot_symbols_temp -= 36;
-        }
-        switch (rate) {
-        case C2_3:
-            modcod = 18;
-            break;
-        case C3_4:
-            modcod = 19;
-            break;
-        case C4_5:
-            modcod = 20;
-            break;
-        case C5_6:
-            modcod = 21;
-            break;
-        case C8_9:
-            modcod = 22;
-            break;
-        case C9_10:
-            modcod = 23;
-            break;
-        case C26_45:
-            if (frame_size == FRAME_SIZE_NORMAL) {
-                modcod = 154;
-            } else {
-                modcod = 240;
-            }
-            break;
-        case C3_5:
-            if (frame_size == FRAME_SIZE_NORMAL) {
-                modcod = 156;
-            } else {
-                modcod = 242;
-            }
-            break;
-        case C28_45:
-            modcod = 160;
-            break;
-        case C23_36:
-            modcod = 162;
-            break;
-        case C25_36:
-            modcod = 166;
-            break;
-        case C13_18:
-            modcod = 168;
-            break;
-        case C140_180:
-            modcod = 170;
-            break;
-        case C154_180:
-            modcod = 172;
-            break;
-        case C7_15:
-            modcod = 236;
-            break;
-        case C8_15:
-            modcod = 238;
-            break;
-        case C32_45:
-            modcod = 244;
-            break;
-        default:
-            modcod = 0;
-            break;
-        }
-    }
-
-    if (constellation == MOD_8_8APSK) {
-        slots_temp = (frame_size / 4) / 90;
-        pilot_symbols_temp = (slots_temp / 16) * 36;
-        if (!(slots_temp % 16)) {
-            pilot_symbols_temp -= 36;
-        }
-        switch (rate) {
-        case C90_180:
-            modcod = 148;
-            break;
-        case C96_180:
-            modcod = 150;
-            break;
-        case C100_180:
-            modcod = 152;
-            break;
-        case C18_30:
-            modcod = 158;
-            break;
-        case C20_30:
-            modcod = 164;
-            break;
-        default:
-            modcod = 0;
-            break;
-        }
-    }
-
-    if (constellation == MOD_32APSK) {
-        slots_temp = (frame_size / 5) / 90;
-        pilot_symbols_temp = (slots_temp / 16) * 36;
-        if (!(slots_temp % 16)) {
-            pilot_symbols_temp -= 36;
-        }
-        switch (rate) {
-        case C3_4:
-            modcod = 24;
-            break;
-        case C4_5:
-            modcod = 25;
-            break;
-        case C5_6:
-            modcod = 26;
-            break;
-        case C8_9:
-            modcod = 27;
-            break;
-        case C9_10:
-            modcod = 28;
-            break;
-        default:
-            modcod = 0;
-            break;
-        }
-    }
-
-    if (constellation == MOD_4_12_16APSK) {
-        slots_temp = (frame_size / 5) / 90;
-        pilot_symbols_temp = (slots_temp / 16) * 36;
-        if (!(slots_temp % 16)) {
-            pilot_symbols_temp -= 36;
-        }
-        switch (rate) {
-        case C2_3:
-            if (frame_size == FRAME_SIZE_NORMAL) {
-                modcod = 174;
-            } else {
-                modcod = 246;
-            }
-            break;
-        case C32_45:
-            modcod = 248;
-            break;
-        default:
-            modcod = 0;
-            break;
-        }
-    }
-
-    if (constellation == MOD_4_8_4_16APSK) {
-        slots_temp = (frame_size / 5) / 90;
-        pilot_symbols_temp = (slots_temp / 16) * 36;
-        if (!(slots_temp % 16)) {
-            pilot_symbols_temp -= 36;
-        }
-        switch (rate) {
-        case C128_180:
-            modcod = 178;
-            break;
-        case C132_180:
-            modcod = 180;
-            break;
-        case C140_180:
-            modcod = 182;
-            break;
-        default:
-            modcod = 0;
-            break;
-        }
-    }
-    slots = slots_temp;
-    pilot_symbols = pilot_symbols_temp;
-
+void physical_cc_impl::pl_header_encode(dvbs2_modcod_t modcod,
+                                        bool pilots,
+                                        dvbs2_vlsnr_header_t vlsnr_header)
+{
     // Now create the PL header.
     // Add the sync sequence SOF
     for (int i = 0; i < 26; i++) {
         b[i] = ph_sync_seq[i];
     }
-    // Add the mode and code
-    pl_header_encode(modcod, type, &b[26]);
+    // Add the MODCOD
+    b_64_8_code((modcod << 1) | pilots, &b[26]);
 
     // BPSK modulate and create the header
     for (int i = 0; i < 26; i++) {
         m_pl[i] = m_bpsk[i & 1][b[i]];
     }
-    if (modcod & 0x80) {
+    if (modcod < 64) { // DVB-S2
         for (int i = 26; i < 90; i++) {
             m_pl[i] = m_bpsk[(i & 1) + 2][b[i]];
         }
-    } else {
+    } else { // DVB-S2X
         for (int i = 26; i < 90; i++) {
             m_pl[i] = m_bpsk[i & 1][b[i]];
         }
@@ -651,7 +257,7 @@ void physical_cc_impl::get_slots(dvbs2_framesize_t framesize,
 
     // Create the VL-SNR header.
     // Add leading zeroes
-    if (vlsnr_set != VLSNR_OFF) {
+    if (modcod == MC_VLSNR_SET1 || modcod == MC_VLSNR_SET2) {
         for (int i = 0; i < 2; i++) {
             b[i] = 0;
         }
@@ -678,7 +284,7 @@ int physical_cc_impl::general_work(int noutput_items,
     auto out = static_cast<output_type*>(output_items[0]);
     int consumed = 0;
     int produced = 0;
-    int slots, pilot_symbols, vlsnr_set, vlsnr_header;
+    int slots, pilot_symbols;
     int slot_count;
     int group, symbols;
     gr_complex tempin, tempout;
@@ -691,21 +297,17 @@ int physical_cc_impl::general_work(int noutput_items,
 
     for (tag_t tag : tags) {
         const uint64_t tagmodcod = pmt::to_uint64(tag.value);
-        auto dummy = (unsigned int)(tagmodcod & 0x1);
-        auto framesize = (dvbs2_framesize_t)((tagmodcod >> 1) & 0x7f);
-        auto rate = (dvbs2_code_rate_t)((tagmodcod >> 8) & 0xff);
-        auto constellation = (dvbs2_constellation_t)((tagmodcod >> 16) & 0xff);
-        auto pilots = ((tagmodcod >> 24) & 0xff) != 0;
+        auto dummy = (unsigned int)(tagmodcod & 1);
+        auto pilots = (bool)((tagmodcod >> 1) & 1);
+        auto modcod = (dvbs2_modcod_t)((tagmodcod >> 2) & 0x7f);
+        auto vlsnr_header = (dvbs2_vlsnr_header_t)((tagmodcod >> 9) & 0x0f);
         auto rootcode = (unsigned int)((tagmodcod >> 32) & 0x3ffff);
-        get_slots(framesize,
-                  rate,
-                  constellation,
-                  pilots,
-                  rootcode,
-                  slots,
-                  pilot_symbols,
-                  vlsnr_set,
-                  vlsnr_header);
+
+        slots = get_slots(modcod, vlsnr_header);
+        pilot_symbols = (slots / 16) * 36;
+        if (!(slots % 16)) {
+            pilot_symbols -= 36;
+        }
 
         const uint64_t tagoffset = this->nitems_written(0);
         this->add_item_tag(0, tagoffset, pmt::string_to_symbol("modcod"), pmt::from_uint64(tagmodcod));
@@ -714,61 +316,7 @@ int physical_cc_impl::general_work(int noutput_items,
             if (produced + (((slots * 90) + 90 + pilot_symbols) * 2) > noutput_items) {
                 break;
             }
-            if (vlsnr_set == VLSNR_OFF) {
-                m_cscram_x = rootcode;
-                m_cscram_y = 0x3ffff;
-                slot_count = 0;
-                for (int plh = 0; plh < 90; plh++) {
-                    out[produced++] = m_pl[plh];
-                    out[produced++] = m_zero;
-                }
-                for (int j = 0; j < slots; j++) {
-                    for (int k = 0; k < 90; k++) {
-                        tempin = in[consumed++];
-                        switch (symbol_scrambler()) {
-                        case 0:
-                            tempout = tempin;
-                            break;
-                        case 1:
-                            tempout = gr_complex(-tempin.imag(), tempin.real());
-                            break;
-                        case 2:
-                            tempout = -tempin;
-                            break;
-                        case 3:
-                            tempout = gr_complex(tempin.imag(), -tempin.real());
-                            break;
-                        }
-                        out[produced++] = tempout;
-                        out[produced++] = m_zero;
-                    }
-                    slot_count = (slot_count + 1) % 16;
-                    if ((slot_count == 0) && (j < slots - 1)) {
-                        if (pilots) {
-                            // Add pilots if needed
-                            for (int p = 0; p < 36; p++) {
-                                tempin = m_bpsk[0][0];
-                                switch (symbol_scrambler()) {
-                                case 0:
-                                    tempout = tempin;
-                                    break;
-                                case 1:
-                                    tempout = gr_complex(-tempin.imag(), tempin.real());
-                                    break;
-                                case 2:
-                                    tempout = -tempin;
-                                    break;
-                                case 3:
-                                    tempout = gr_complex(tempin.imag(), -tempin.real());
-                                    break;
-                                }
-                                out[produced++] = tempout;
-                                out[produced++] = m_zero;
-                            }
-                        }
-                    }
-                }
-            } else if (vlsnr_set == VLSNR_SET1) {
+            if (modcod == MC_VLSNR_SET1) {
                 m_cscram_x = rootcode;
                 m_cscram_y = 0x3ffff;
                 slot_count = 10;
@@ -785,7 +333,7 @@ int physical_cc_impl::general_work(int noutput_items,
                 for (int j = 0; j < slots; j++) {
                     for (int k = 0; k < 90; k++) {
                         tempin = in[consumed++];
-                        if (constellation == MOD_QPSK) {
+                        if (vlsnr_header == VLSNR_N_QPSK_2_9) {
                             switch (symbol_scrambler()) {
                             case 0:
                                 tempout = tempin;
@@ -841,7 +389,7 @@ int physical_cc_impl::general_work(int noutput_items,
                             }
                             for (int x = (k + 1 + 34) - 90; x < 90; x++) {
                                 tempin = in[consumed++];
-                                if (constellation == MOD_QPSK) {
+                                if (vlsnr_header == VLSNR_N_QPSK_2_9) {
                                     switch (symbol_scrambler()) {
                                     case 0:
                                         tempout = tempin;
@@ -901,7 +449,7 @@ int physical_cc_impl::general_work(int noutput_items,
                             }
                             for (int x = (k + 1 + 36) - 90; x < 90; x++) {
                                 tempin = in[consumed++];
-                                if (constellation == MOD_QPSK) {
+                                if (vlsnr_header == VLSNR_N_QPSK_2_9) {
                                     switch (symbol_scrambler()) {
                                     case 0:
                                         tempout = tempin;
@@ -969,7 +517,7 @@ int physical_cc_impl::general_work(int noutput_items,
                         }
                     }
                 }
-            } else { /* VL-SNR set 2 */
+            } else if (modcod == MC_VLSNR_SET2) {
                 m_cscram_x = rootcode;
                 m_cscram_y = 0x3ffff;
                 slot_count = 10;
@@ -1097,6 +645,60 @@ int physical_cc_impl::general_work(int noutput_items,
                             // Add pilots if needed
                             group++;
                             symbols = 0;
+                            for (int p = 0; p < 36; p++) {
+                                tempin = m_bpsk[0][0];
+                                switch (symbol_scrambler()) {
+                                case 0:
+                                    tempout = tempin;
+                                    break;
+                                case 1:
+                                    tempout = gr_complex(-tempin.imag(), tempin.real());
+                                    break;
+                                case 2:
+                                    tempout = -tempin;
+                                    break;
+                                case 3:
+                                    tempout = gr_complex(tempin.imag(), -tempin.real());
+                                    break;
+                                }
+                                out[produced++] = tempout;
+                                out[produced++] = m_zero;
+                            }
+                        }
+                    }
+                }
+            } else {
+                m_cscram_x = rootcode;
+                m_cscram_y = 0x3ffff;
+                slot_count = 0;
+                for (int plh = 0; plh < 90; plh++) {
+                    out[produced++] = m_pl[plh];
+                    out[produced++] = m_zero;
+                }
+                for (int j = 0; j < slots; j++) {
+                    for (int k = 0; k < 90; k++) {
+                        tempin = in[consumed++];
+                        switch (symbol_scrambler()) {
+                        case 0:
+                            tempout = tempin;
+                            break;
+                        case 1:
+                            tempout = gr_complex(-tempin.imag(), tempin.real());
+                            break;
+                        case 2:
+                            tempout = -tempin;
+                            break;
+                        case 3:
+                            tempout = gr_complex(tempin.imag(), -tempin.real());
+                            break;
+                        }
+                        out[produced++] = tempout;
+                        out[produced++] = m_zero;
+                    }
+                    slot_count = (slot_count + 1) % 16;
+                    if ((slot_count == 0) && (j < slots - 1)) {
+                        if (pilots) {
+                            // Add pilots if needed
                             for (int p = 0; p < 36; p++) {
                                 tempin = m_bpsk[0][0];
                                 switch (symbol_scrambler()) {

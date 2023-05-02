@@ -11,6 +11,7 @@
 #include "cpu_features_macros.h"
 #include "debug_level.h"
 #include "ldpc_decoder_cb_impl.h"
+#include "modcod.hh"
 #include <gnuradio/io_signature.h>
 #include <pmt/pmt.h>
 #include <cstddef>
@@ -192,9 +193,16 @@ int ldpc_decoder_cb_impl::general_work(int noutput_items,
     // TODO: SIMD stuff
     for (tag_t tag : tags) {
         const uint64_t tagmodcod = pmt::to_uint64(tag.value);
-        auto framesize = (dvbs2_framesize_t)((tagmodcod >> 1) & 0x7f);
-        auto rate = (dvbs2_code_rate_t)((tagmodcod >> 8) & 0xff);
-        auto constellation = (dvbs2_constellation_t)((tagmodcod >> 16) & 0xff);
+        auto modcod = (dvbs2_modcod_t)((tagmodcod >> 2) & 0x7f);
+        auto framesize = modcod_framesize(modcod);
+        auto rate = modcod_rate(modcod);
+        auto constellation = modcod_constellation(modcod);
+        if (modcod == MC_VLSNR_SET1 || modcod == MC_VLSNR_SET2) {
+            auto vlsnr_header = (dvbs2_vlsnr_header_t)((tagmodcod >> 9) & 0x0f);
+            framesize = vlsnr_framesize(vlsnr_header);
+            rate = vlsnr_rate(vlsnr_header);
+            constellation = vlsnr_constellation(vlsnr_header);
+        }
         const uint64_t tagoffset = this->nitems_written(0);
         this->add_item_tag(0, tagoffset, pmt::string_to_symbol("modcod"), pmt::from_uint64(tagmodcod));
 

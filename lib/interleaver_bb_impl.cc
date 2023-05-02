@@ -20,6 +20,7 @@
  */
 
 #include "interleaver_bb_impl.h"
+#include "modcod.hh"
 #include <gnuradio/io_signature.h>
 #include <pmt/pmt.h>
 #include <cstdint>
@@ -56,12 +57,20 @@ void interleaver_bb_impl::forecast(int noutput_items, gr_vector_int& ninput_item
     ninput_items_required[0] = noutput_items * 5;
 }
 
-void interleaver_bb_impl::get_rows(dvbs2_framesize_t framesize,
-                                   dvbs2_code_rate_t rate,
-                                   dvbs2_constellation_t constellation,
-                                   int& frame_size,
-                                   int& mod_order)
+dvbs2_constellation_t interleaver_bb_impl::get_rows(dvbs2_modcod_t modcod,
+                                                    dvbs2_vlsnr_header_t vlsnr_header,
+                                                    int& frame_size,
+                                                    int& mod_order)
 {
+    auto framesize = modcod_framesize(modcod);
+    auto rate = modcod_rate(modcod);
+    auto constellation = modcod_constellation(modcod);
+    if (modcod == MC_VLSNR_SET1 || modcod == MC_VLSNR_SET2) {
+        framesize = vlsnr_framesize(vlsnr_header);
+        rate = vlsnr_rate(vlsnr_header);
+        constellation = vlsnr_constellation(vlsnr_header);
+    }
+
     if (framesize == FECFRAME_NORMAL) {
         if (rate == C2_9_VLSNR) {
             frame_size = FRAME_SIZE_NORMAL - NORMAL_PUNCTURING;
@@ -304,6 +313,8 @@ void interleaver_bb_impl::get_rows(dvbs2_framesize_t framesize,
         mod_order = 2;
         break;
     }
+
+    return constellation;
 }
 
 int interleaver_bb_impl::general_work(int noutput_items,
@@ -327,10 +338,9 @@ int interleaver_bb_impl::general_work(int noutput_items,
 
     for (tag_t tag : tags) {
         const uint64_t tagmodcod = pmt::to_uint64(tag.value);
-        auto framesize = (dvbs2_framesize_t)((tagmodcod >> 1) & 0x7f);
-        auto rate = (dvbs2_code_rate_t)((tagmodcod >> 8) & 0xff);
-        auto constellation = (dvbs2_constellation_t)((tagmodcod >> 16) & 0xff);
-        get_rows(framesize, rate, constellation, frame_size, mod_order);
+        auto modcod = (dvbs2_modcod_t)((tagmodcod >> 2) & 0x7f);
+        auto vlsnr_header = (dvbs2_vlsnr_header_t)((tagmodcod >> 9) & 0x0f);
+        auto constellation = get_rows(modcod, vlsnr_header, frame_size, mod_order);
         rows = frame_size / mod_order;
         if (produced + rows > noutput_items) {
             break;

@@ -42,11 +42,9 @@ private:
     int m_cscram_x;
     int m_cscram_y;
     void b_64_8_code(unsigned char, int*);
-    void pl_header_encode(unsigned char, unsigned char, int*);
+    void pl_header_encode(dvbs2_modcod_t, bool, dvbs2_vlsnr_header_t);
     inline int parity_chk(int, int);
     inline int symbol_scrambler(void);
-    void get_slots(
-        dvbs2_framesize_t, dvbs2_code_rate_t, dvbs2_constellation_t, bool, int, int&, int&, int&, int&);
 
     const static unsigned int g[7];
     const static int ph_scram_tab[64];

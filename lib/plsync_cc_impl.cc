@@ -903,92 +903,16 @@ int plsync_cc_impl::general_work(int noutput_items,
                 // If running in ACM/VCM mode, tag the beginning of the XFECFRAME to
                 // follow in the output.
                 if (d_acm_vcm) {
-                    // TODO: move into its own lib
-                    auto framesize =
-                        d_curr_frame_info.pls.short_fecframe ? FECFRAME_SHORT : FECFRAME_NORMAL;
                     auto pilots = d_curr_frame_info.pls.has_pilots;
                     auto root_code = d_gold_code; // TODO: gold_to_root()
                     auto dummy_frame = d_curr_frame_info.pls.dummy_frame;
-                    dvbs2_code_rate_t code_rate;
-                    dvbs2_constellation_t constellation;
-                    switch (d_curr_frame_info.pls.n_mod) {
-                    case 2:
-                        constellation = MOD_QPSK;
-                        break;
-                    case 3:
-                        constellation = MOD_8PSK;
-                        break;
-                    case 4:
-                        constellation = MOD_16APSK;
-                        break;
-                    case 5:
-                        constellation = MOD_32APSK;
-                        break;
-                    default:
-                        // TODO: Invalid constellation size?
-                        break;
-                    }
-                    switch (d_curr_frame_info.pls.modcod) {
-                    case 1:
-                        code_rate = C1_4;
-                        break;
-                    case 2:
-                        code_rate = C1_3;
-                        break;
-                    case 3:
-                        code_rate = C2_5;
-                        break;
-                    case 4:
-                        code_rate = C1_2;
-                        break;
-                    case 5:
-                    case 12:
-                        code_rate = C3_5;
-                        break;
-                    case 6:
-                    case 13:
-                    case 18:
-                        code_rate = C2_3;
-                        break;
-                    case 7:
-                    case 14:
-                    case 19:
-                    case 24:
-                        code_rate = C3_4;
-                        break;
-                    case 8:
-                    case 20:
-                    case 25:
-                        code_rate = C4_5;
-                        break;
-                    case 9:
-                    case 15:
-                    case 21:
-                    case 26:
-                        code_rate = C5_6;
-                        break;
-                    case 10:
-                    case 16:
-                    case 22:
-                    case 27:
-                        code_rate = C8_9;
-                        break;
-                    case 11:
-                    case 17:
-                    case 23:
-                    case 28:
-                        code_rate = C9_10;
-                        break;
-                    default:
-                        // TODO: DVB-S2X
-                        break;
-                    }
-
+                    auto modcod = (d_curr_frame_info.pls.modcod << 1) |
+                                  d_curr_frame_info.pls.short_fecframe; // TODO: DVB-S2X
+                    auto vlsnr_header = 0;                              // TODO
                     const uint64_t tagoffset = this->nitems_written(0);
-                    const uint64_t tagmodcod = (uint64_t(root_code) << 32) | (uint64_t(pilots) << 24) |
-                                               (uint64_t(constellation) << 16) |
-                                               (uint64_t(code_rate) << 8) | (uint64_t(framesize) << 1) |
-                                               uint64_t(dummy_frame);
+                    const uint64_t tagmodcod = (uint64_t(root_code) << 32) |
+                                               (uint64_t(vlsnr_header) << 9) | (uint64_t(modcod) << 2) |
+                                               (uint64_t(pilots) << 1) | uint64_t(dummy_frame);
                     pmt::pmt_t key = pmt::string_to_symbol("modcod");
                     pmt::pmt_t value = pmt::from_uint64(tagmodcod);
                     this->add_item_tag(0, tagoffset, key, value);

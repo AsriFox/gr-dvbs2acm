@@ -70,12 +70,9 @@ int bch_encoder_bb_impl::general_work(int noutput_items,
 
     for (tag_t tag : tags) {
         auto tagmodcod = pmt::to_uint64(tag.value);
-        auto framesize = (dvbs2_framesize_t)((tagmodcod >> 1) & 0x7f);
-        auto rate = (dvbs2_code_rate_t)((tagmodcod >> 8) & 0xff);
-        auto params = (framesize == FECFRAME_NORMAL)
-                          ? bch_code::select_normal(rate)
-                          : ((framesize == FECFRAME_SHORT) ? bch_code::select_short(rate)
-                                                           : bch_code::bch_code_invalid);
+        auto modcod = (dvbs2_modcod_t)((tagmodcod >> 2) & 0x7f);
+        auto vlsnr_header = (dvbs2_vlsnr_header_t)((tagmodcod >> 9) & 0x0f);
+        auto params = bch_code::select(modcod, vlsnr_header);
         if (params.nbch + produced > (unsigned int)noutput_items) {
             break;
         }
