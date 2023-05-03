@@ -39,6 +39,8 @@ public:
      */
     static sptr
     make(int modcod, bool pilots = true, dvbs2_rolloff_factor_t rolloff = RO_0_20, int goldcode = 0);
+
+    virtual void set_modcod(int modcod) = 0;
 };
 
 } // namespace dvbs2acm

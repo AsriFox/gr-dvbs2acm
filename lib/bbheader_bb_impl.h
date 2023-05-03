@@ -47,6 +47,10 @@ private:
     BBHeader header;
     std::array<unsigned char, 256> crc_tab;
 
+    gr::thread::mutex d_mutex;
+
+    void handle_cmd_msg(pmt::pmt_t msg);
+
     int gold_to_root(int);
 
 public:
@@ -54,6 +58,8 @@ public:
     ~bbheader_bb_impl();
 
     void forecast(int noutput_items, gr_vector_int& ninput_items_required);
+
+    void set_modcod(int modcod) override;
 
     int general_work(int noutput_items,
                      gr_vector_int& ninput_items,

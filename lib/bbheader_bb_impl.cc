@@ -50,21 +50,7 @@ bbheader_bb_impl::bbheader_bb_impl(int modcod,
                 gr::io_signature::make(1, 1, sizeof(output_type))),
       pilots(pilots)
 {
-    if (modcod < 0 || modcod > 128) {
-        GR_LOG_WARN(d_logger, "Provided MODCOD value is out of range.");
-        GR_LOG_WARN(d_logger, "MODCOD set to DUMMY.");
-        this->modcod = MC_DUMMY;
-    } else if (modcod < 2 || (modcod > 57 && modcod < MC_QPSK_13_45) || modcod > MC_32APSK_32_45_S) {
-        GR_LOG_WARN(d_logger, "Provided MODCOD value is reserved.");
-        GR_LOG_WARN(d_logger, "MODCOD set to DUMMY.");
-        if (modcod < 64) { // DVB-S2
-            this->modcod = (modcod & 1) ? MC_DUMMY_S : MC_DUMMY;
-        } else { // DVB-S2X
-            this->modcod = MC_DUMMY;
-        }
-    } else {
-        this->modcod = (dvbs2_modcod_t)modcod;
-    }
+    set_modcod(modcod);
 
     if (goldcode < 0 || goldcode > 262141) {
         GR_LOG_WARN(d_logger, "Gold Code must be between 0 and 262141 inclusive.");
@@ -87,6 +73,10 @@ bbheader_bb_impl::bbheader_bb_impl(int modcod,
 
     build_crc8_table(crc_tab.data());
     set_output_multiple(FRAME_SIZE_NORMAL);
+
+    const pmt::pmt_t port_id = pmt::mp("cmd");
+    message_port_register_in(port_id);
+    set_msg_handler(port_id, [this](pmt::pmt_t msg) { this->handle_cmd_msg(msg); });
 }
 
 /*
@@ -97,6 +87,36 @@ bbheader_bb_impl::~bbheader_bb_impl() {}
 void bbheader_bb_impl::forecast(int noutput_items, gr_vector_int& ninput_items_required)
 {
     ninput_items_required[0] = (noutput_items - 80) / 8;
+}
+
+void bbheader_bb_impl::set_modcod(int modcod)
+{
+    if (modcod < 0 || modcod > 128) {
+        GR_LOG_WARN(d_logger, "Provided MODCOD value is out of range.");
+        GR_LOG_WARN(d_logger, "MODCOD set to DUMMY.");
+        this->modcod = MC_DUMMY;
+    } else if (modcod < 2 || (modcod > 57 && modcod < MC_QPSK_13_45) || modcod > MC_32APSK_32_45_S) {
+        GR_LOG_WARN(d_logger, "Provided MODCOD value is reserved.");
+        GR_LOG_WARN(d_logger, "MODCOD set to DUMMY.");
+        if (modcod < 64) { // DVB-S2
+            this->modcod = (modcod & 1) ? MC_DUMMY_S : MC_DUMMY;
+        } else { // DVB-S2X
+            this->modcod = MC_DUMMY;
+        }
+    } else {
+        this->modcod = (dvbs2_modcod_t)modcod;
+    }
+}
+
+void bbheader_bb_impl::handle_cmd_msg(pmt::pmt_t msg)
+{
+    gr::thread::scoped_lock l(d_mutex);
+
+    if (!pmt::is_uint64(msg)) {
+        throw std::runtime_error("bbheader_bb: ACM command message must be an integer");
+    }
+    auto modcod = (int)(pmt::to_uint64(msg) & 0xff);
+    set_modcod(modcod);
 }
 
 int bbheader_bb_impl::gold_to_root(int goldcode)
@@ -117,6 +137,7 @@ int bbheader_bb_impl::general_work(int noutput_items,
         consume_each(0);
         return WORK_CALLED_PRODUCE;
     }
+    gr::thread::scoped_lock l(d_mutex);
 
     auto in = static_cast<const input_type*>(input_items[0]);
     auto out = static_cast<output_type*>(output_items[0]);

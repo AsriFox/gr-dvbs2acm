@@ -269,7 +269,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [16, 148.0]
+    coordinate: [8, 132.0]
     rotation: 0
     state: true
 - name: bitrate
@@ -320,6 +320,23 @@ blocks:
     bus_structure: null
     coordinate: [168, 464.0]
     rotation: 180
+    state: true
+- name: blocks_message_strobe_0
+  id: blocks_message_strobe
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    msg: pmt.from_uint64(32)
+    period: '1000'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 212.0]
+    rotation: 0
     state: true
 - name: blocks_probe_rate_0
   id: blocks_probe_rate
@@ -420,21 +437,19 @@ blocks:
     affinity: ''
     alias: ''
     comment: ''
-    constellation: MOD_16APSK
-    framesize: FECFRAME_NORMAL
+    framesize: Normal
     goldcode: '0'
     maxoutbuf: '0'
     minoutbuf: '0'
+    modcod_normal: MC_QPSK_3_4
+    modcod_short: '3'
     pilots: 'True'
-    rate_1: C3_4
-    rate_2: C1_5_MEDIUM
-    rate_3: C1_4
-    rolloff: RO_0_20
+    rolloff: RO_0_35
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [232, 124.0]
+    coordinate: [240, 132.0]
     rotation: 0
     state: true
 - name: dvbs2acm_bbscrambler_bb_0
@@ -449,7 +464,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [432, 168.0]
+    coordinate: [440, 168.0]
     rotation: 0
     state: true
 - name: dvbs2acm_bch_encoder_bb_0
@@ -464,7 +479,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [584, 168.0]
+    coordinate: [592, 168.0]
     rotation: 0
     state: true
 - name: dvbs2acm_interleaver_bb_0
@@ -479,7 +494,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [744, 264.0]
+    coordinate: [752, 264.0]
     rotation: 180
     state: true
 - name: dvbs2acm_ldpc_encoder_bb_0
@@ -494,7 +509,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [728, 168.0]
+    coordinate: [736, 168.0]
     rotation: 0
     state: true
 - name: dvbs2acm_modulator_bc_0
@@ -509,7 +524,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [608, 264.0]
+    coordinate: [616, 264.0]
     rotation: 180
     state: true
 - name: dvbs2acm_physical_cc_0
@@ -525,7 +540,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [376, 260.0]
+    coordinate: [384, 260.0]
     rotation: 180
     state: true
 - name: dvbs2acm_symbol_sync_cc_0
@@ -596,7 +611,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [168, 252.0]
+    coordinate: [176, 252.0]
     rotation: 180
     state: true
 - name: pl_freq_est_period
@@ -748,6 +763,7 @@ connections:
 - [analog_fastnoise_source_x_0, '0', blocks_add_xx_0, '1']
 - [analog_random_uniform_source_x_0, '0', dvbs2acm_bbheader_bb_0, '0']
 - [blocks_add_xx_0, '0', blocks_throttle_0_1, '0']
+- [blocks_message_strobe_0, strobe, dvbs2acm_bbheader_bb_0, cmd]
 - [blocks_probe_rate_0, rate, blocks_message_debug_0_0, print]
 - [blocks_throttle_0, '0', blocks_add_xx_0, '0']
 - [blocks_throttle_0_1, '0', analog_agc_xx_0_0, '0']

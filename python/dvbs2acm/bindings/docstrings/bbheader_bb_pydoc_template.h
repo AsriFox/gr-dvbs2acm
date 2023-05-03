@@ -19,9 +19,15 @@
  static const char *__doc_gr_dvbs2acm_bbheader_bb = R"doc()doc";
 
 
- static const char *__doc_gr_dvbs2acm_bbheader_bb_bbheader_bb = R"doc()doc";
+ static const char *__doc_gr_dvbs2acm_bbheader_bb_bbheader_bb_0 = R"doc()doc";
+
+
+ static const char *__doc_gr_dvbs2acm_bbheader_bb_bbheader_bb_1 = R"doc()doc";
 
 
  static const char *__doc_gr_dvbs2acm_bbheader_bb_make = R"doc()doc";
+
+
+ static const char *__doc_gr_dvbs2acm_bbheader_bb_set_modcod = R"doc()doc";
 
   
