@@ -15,6 +15,18 @@
                 "label": {
                     "type": "string"
                 },
+                "desc": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                        "brief": {
+                            "type": "string"
+                        },
+                        "details": {
+                            "type": "string"
+                        }
+                    }
+                },
                 "blocktype": {
                     "type": "string"
                 },
@@ -169,7 +181,7 @@
                 "domain": {
                     "type": "string",
                     "default": "cpu"
-                }                
+                }
             },
             "required": [
                 "id"
@@ -184,6 +196,9 @@
                     "type": "string"
                 },
                 "label": {
+                    "type": "string"
+                },
+                "desc": {
                     "type": "string"
                 },
                 "dtype": {

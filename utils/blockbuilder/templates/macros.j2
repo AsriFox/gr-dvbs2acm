@@ -31,18 +31,36 @@
 class {{ block }} : virtual public {{blocktype}}{% for inh in inherits %}, public {{ inh }}{%endfor%}
 {% endmacro %}
 
-{% macro block_args(parameters) -%}
-    struct block_args {
-        {% if parameters %} {% for param in parameters -%}{% if 'cotr' not in param or param['cotr'] == true %}
-        {{param['dtype']|cpp_type(vec=param['container']=='vector') }} {{ param['id'] }}{% if 'default' in param %} = {{param['default']}}{% endif %};
-        {% endif %}{% endfor -%}{% endif %}};
+{% macro description_block(desc, module) %}
+/*!
+ {% if 'brief' in desc %}
+ * \brief {{ desc['brief'] | replace("\n", "\n * ") }}
+ {% endif %}
+ * \ingroup {{module}}
+ {% if 'details' in desc %}
+ * \details
+ * {{ desc['details'] | replace("\n", "\n * ") }}
+ {% endif %}
+ */
 {% endmacro %}
 
-{% macro cotr_statement(block) -%}
-{{ block }}(const block_args& args);
+{% macro make_statement(label, parameters) %}
+/*!
+ * \brief Create a shared pointer to the '{{label}}' block.
+ {% if parameters %}
+ *
+ {% for param in parameters -%}
+ * \param {{ param['id'] }} {{ param['desc'] }}
+ {% endfor -%}
+ {% endif %}
+ */
+ static sptr make(
+    {% if parameters %}
+    {% for param in parameters -%}
+    {{ param['dtype'] | cpp_type(vec=param['container']=='vector') }} {{ param['id'] }}{% if 'default' in param %} = {{ param['default'] }}{% endif %}{%if not loop.last %},{% endif %}
+    {% endfor -%}
+    {% endif %});
 {% endmacro %}
-
-
 
 {% macro ports(ports, parameters, typekeys) -%}
         {% for port in ports %}

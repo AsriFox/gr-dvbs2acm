@@ -1,0 +1,10 @@
+{% import 'macros.j2' as macros -%}
+{{ macros.header() }}
+#pragma once
+
+#include <gnuradio/attributes.h>
+#ifdef gnuradio_{{module}}_EXPORTS
+#define {{module|upper}}_API __GR_ATTR_EXPORT
+#else
+#define {{module|upper}}_API __GR_ATTR_IMPORT
+#endif

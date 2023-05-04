@@ -1,12 +1,20 @@
 module: dvbs2acm
 block: bbheader_bb
-label: bbheader_bb
+label: Baseband Header
 blocktype: sync_block
+desc:
+  brief: "Formats Generic Stream packets into FEC baseband frames 
+and adds a 10-byte header."
+  details: "
+Input: Generic Stream packets. 
+Output: Variable length FEC baseband frames (BBFRAME). 
+The output frame length is based on the FEC rate."
 
 # Example Parameters
 parameters:
 -   id: itemsize
     label: Item Size
+    desc: Processing item size.
     dtype: size
     settable: false
     default: 0
