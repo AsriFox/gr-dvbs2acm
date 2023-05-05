@@ -83,14 +83,8 @@ int ldpc_encoder_bb_impl::general_work(int noutput_items,
     for (tag_t tag : tags) {
         auto tagmodcod = pmt::to_uint64(tag.value);
         auto modcod = (dvbs2_modcod_t)((tagmodcod >> 2) & 0x7f);
-        auto framesize = modcod_framesize(modcod);
-        auto rate = modcod_rate(modcod);
-        if (modcod == MC_VLSNR_SET1 || modcod == MC_VLSNR_SET2) {
-            auto vlsnr_header = (dvbs2_vlsnr_header_t)((tagmodcod >> 9) & 0x0f);
-            framesize = vlsnr_framesize(vlsnr_header);
-            rate = vlsnr_rate(vlsnr_header);
-        }
-        auto params = ldpc_encode_table::select(framesize, rate);
+        auto vlsnr_header = (dvbs2_vlsnr_header_t)((tagmodcod >> 9) & 0x0f);
+        auto params = ldpc_encode_table::select(modcod, vlsnr_header);
         if (params.frame_size + produced > (unsigned)noutput_items) {
             break;
         }
