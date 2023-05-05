@@ -427,7 +427,7 @@ blocks:
     maxoutbuf: '0'
     minoutbuf: '0'
     modcod_normal: MC_QPSK_1_4
-    modcod_short: '3'
+    modcod_short: MC_QPSK_1_4_S
     pilots: 'True'
     rolloff: RO_0_35
     sps: sps

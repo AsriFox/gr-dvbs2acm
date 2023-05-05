@@ -62,7 +62,7 @@ inline dvbs2_code_rate_t modcod_rate(dvbs2_modcod_t modcod)
     case MC_QPSK_8_9_S:
         return C8_9;
     case MC_QPSK_9_10:
-    case MC_QPSK_9_10_S:
+        // case MC_QPSK_9_10_S:
         return C9_10;
     case MC_8PSK_3_5:
     case MC_8PSK_3_5_S:
@@ -80,7 +80,7 @@ inline dvbs2_code_rate_t modcod_rate(dvbs2_modcod_t modcod)
     case MC_8PSK_8_9_S:
         return C8_9;
     case MC_8PSK_9_10:
-    case MC_8PSK_9_10_S:
+        // case MC_8PSK_9_10_S:
         return C9_10;
     case MC_16APSK_2_3:
     case MC_16APSK_2_3_S:
@@ -98,7 +98,7 @@ inline dvbs2_code_rate_t modcod_rate(dvbs2_modcod_t modcod)
     case MC_16APSK_8_9_S:
         return C8_9;
     case MC_16APSK_9_10:
-    case MC_16APSK_9_10_S:
+        // case MC_16APSK_9_10_S:
         return C9_10;
     case MC_32APSK_3_4:
     case MC_32APSK_3_4_S:
@@ -113,7 +113,7 @@ inline dvbs2_code_rate_t modcod_rate(dvbs2_modcod_t modcod)
     case MC_32APSK_8_9_S:
         return C8_9;
     case MC_32APSK_9_10:
-    case MC_32APSK_9_10_S:
+        // case MC_32APSK_9_10_S:
         return C9_10;
     // DVB-S2X
     case MC_QPSK_13_45:
@@ -257,7 +257,7 @@ inline dvbs2_constellation_t modcod_constellation(dvbs2_modcod_t modcod)
     case MC_QPSK_8_9:
     case MC_QPSK_8_9_S:
     case MC_QPSK_9_10:
-    case MC_QPSK_9_10_S:
+        // case MC_QPSK_9_10_S:
         return MOD_QPSK;
     case MC_8PSK_3_5:
     case MC_8PSK_3_5_S:
@@ -270,7 +270,7 @@ inline dvbs2_constellation_t modcod_constellation(dvbs2_modcod_t modcod)
     case MC_8PSK_8_9:
     case MC_8PSK_8_9_S:
     case MC_8PSK_9_10:
-    case MC_8PSK_9_10_S:
+        // case MC_8PSK_9_10_S:
         return MOD_8PSK;
     case MC_16APSK_2_3:
     case MC_16APSK_2_3_S:
@@ -283,7 +283,7 @@ inline dvbs2_constellation_t modcod_constellation(dvbs2_modcod_t modcod)
     case MC_16APSK_8_9:
     case MC_16APSK_8_9_S:
     case MC_16APSK_9_10:
-    case MC_16APSK_9_10_S:
+        // case MC_16APSK_9_10_S:
         return MOD_16APSK;
     case MC_32APSK_3_4:
     case MC_32APSK_3_4_S:
@@ -294,7 +294,7 @@ inline dvbs2_constellation_t modcod_constellation(dvbs2_modcod_t modcod)
     case MC_32APSK_8_9:
     case MC_32APSK_8_9_S:
     case MC_32APSK_9_10:
-    case MC_32APSK_9_10_S:
+        // case MC_32APSK_9_10_S:
         return MOD_32APSK;
     // DVB-S2X
     case MC_QPSK_13_45:
@@ -315,6 +315,7 @@ inline dvbs2_constellation_t modcod_constellation(dvbs2_modcod_t modcod)
     case MC_16APSK_2_3_L:
         return MOD_8_8APSK;
     case MC_16APSK_26_45:
+    case MC_16APSK_3_5:
     case MC_16APSK_28_45:
     case MC_16APSK_23_36:
     case MC_16APSK_25_36:
@@ -373,6 +374,8 @@ inline dvbs2_framesize_t vlsnr_framesize(dvbs2_vlsnr_header_t vlsnr_header)
     case VLSNR_S_BPSK_1_3:
         return FECFRAME_SHORT;
     }
+    // TODO: fallback?
+    return FECFRAME_NORMAL;
 }
 
 inline dvbs2_code_rate_t vlsnr_rate(dvbs2_vlsnr_header_t vlsnr_header)

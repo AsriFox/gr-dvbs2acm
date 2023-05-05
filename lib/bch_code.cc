@@ -235,7 +235,7 @@ void bch_code::encode(const unsigned char* in, unsigned char* out)
                 shift[5] ^= m_poly[5];
             }
         }
-        for (int n = kbch; n < kbch + 192; n++) {
+        for (unsigned n = kbch; n < kbch + 192; n++) {
             out[n] = shift[5] & 1;
             reg_shift_6();
         }
@@ -253,7 +253,7 @@ void bch_code::encode(const unsigned char* in, unsigned char* out)
                 shift[4] ^= m_poly[4];
             }
         }
-        for (int n = kbch; n < kbch + 160; n++) {
+        for (unsigned n = kbch; n < kbch + 160; n++) {
             out[n] = shift[4] & 1;
             reg_shift_6();
         }
@@ -270,7 +270,7 @@ void bch_code::encode(const unsigned char* in, unsigned char* out)
                 shift[3] ^= m_poly[3];
             }
         }
-        for (int n = kbch; n < kbch + 128; n++) {
+        for (unsigned n = kbch; n < kbch + 128; n++) {
             out[n] = shift[3] & 1;
             reg_shift_4();
         }
@@ -289,7 +289,7 @@ void bch_code::encode(const unsigned char* in, unsigned char* out)
                 shift[5] ^= m_poly[5];
             }
         }
-        for (int n = kbch; n < kbch + 168; n++) {
+        for (unsigned n = kbch; n < kbch + 168; n++) {
             out[n] = (shift[5] & 0x01000000) ? 1 : 0;
             reg_shift_6();
         }
@@ -308,7 +308,7 @@ void bch_code::encode(const unsigned char* in, unsigned char* out)
                 shift[5] ^= m_poly[5];
             }
         }
-        for (int n = kbch; n < kbch + 180; n++) {
+        for (unsigned n = kbch; n < kbch + 180; n++) {
             out[n] = (shift[5] & 0x00001000) ? 1 : 0;
             reg_shift_6();
         }

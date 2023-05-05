@@ -575,61 +575,61 @@ int modulator_bc_impl::general_work(int noutput_items,
         case MOD_BPSK_SF2:
             for (int j = 0; j < num_items; j++) {
                 index = *in++;
-                *out++ = m_bpsk[j & 1][index * 0x1];
+                *out++ = m_bpsk[j & 1][index & 1];
             }
             break;
         case MOD_QPSK:
             for (int j = 0; j < num_items; j++) {
                 index = *in++;
-                *out++ = m_qpsk[index & 0x3];
+                *out++ = m_qpsk[index & 3];
             }
             break;
         case MOD_8PSK:
             for (int j = 0; j < num_items; j++) {
                 index = *in++;
-                *out++ = m_8psk[index & 0x7];
+                *out++ = m_8psk[index & 7];
             }
             break;
         case MOD_8APSK:
             for (int j = 0; j < num_items; j++) {
                 index = *in++;
-                *out++ = m_8apsk[index & 0x7][constellation_index];
+                *out++ = m_8apsk[index & 7][constellation_index];
             }
             break;
         case MOD_16APSK:
             for (int j = 0; j < num_items; j++) {
                 index = *in++;
-                *out++ = m_16apsk[index & 0xf][constellation_index];
+                *out++ = m_16apsk[index & 15][constellation_index];
             }
             break;
         case MOD_8_8APSK:
             for (int j = 0; j < num_items; j++) {
                 index = *in++;
-                *out++ = m_8_8apsk[index & 0xf][constellation_index];
+                *out++ = m_8_8apsk[index & 15][constellation_index];
             }
             break;
         case MOD_32APSK:
             for (int j = 0; j < num_items; j++) {
                 index = *in++;
-                *out++ = m_32apsk[index & 0x1f][constellation_index];
+                *out++ = m_32apsk[index & 31][constellation_index];
             }
             break;
         case MOD_4_12_16APSK:
             for (int j = 0; j < num_items; j++) {
                 index = *in++;
-                *out++ = m_4_12_16apsk[index & 0x1f][constellation_index];
+                *out++ = m_4_12_16apsk[index & 31][constellation_index];
             }
             break;
         case MOD_4_8_4_16APSK:
             for (int j = 0; j < num_items; j++) {
                 index = *in++;
-                *out++ = m_4_8_4_16apsk[index & 0x1f][constellation_index];
+                *out++ = m_4_8_4_16apsk[index & 31][constellation_index];
             }
             break;
         default:
             for (int j = 0; j < num_items; j++) {
                 index = *in++;
-                *out++ = m_qpsk[index & 0x3];
+                *out++ = m_qpsk[index & 3];
             }
             break;
         }
