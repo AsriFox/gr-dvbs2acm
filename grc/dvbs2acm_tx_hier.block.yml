@@ -1,0 +1,149 @@
+id: dvbs2acm_tx_hier
+label: DVB-S2 ACM Transmitter
+category: '[DVB]/DVB-S2 ACM'
+
+parameters:
+- id: bitrate
+  label: Accepted bitrate
+  dtype: int
+  default: 64800*8
+  hide: none
+- id: framesize
+  label: FECFRAME size
+  dtype: enum
+  options: [Normal, Short]
+  option_attributes:
+    hide_normal: [none, all]
+    hide_short: [all, none]
+- id: modcod_normal
+  label: MODCOD
+  dtype: enum
+  options: [
+    # DVB-S2
+    'MC_QPSK_1_4', 'MC_QPSK_1_3', 'MC_QPSK_2_5', 'MC_QPSK_1_2', 'MC_QPSK_3_5',
+    'MC_QPSK_2_3', 'MC_QPSK_3_4', 'MC_QPSK_4_5', 'MC_QPSK_5_6', 'MC_QPSK_8_9', 'MC_QPSK_9_10',
+    'MC_8PSK_3_5', 'MC_8PSK_2_3', 'MC_8PSK_3_4', 'MC_8PSK_5_6', 'MC_8PSK_8_9', 'MC_8PSK_9_10',
+    'MC_16APSK_2_3', 'MC_16APSK_3_4', 'MC_16APSK_4_5', 'MC_16APSK_5_6', 'MC_16APSK_8_9', 'MC_16APSK_9_10',
+    'MC_32APSK_3_4', 'MC_32APSK_4_5', 'MC_32APSK_5_6', 'MC_32APSK_8_9', 'MC_32APSK_9_10',
+    # DVB-S2X
+    'MC_QPSK_13_45', 'MC_QPSK_9_20', 'MC_QPSK_11_20', 
+    'MC_8APSK_5_9_L', 'MC_8APSK_26_45-L', 'MC_8PSK_23_36', 'MC_8PSK_25_36', 'MC_8PSK_13_18', 
+    'MC_16APSK_1_2_L', 'MC_16APSK_8_15_L', 'MC_16APSK_5_9_L', 
+    'MC_16APSK_26_45', 'MC_16APSK_3_5', 'MC_16APSK_3_5_L', 'MC_16APSK_28_45', 'MC_16APSK_23_36', 
+    'MC_16APSK_2_3_L', 'MC_16APSK_25_36', 'MC_16APSK_13_18', 'MC_16APSK_7_9', 'MC_16APSK_77_90',
+    'MC_32APSK_2_3_L', 'MC_32APSK_32_45', 'MC_32APSK_11_15', 'MC_32APSK_7_9',
+    'MC_64APSK_32_45_L', 'MC_64APSK_11_15', 'MC_64APSK_7_9', 'MC_64APSK_4_5', 'MC_64APSK_5_6',
+    'MC_128APSK_3_4', 'MC_128APSK_7_9', 'MC_256APSK_29_45_L', 'MC_256APSK_2_3_L', 
+    'MC_256APSK_31_45_L', 'MC_256APSK_32_45', 'MC_256APSK_11_15_L', 'MC_256APSK_3_4']
+  option_labels: [
+    # DVB-S2
+    'QPSK 1/4', 'QPSK 1/3', 'QPSK 2/5', 'QPSK 1/2', 'QPSK 3/5',
+    'QPSK 2/3', 'QPSK 3/4', 'QPSK 4/5', 'QPSK 5/6', 'QPSK 8/9', 'QPSK 9/10',
+    '8PSK 3/5', '8PSK 2/3', '8PSK 3/4', '8PSK 5/6', '8PSK 8/9', '8PSK 9/10',
+    '16APSK 2/3', '16APSK 3/4', '16APSK 4/5', '16APSK 5/6', '16APSK 8/9', '16APSK 9/10',
+    '32APSK 3/4', '32APSK 4/5', '32APSK 5/6', '32APSK 8/9', '32APSK 9/10',
+    # DVB-S2X
+    'QPSK 13/45', 'QPSK 9/20', 'QPSK 11/20', 
+    '8APSK 5/9-L', '8APSK 26/45-L', '8PSK 23/36', '8PSK 25/36', '8PSK 13/18', 
+    '16APSK 1/2-L', '16APSK 8/15-L', '16APSK 5/9-L', 
+    '16APSK 26/45', '16APSK 3/5', '16APSK 3/5-L', '16APSK 28/45', '16APSK 23/36', 
+    '16APSK 2/3-L', '16APSK 25/36', '16APSK 13/18', '16APSK 7/9', '16APSK 77/90',
+    '32APSK 2/3-L', '32APSK 32/45', '32APSK 11/15', '32APSK 7/9',
+    '64APSK 32/45-L', '64APSK 11/15', '64APSK 7/9', '64APSK 4/5', '64APSK 5/6',
+    '128APSK 3/4', '128APSK 7/9', '256APSK 29/45-L', '256APSK 2/3-L', 
+    '256APSK 31/45-L', '256APSK 32/45', '256APSK 11/15-L', '256APSK 3/4']
+  option_attributes:
+    val: [
+      # DVB-S2
+      2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 
+      30, 32, 34, 36, 38, 40, 42, 44, 46, 48, 50, 52, 54, 56,
+      # DVB-S2X
+      66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80,
+      81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95,
+      96, 97, 98, 99, 100, 101, 102, 103]
+  hide: ${ framesize.hide_normal }
+- id: modcod_short
+  label: MODCOD
+  dtype: enum
+  options: [
+    # DVB-S2
+    3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 
+    31, 33, 35, 37, 39, 41, 43, 45, 47, 49, 51, 53, 55, 57,
+    # DVB-S2X
+    104, 105, 106, 107, 108, 109, 110, 111, 112, 
+    113, 114, 115, 116, 117, 118, 119, 120]
+  option_labels: [
+    # DVB-S2
+    'QPSK 1/4', 'QPSK 1/3', 'QPSK 2/5', 'QPSK 1/2', 'QPSK 3/5',
+    'QPSK 2/3', 'QPSK 3/4', 'QPSK 4/5', 'QPSK 5/6', 'QPSK 8/9', 'QPSK 9/10',
+    '8PSK 3/5', '8PSK 2/3', '8PSK 3/4', '8PSK 5/6', '8PSK 8/9', '8PSK 9/10',
+    '16APSK 2/3', '16APSK 3/4', '16APSK 4/5', '16APSK 5/6', '16APSK 8/9', '16APSK 9/10',
+    '32APSK 3/4', '32APSK 4/5', '32APSK 5/6', '32APSK 8/9', '32APSK 9/10',
+    # DVB-S2X
+    'QPSK 11/45', 'QPSK 4/15', 'QPSK 14/45', 'QPSK 7/15', 'QPSK 8/15', 'QPSK 32/45',
+    '8PSK 7/15', '8PSK 8/15', '8PSK 26/45', '8PSK 32/45',
+    '16APSK 7/15', '16APSK 8/15', '16APSK 26/45', '16APSK 3/5', '16APSK 32/45',
+    '32APSK 2/3', '32APSK 32/45']
+  hide: ${ framesize.hide_short }
+- id: pilots
+  label: Pilots
+  dtype: enum
+  options: [True, False]
+  option_labels: ['On', 'Off']
+- id: rolloff
+  label: Rolloff factor
+  dtype: enum
+  options: [RO_0_35, RO_0_25, RO_0_20, RO_0_15, RO_0_10, RO_0_05]
+  option_labels: ['0.35', '0.25', '0.20', '0.15', '0.10', '0.05']
+- id: goldcode
+  label: Gold Code
+  dtype: int
+  default: 0
+- id: sps
+  label: FIR Filter supersampling factor
+  dtype: real
+  default: '2.0'
+
+inputs:
+- label: in
+  domain: stream
+  dtype: byte
+- label: cmd
+  domain: message
+  optional: true
+
+outputs:
+- label: out
+  domain: stream
+  dtype: complex
+
+templates:
+  imports: |-
+    from gnuradio import dvbs2acm
+  make: |-
+    dvbs2acm.tx_hier(
+      bitrate=${bitrate},
+      % if str(framesize) == 'Normal':
+        modcod=${modcod_normal.val},
+      % else:
+        modcod=${modcod_short.val},
+      % endif
+      pilots=${pilots},
+      rolloff=dvbs2acm.${rolloff},
+      goldcode=${goldcode},
+      sps=${sps},
+    )
+  callbacks:
+  - set_bitrate(${bitrate})
+  - set_rolloff(dvbs2acm.${rolloff})
+  - set_sps(${sps})
+  - |-
+    set_modcod(
+      % if str(framesize) == 'Normal':
+        ${modcod_normal.val},
+      % else:
+        ${modcod_short.val},
+      % endif
+    )
+
+file_format: 1

@@ -1,6 +1,6 @@
 options:
   parameters:
-    author: asrifox
+    author: AsriFox
     catch_exceptions: 'True'
     category: '[GRC Hier Blocks]'
     cmake_opt: ''
@@ -22,13 +22,13 @@ options:
     run_options: prompt
     sizing_mode: fixed
     thread_safe_setters: ''
-    title: Not titled yet
+    title: DVB-S2 Transmitter test
     window_size: (1000,1000)
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [8, 8]
+    coordinate: [8, 4.0]
     rotation: 0
     state: enabled
 
@@ -101,7 +101,7 @@ blocks:
     bus_structure: null
     coordinate: [680, 4.0]
     rotation: 0
-    state: true
+    state: enabled
 - name: rolloff
   id: variable
   parameters:
@@ -230,8 +230,8 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [720, 332.0]
-    rotation: 0
+    coordinate: [184, 332.0]
+    rotation: 180
     state: enabled
 - name: analog_fastnoise_source_x_0
   id: analog_fastnoise_source_x
@@ -250,8 +250,8 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [168, 372.0]
-    rotation: 0
+    coordinate: [632, 156.0]
+    rotation: 180
     state: true
 - name: analog_random_uniform_source_x_0
   id: analog_random_uniform_source_x
@@ -269,7 +269,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [8, 132.0]
+    coordinate: [8, 148.0]
     rotation: 0
     state: true
 - name: bitrate
@@ -281,12 +281,12 @@ blocks:
     label: bit rate in bps
     short_id: b
     type: intx
-    value: 64800 * 32
+    value: 64800 * 8
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [176, 12.0]
+    coordinate: [176, 4.0]
     rotation: 0
     state: true
 - name: blocks_add_xx_0
@@ -304,8 +304,8 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [424, 344.0]
-    rotation: 0
+    coordinate: [512.0, 264]
+    rotation: 270
     state: true
 - name: blocks_message_debug_0_0
   id: blocks_message_debug
@@ -318,8 +318,8 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [168, 464.0]
-    rotation: 180
+    coordinate: [768, 456.0]
+    rotation: 0
     state: true
 - name: blocks_message_strobe_0
   id: blocks_message_strobe
@@ -335,7 +335,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [8, 212.0]
+    coordinate: [8, 228.0]
     rotation: 0
     state: true
 - name: blocks_probe_rate_0
@@ -354,26 +354,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [384, 452.0]
-    rotation: 180
-    state: true
-- name: blocks_throttle_0
-  id: blocks_throttle
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    ignoretag: 'True'
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    samples_per_second: samp_rate
-    type: complex
-    vlen: '1'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [168, 316.0]
+    coordinate: [464, 412.0]
     rotation: 0
     state: true
 - name: blocks_throttle_0_1
@@ -392,27 +373,8 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [520, 356.0]
-    rotation: 0
-    state: true
-- name: blocks_throttle_0_1_0
-  id: blocks_throttle
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    ignoretag: 'True'
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    samples_per_second: samp_rate
-    type: complex
-    vlen: '1'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [424, 564.0]
-    rotation: 0
+    coordinate: [352, 356.0]
+    rotation: 180
     state: true
 - name: debug
   id: parameter
@@ -431,139 +393,50 @@ blocks:
     coordinate: [1000, 420.0]
     rotation: 0
     state: true
-- name: dvbs2acm_bbheader_bb_0
-  id: dvbs2acm_bbheader_bb
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    framesize: Normal
-    goldcode: '0'
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    modcod_normal: MC_QPSK_3_4
-    modcod_short: '3'
-    pilots: 'True'
-    rolloff: RO_0_35
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [240, 132.0]
-    rotation: 0
-    state: true
-- name: dvbs2acm_bbscrambler_bb_0
-  id: dvbs2acm_bbscrambler_bb
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    maxoutbuf: '0'
-    minoutbuf: '0'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [440, 168.0]
-    rotation: 0
-    state: true
-- name: dvbs2acm_bch_encoder_bb_0
-  id: dvbs2acm_bch_encoder_bb
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    maxoutbuf: '0'
-    minoutbuf: '0'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [592, 168.0]
-    rotation: 0
-    state: true
-- name: dvbs2acm_interleaver_bb_0
-  id: dvbs2acm_interleaver_bb
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    maxoutbuf: '0'
-    minoutbuf: '0'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [752, 264.0]
-    rotation: 180
-    state: true
-- name: dvbs2acm_ldpc_encoder_bb_0
-  id: dvbs2acm_ldpc_encoder_bb
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    maxoutbuf: '0'
-    minoutbuf: '0'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [736, 168.0]
-    rotation: 0
-    state: true
-- name: dvbs2acm_modulator_bc_0
-  id: dvbs2acm_modulator_bc
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    maxoutbuf: '0'
-    minoutbuf: '0'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [616, 264.0]
-    rotation: 180
-    state: true
-- name: dvbs2acm_physical_cc_0
-  id: dvbs2acm_physical_cc
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    dummyframes: 'False'
-    maxoutbuf: '0'
-    minoutbuf: '0'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [384, 260.0]
-    rotation: 180
-    state: true
 - name: dvbs2acm_symbol_sync_cc_0
   id: dvbs2acm_symbol_sync_cc
   parameters:
     affinity: ''
     alias: ''
     comment: ''
-    damping_factor: '1.0'
+    damping_factor: sym_sync_damping
     interp_method: '0'
-    loop_bw: '0.01'
+    loop_bw: sym_sync_loop_bw
     maxoutbuf: '0'
     minoutbuf: '0'
     n_subfilt: '128'
-    rolloff: '0.2'
+    rolloff: rolloff
     rrc_delay: '5'
-    sps: '2'
+    sps: sps
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [640, 428.0]
-    rotation: 180
+    coordinate: [176, 428.0]
+    rotation: 0
+    state: true
+- name: dvbs2acm_tx_hier_0
+  id: dvbs2acm_tx_hier
+  parameters:
+    affinity: ''
+    alias: ''
+    bitrate: bitrate
+    comment: ''
+    framesize: Normal
+    goldcode: '0'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    modcod_normal: MC_QPSK_1_4
+    modcod_short: '3'
+    pilots: 'True'
+    rolloff: RO_0_35
+    sps: sps
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [248, 132.0]
+    rotation: 0
     state: true
 - name: gold_code
   id: parameter
@@ -594,25 +467,6 @@ blocks:
     bus_structure: null
     coordinate: [408, 84.0]
     rotation: 0
-    state: true
-- name: interp_fir_filter_xxx_0
-  id: interp_fir_filter_xxx
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    interp: int(sps/2)
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    samp_delay: '0'
-    taps: firdes.root_raised_cosine(1.0, samp_rate, samp_rate/2, rolloff, taps)
-    type: ccc
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [176, 252.0]
-    rotation: 180
     state: true
 - name: pl_freq_est_period
   id: parameter
@@ -683,7 +537,7 @@ blocks:
     marker8: '0'
     marker9: '0'
     name: '""'
-    nconnections: '2'
+    nconnections: '1'
     size: '64800'
     style1: '0'
     style10: '0'
@@ -720,9 +574,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [640, 536.0]
+    coordinate: [464, 492.0]
     rotation: 0
-    state: true
+    state: enabled
 - name: sym_sync_damping
   id: parameter
   parameters:
@@ -761,24 +615,14 @@ blocks:
 connections:
 - [analog_agc_xx_0_0, '0', dvbs2acm_symbol_sync_cc_0, '0']
 - [analog_fastnoise_source_x_0, '0', blocks_add_xx_0, '1']
-- [analog_random_uniform_source_x_0, '0', dvbs2acm_bbheader_bb_0, '0']
+- [analog_random_uniform_source_x_0, '0', dvbs2acm_tx_hier_0, '0']
 - [blocks_add_xx_0, '0', blocks_throttle_0_1, '0']
-- [blocks_message_strobe_0, strobe, dvbs2acm_bbheader_bb_0, cmd]
+- [blocks_message_strobe_0, strobe, dvbs2acm_tx_hier_0, cmd]
 - [blocks_probe_rate_0, rate, blocks_message_debug_0_0, print]
-- [blocks_throttle_0, '0', blocks_add_xx_0, '0']
 - [blocks_throttle_0_1, '0', analog_agc_xx_0_0, '0']
-- [blocks_throttle_0_1_0, '0', qtgui_const_sink_x_0, '1']
-- [dvbs2acm_bbheader_bb_0, '0', dvbs2acm_bbscrambler_bb_0, '0']
-- [dvbs2acm_bbscrambler_bb_0, '0', dvbs2acm_bch_encoder_bb_0, '0']
-- [dvbs2acm_bch_encoder_bb_0, '0', dvbs2acm_ldpc_encoder_bb_0, '0']
-- [dvbs2acm_interleaver_bb_0, '0', dvbs2acm_modulator_bc_0, '0']
-- [dvbs2acm_ldpc_encoder_bb_0, '0', dvbs2acm_interleaver_bb_0, '0']
-- [dvbs2acm_modulator_bc_0, '0', blocks_throttle_0_1_0, '0']
-- [dvbs2acm_modulator_bc_0, '0', dvbs2acm_physical_cc_0, '0']
-- [dvbs2acm_physical_cc_0, '0', interp_fir_filter_xxx_0, '0']
 - [dvbs2acm_symbol_sync_cc_0, '0', blocks_probe_rate_0, '0']
 - [dvbs2acm_symbol_sync_cc_0, '0', qtgui_const_sink_x_0, '0']
-- [interp_fir_filter_xxx_0, '0', blocks_throttle_0, '0']
+- [dvbs2acm_tx_hier_0, '0', blocks_add_xx_0, '0']
 
 metadata:
   file_format: 1

@@ -11,7 +11,7 @@ options:
     gen_linking: dynamic
     generate_options: hb
     hier_block_src_path: '.:'
-    id: dvbs2acm_tx
+    id: dvbs2acm_tx_hier
     max_nouts: '0'
     output_language: python
     placement: (0,0)
@@ -33,52 +33,40 @@ options:
     state: enabled
 
 blocks:
-- name: mod_bits_per_sample
-  id: variable
-  parameters:
-    comment: ''
-    value: '3'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [408, 4.0]
-    rotation: 0
-    state: true
 - name: samp_rate
   id: variable
   parameters:
     comment: ''
-    value: symbol_rate * sps
+    value: sym_rate * sps
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [440, 68.0]
+    coordinate: [480, 68.0]
     rotation: 0
     state: enabled
-- name: sps
+- name: sym_rate
   id: variable
   parameters:
     comment: ''
-    value: '2'
+    value: bitrate / 4
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [336, 4.0]
+    coordinate: [480, 4.0]
     rotation: 0
     state: enabled
-- name: symbol_rate
+- name: taps
   id: variable
   parameters:
     comment: ''
-    value: bitrate / mod_bits_per_sample
+    value: '200'
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [336, 68.0]
+    coordinate: [728, 4.0]
     rotation: 0
     state: enabled
 - name: bitrate
@@ -87,10 +75,10 @@ blocks:
     alias: ''
     comment: ''
     hide: none
-    label: Accepted Bitrate
+    label: Accepted bitrate
     short_id: b
     type: intx
-    value: 64800 * 256
+    value: 64800*8
   states:
     bus_sink: false
     bus_source: false
@@ -107,6 +95,25 @@ blocks:
     ignoretag: 'True'
     maxoutbuf: '0'
     minoutbuf: '0'
+    samples_per_second: bitrate
+    type: byte
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [144, 148.0]
+    rotation: 0
+    state: true
+- name: blocks_throttle_0_0
+  id: blocks_throttle
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    ignoretag: 'True'
+    maxoutbuf: '0'
+    minoutbuf: '0'
     samples_per_second: samp_rate
     type: complex
     vlen: '1'
@@ -114,7 +121,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [144, 332.0]
+    coordinate: [504, 316.0]
     rotation: 0
     state: true
 - name: dvbs2acm_bbheader_bb_0
@@ -123,21 +130,19 @@ blocks:
     affinity: ''
     alias: ''
     comment: ''
-    constellation: MOD_8PSK
-    framesize: FECFRAME_NORMAL
+    framesize: Normal
     goldcode: '0'
     maxoutbuf: '0'
     minoutbuf: '0'
+    modcod_normal: MC_QPSK_3_4
+    modcod_short: '3'
     pilots: 'True'
-    rate_1: C1_4
-    rate_2: C1_5_MEDIUM
-    rate_3: C1_4
     rolloff: RO_0_20
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [152, 124.0]
+    coordinate: [344, 132.0]
     rotation: 0
     state: true
 - name: dvbs2acm_bbscrambler_bb_0
@@ -152,7 +157,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [352, 168.0]
+    coordinate: [544, 168.0]
     rotation: 0
     state: true
 - name: dvbs2acm_bch_encoder_bb_0
@@ -167,8 +172,8 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [504, 168.0]
-    rotation: 0
+    coordinate: [560, 256.0]
+    rotation: 180
     state: true
 - name: dvbs2acm_interleaver_bb_0
   id: dvbs2acm_interleaver_bb
@@ -182,7 +187,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [720, 272.0]
+    coordinate: [232, 256.0]
     rotation: 180
     state: true
 - name: dvbs2acm_ldpc_encoder_bb_0
@@ -197,8 +202,8 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [648, 168.0]
-    rotation: 0
+    coordinate: [392, 256.0]
+    rotation: 180
     state: true
 - name: dvbs2acm_modulator_bc_0
   id: dvbs2acm_modulator_bc
@@ -212,7 +217,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [584, 272.0]
+    coordinate: [72, 256.0]
     rotation: 180
     state: true
 - name: dvbs2acm_physical_cc_0
@@ -228,8 +233,8 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [352, 268.0]
-    rotation: 180
+    coordinate: [64, 316.0]
+    rotation: 0
     state: true
 - name: interp_fir_filter_xxx_0
   id: interp_fir_filter_xxx
@@ -247,8 +252,8 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [144, 260.0]
-    rotation: 180
+    coordinate: [296, 308.0]
+    rotation: 0
     state: true
 - name: pad_sink_0
   id: pad_sink
@@ -265,7 +270,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [320, 332.0]
+    coordinate: [688, 316.0]
     rotation: 0
     state: true
 - name: pad_source_0
@@ -279,13 +284,33 @@ blocks:
     minoutbuf: '0'
     num_streams: '1'
     optional: 'False'
-    type: byte
+    type: ''
     vlen: '1'
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [16, 164.0]
+    coordinate: [8, 148.0]
+    rotation: 0
+    state: true
+- name: pad_source_0_0
+  id: pad_source
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    label: cmd
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    num_streams: '1'
+    optional: 'True'
+    type: message
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [8, 196.0]
     rotation: 0
     state: true
 - name: rolloff
@@ -294,7 +319,7 @@ blocks:
     alias: ''
     comment: ''
     hide: none
-    label: FIR Filter Rolloff Factor
+    label: FIR Filter rolloff factor
     short_id: ''
     type: eng_float
     value: '0.2'
@@ -302,29 +327,30 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [560, 4.0]
+    coordinate: [576, 4.0]
     rotation: 0
     state: true
-- name: taps
+- name: sps
   id: parameter
   parameters:
     alias: ''
     comment: ''
-    hide: part
-    label: Number of FIR Filter Taps
+    hide: none
+    label: FIR Filter supersampling factor
     short_id: ''
-    type: intx
-    value: '200'
+    type: eng_float
+    value: '2'
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [712, 4.0]
+    coordinate: [328, 4.0]
     rotation: 0
     state: true
 
 connections:
-- [blocks_throttle_0, '0', pad_sink_0, '0']
+- [blocks_throttle_0, '0', dvbs2acm_bbheader_bb_0, '0']
+- [blocks_throttle_0_0, '0', pad_sink_0, '0']
 - [dvbs2acm_bbheader_bb_0, '0', dvbs2acm_bbscrambler_bb_0, '0']
 - [dvbs2acm_bbscrambler_bb_0, '0', dvbs2acm_bch_encoder_bb_0, '0']
 - [dvbs2acm_bch_encoder_bb_0, '0', dvbs2acm_ldpc_encoder_bb_0, '0']
@@ -332,8 +358,9 @@ connections:
 - [dvbs2acm_ldpc_encoder_bb_0, '0', dvbs2acm_interleaver_bb_0, '0']
 - [dvbs2acm_modulator_bc_0, '0', dvbs2acm_physical_cc_0, '0']
 - [dvbs2acm_physical_cc_0, '0', interp_fir_filter_xxx_0, '0']
-- [interp_fir_filter_xxx_0, '0', blocks_throttle_0, '0']
-- [pad_source_0, '0', dvbs2acm_bbheader_bb_0, '0']
+- [interp_fir_filter_xxx_0, '0', blocks_throttle_0_0, '0']
+- [pad_source_0, '0', blocks_throttle_0, '0']
+- [pad_source_0_0, out, dvbs2acm_bbheader_bb_0, cmd]
 
 metadata:
   file_format: 1
