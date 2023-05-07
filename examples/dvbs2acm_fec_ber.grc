@@ -440,7 +440,7 @@ blocks:
     debug_level: debug
     maxoutbuf: '0'
     minoutbuf: '0'
-    outputmode: OM_CODEWORD
+    outputmode: False
   states:
     bus_sink: false
     bus_source: false
@@ -485,11 +485,11 @@ blocks:
     alias: ''
     comment: ''
     debug_level: debug
-    infomode: INFO_OFF
+    infomode: False
     max_trials: '25'
     maxoutbuf: '0'
     minoutbuf: '0'
-    outputmode: OM_CODEWORD
+    outputmode: False
   states:
     bus_sink: false
     bus_source: false

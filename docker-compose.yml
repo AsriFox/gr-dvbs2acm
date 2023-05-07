@@ -1,7 +1,7 @@
 version: '3'
 
 services:
-  app:
+  grc:
     image: dvbs2acm:latest
     build: .
     environment:
@@ -18,3 +18,24 @@ services:
     devices:
       - /dev/dri:/dev/dri
     network_mode: host
+    command: gnuradio-companion
+
+  bash:
+    image: dvbs2acm:latest
+    environment:
+      - DISPLAY=${DISPLAY}
+      - HTTP_PROXY=${http_proxy}
+      - HTTPS_PROXY=${https_proxy}
+      - NO_PROXY=${no_proxy}
+      - http_proxy=${http_proxy}
+      - https_proxy=${https_proxy}
+      - no_proxy=${no_proxy}
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - ${XAUTHORITY}:/root/.Xauthority:rw
+    devices:
+      - /dev/dri:/dev/dri
+    network_mode: host
+    stdin_open: true
+    tty: true
+    command: bash

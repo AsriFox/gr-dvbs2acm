@@ -42,3 +42,6 @@ add_custom_target(
           ${CMAKE_BINARY_DIR}/test_modules/gnuradio/dvbs2acm/
 )
 GR_ADD_TEST(qa_tx_hier ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/qa_tx_hier.py)
+GR_ADD_TEST(qa_plsync_cc ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/qa_plsync_cc.py)
+GR_ADD_TEST(qa_rotator_cc ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/qa_rotator_cc.py)
+GR_ADD_TEST(qa_symbol_sync_cc ${PYTHON_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/qa_symbol_sync_cc.py)

@@ -909,7 +909,7 @@ int plsync_cc_impl::general_work(int noutput_items,
                     auto modcod = (d_curr_frame_info.pls.modcod << 1) |
                                   d_curr_frame_info.pls.short_fecframe; // TODO: DVB-S2X
                     auto vlsnr_header = 0;                              // TODO
-                    const uint64_t tagoffset = this->nitems_written(0);
+                    const uint64_t tagoffset = this->nitems_written(0) + n_produced;
                     const uint64_t tagmodcod = (uint64_t(root_code) << 32) |
                                                (uint64_t(vlsnr_header) << 9) | (uint64_t(modcod) << 2) |
                                                (uint64_t(pilots) << 1) | uint64_t(dummy_frame);

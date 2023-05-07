@@ -57,7 +57,7 @@ docker compose build
 
 Run the image:
 ```
-docker compose run app gnuradio-companion
+docker compose run -d grc
 ```
 This will launch an instance of *gnuradio-companion* inside the container with **gr-dvbs2acm** blocks ready to use. You can navigate to `/src/gr-dvbs2acm/examples` to use the provided example flowcharts.
 
