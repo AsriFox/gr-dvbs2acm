@@ -32,6 +32,7 @@ private:
 public:
     static ldpc_encode_table select(dvbs2_modcod_t, dvbs2_vlsnr_header_t);
 
+    static const ldpc_encode_table ldpc_tab_invalid;
     // FECFRAME_NORMAL
     // DVB-S2
     static const ldpc_encode_table ldpc_tab_1_4N;

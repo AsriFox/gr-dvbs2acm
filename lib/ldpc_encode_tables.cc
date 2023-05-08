@@ -46,7 +46,7 @@ ldpc_encode_table ldpc_encode_table::select(dvbs2_modcod_t modcod, dvbs2_vlsnr_h
         case VLSNR_S_BPSK_1_3:
             return ldpc_tab_VLSNR_1_3S;
         default:
-            return { 0, 0, 0, 0, 0, 0, 0, {} };
+            return ldpc_tab_invalid;
         }
     }
 
@@ -239,6 +239,8 @@ ldpc_encode_table ldpc_encode_table::select(dvbs2_modcod_t modcod, dvbs2_vlsnr_h
         }
     }
 }
+
+const ldpc_encode_table ldpc_encode_table::ldpc_tab_invalid = { 0, 0, 0, 0, 0, 0, 0, {} };
 
 #include "ldpc_encode_tables_normal.hxx"
 

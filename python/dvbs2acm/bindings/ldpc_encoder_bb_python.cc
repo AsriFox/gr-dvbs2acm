@@ -14,7 +14,7 @@
 /* BINDTOOL_GEN_AUTOMATIC(0)                                                       */
 /* BINDTOOL_USE_PYGCCXML(0)                                                        */
 /* BINDTOOL_HEADER_FILE(ldpc_encoder_bb.h)                                        */
-/* BINDTOOL_HEADER_FILE_HASH(694314f287a596114da49ecdc4663493)                     */
+/* BINDTOOL_HEADER_FILE_HASH(94e8df2443557729cc2d4e701701e67e)                     */
 /***********************************************************************************/
 
 #include <pybind11/complex.h>
@@ -30,30 +30,17 @@ namespace py = pybind11;
 void bind_ldpc_encoder_bb(py::module& m)
 {
 
-    using ldpc_encoder_bb    = ::gr::dvbs2acm::ldpc_encoder_bb;
+    using ldpc_encoder_bb = ::gr::dvbs2acm::ldpc_encoder_bb;
 
 
-    py::class_<ldpc_encoder_bb, gr::block, gr::basic_block,
-        std::shared_ptr<ldpc_encoder_bb>>(m, "ldpc_encoder_bb", D(ldpc_encoder_bb))
+    py::class_<ldpc_encoder_bb,
+               gr::tagged_stream_block,
+               gr::block,
+               gr::basic_block,
+               std::shared_ptr<ldpc_encoder_bb>>(m, "ldpc_encoder_bb", D(ldpc_encoder_bb))
 
-        .def(py::init(&ldpc_encoder_bb::make),
-           D(ldpc_encoder_bb,make)
-        )
-        
-
+        .def(py::init(&ldpc_encoder_bb::make), D(ldpc_encoder_bb, make))
 
 
         ;
-
-
-
-
 }
-
-
-
-
-
-
-
-

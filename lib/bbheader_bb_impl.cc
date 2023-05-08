@@ -122,7 +122,7 @@ int bbheader_bb_impl::general_work(int noutput_items,
                                    gr_vector_const_void_star& input_items,
                                    gr_vector_void_star& output_items)
 {
-    if ((nitems_read(0) != ninput_items[0]) || (ninput_items[0] < header.dfl / 8)) {
+    if (((int)nitems_read(0) != ninput_items[0]) || (ninput_items[0] < header.dfl / 8)) {
         consume_each(0);
         return 0;
     }

@@ -3,26 +3,12 @@
  * Copyright 2023 AsriFox.
  * Copyright 2014,2016,2017,2020 Ron Economos.
  *
- * This is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3, or (at your option)
- * any later version.
- *
- * This software is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this software; see the file COPYING.  If not, write to
- * the Free Software Foundation, Inc., 51 Franklin Street,
- * Boston, MA 02110-1301, USA.
+ * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 #include "bch_encoder_bb_impl.h"
 #include <gnuradio/io_signature.h>
 #include <pmt/pmt.h>
-#include <vector>
 
 namespace gr {
 namespace dvbs2acm {
@@ -65,8 +51,8 @@ void bch_encoder_bb_impl::parse_length_tags(const std::vector<std::vector<tag_t>
         }
     }
     this->params = bch_code::select(modcod, vlsnr_header);
-    if (n_input_items_reqd[0] != params.kbch) {
-        n_input_items_reqd[0] = params.kbch;
+    if (n_input_items_reqd[0] != (int)params.kbch) {
+        n_input_items_reqd[0] = (int)params.kbch;
     }
 }
 
@@ -75,7 +61,7 @@ int bch_encoder_bb_impl::work(int noutput_items,
                               gr_vector_const_void_star& input_items,
                               gr_vector_void_star& output_items)
 {
-    if (ninput_items[0] < params.kbch) {
+    if (ninput_items[0] < (int)params.kbch) {
         consume_each(0);
         return 0;
     }

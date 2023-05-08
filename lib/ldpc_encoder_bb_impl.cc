@@ -3,27 +3,12 @@
  * Copyright 2023 AsriFox.
  * Copyright 2014,2016,2017,2020 Ron Economos.
  *
- * This is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3, or (at your option)
- * any later version.
- *
- * This software is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this software; see the file COPYING.  If not, write to
- * the Free Software Foundation, Inc., 51 Franklin Street,
- * Boston, MA 02110-1301, USA.
+ * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "ldpc_encode_tables.h"
 #include "ldpc_encoder_bb_impl.h"
 #include "modcod.hh"
 #include <gnuradio/io_signature.h>
-#include <vector>
 
 namespace gr {
 namespace dvbs2acm {
@@ -41,9 +26,11 @@ ldpc_encoder_bb::sptr ldpc_encoder_bb::make()
  * The private constructor
  */
 ldpc_encoder_bb_impl::ldpc_encoder_bb_impl()
-    : gr::block("ldpc_bb",
-                gr::io_signature::make(1, 1, sizeof(unsigned char)),
-                gr::io_signature::make(1, 1, sizeof(unsigned char)))
+    : gr::tagged_stream_block("ldpc_bb",
+                              gr::io_signature::make(1, 1, sizeof(unsigned char)),
+                              gr::io_signature::make(1, 1, sizeof(unsigned char)),
+                              "frame_length"),
+      ldpc_tab(ldpc_encode_table::ldpc_tab_invalid)
 {
     set_min_output_buffer((FRAME_SIZE_NORMAL)*6);
     set_tag_propagation_policy(TPP_DONT);
@@ -55,109 +42,98 @@ ldpc_encoder_bb_impl::ldpc_encoder_bb_impl()
  */
 ldpc_encoder_bb_impl::~ldpc_encoder_bb_impl() {}
 
-void ldpc_encoder_bb_impl::forecast(int noutput_items, gr_vector_int& ninput_items_required)
+void ldpc_encoder_bb_impl::parse_length_tags(const std::vector<std::vector<tag_t>>& tags,
+                                             gr_vector_int& n_input_items_reqd)
 {
-    ninput_items_required[0] = noutput_items;
+    dvbs2_modcod_t modcod;
+    dvbs2_vlsnr_header_t vlsnr_header;
+    for (tag_t tag : tags[0]) {
+        if (tag.key == pmt::intern("frame_length")) {
+            n_input_items_reqd[0] = pmt::to_long(tag.value);
+            remove_item_tag(0, tag);
+        } else if (tag.key == pmt::intern("modcod")) {
+            modcod = (dvbs2_modcod_t)(pmt::to_long(tag.value) & 0x7f);
+        } else if (tag.key == pmt::intern("vlsnr_header")) {
+            vlsnr_header = (dvbs2_vlsnr_header_t)(pmt::to_long(tag.value) & 0x0f);
+        }
+    }
+    this->ldpc_tab = ldpc_encode_table::select(modcod, vlsnr_header);
+    if (n_input_items_reqd[0] != (int)ldpc_tab.nbch) {
+        n_input_items_reqd[0] = (int)ldpc_tab.nbch;
+    }
 }
 
-int ldpc_encoder_bb_impl::general_work(int noutput_items,
-                                       gr_vector_int& ninput_items,
-                                       gr_vector_const_void_star& input_items,
-                                       gr_vector_void_star& output_items)
+int ldpc_encoder_bb_impl::work(int noutput_items,
+                               gr_vector_int& ninput_items,
+                               gr_vector_const_void_star& input_items,
+                               gr_vector_void_star& output_items)
 {
+    if (ninput_items[0] < (int)ldpc_tab.nbch) {
+        consume_each(0);
+        return 0;
+    }
+
     auto in = static_cast<const input_type*>(input_items[0]);
     auto out = static_cast<output_type*>(output_items[0]);
+
     const output_type* d = in;
     output_type *p = out, *b = out, *s;
-    int consumed = 0;
-    int produced = 0;
-    int produced_per_iteration;
     int plen, puncture, index;
 
-    std::vector<tag_t> tags;
-    const uint64_t nread = this->nitems_read(0); // number of items read on port 0
+    add_item_tag(0, 0, pmt::intern("frame_length"), pmt::from_long((long)ldpc_tab.frame_size));
 
-    // Read all tags on the input buffer
-    this->get_tags_in_range(tags, 0, nread, nread + noutput_items, pmt::string_to_symbol("modcod"));
-
-    for (tag_t tag : tags) {
-        auto tagmodcod = pmt::to_uint64(tag.value);
-        auto modcod = (dvbs2_modcod_t)((tagmodcod >> 2) & 0x7f);
-        auto vlsnr_header = (dvbs2_vlsnr_header_t)((tagmodcod >> 9) & 0x0f);
-        auto params = ldpc_encode_table::select(modcod, vlsnr_header);
-        if (params.frame_size + produced > (unsigned)noutput_items) {
-            break;
-        }
-        produced_per_iteration = 0;
-        const uint64_t tagoffset = this->nitems_written(0);
-        pmt::pmt_t key = pmt::string_to_symbol("modcod");
-        pmt::pmt_t value = pmt::from_uint64(tagmodcod);
-        this->add_item_tag(0, tagoffset, key, value);
-
-        auto nbch = params.nbch;
-        plen = (params.frame_size_real + params.Xp) - nbch;
-        p += nbch;
-        if (params.Xs != 0) {
-            s = &shortening_buffer[0];
-            memset(s, 0, sizeof(unsigned char) * params.Xs);
-            memcpy(&s[params.Xs], &in[consumed], sizeof(unsigned char) * nbch);
-            d = s;
-        }
-        if (params.P != 0) {
-            p = &puncturing_buffer[params.nbch];
-            b = &out[produced + params.nbch];
-        }
-        // First zero all the parity bits
-        memset(p, 0, sizeof(unsigned char) * plen);
-        for (int j = 0; j < (int)nbch; j++) {
-            out[produced + j] = in[consumed];
-            consumed++;
-        }
-        produced += nbch;
-        produced_per_iteration += nbch;
-        // now do the parity checking
-        unsigned j = 0;
-        for (size_t row = 0; row < params.table.size(); row++) {
-            for (int n = 0; n < 360; n++) {
-                for (int col = 1; col < params.table[row][0]; col++) {
-                    auto i = (params.table[row][col] + (n * params.q_val)) % plen;
-                    // auto j = row * 360 + n;
-                    p[i] ^= d[j];
-                }
-                j++;
-            }
-        }
-        // for (int j = 0; j < ldpc_encode[table].table_length; j++) {
-        //     p[ldpc_encode[table].p[j]] ^= d[ldpc_encode[table].d[j]];
-        // }
-        if (params.P != 0) {
-            puncture = 0;
-            for (int j = 0; j < plen; j += params.P) {
-                p[j] = 0x55;
-                puncture++;
-                if (puncture == params.Xp) {
-                    break;
-                }
-            }
-            index = 0;
-            for (int j = 0; j < plen; j++) {
-                if (p[j] != 0x55) {
-                    b[index++] = p[j];
-                }
-            }
-            p = &out[nbch];
-        }
-        for (int j = 1; j < (plen - params.Xp); j++) {
-            p[j] ^= p[j - 1];
-        }
-        produced += plen - params.Xp;
-        produced_per_iteration += plen - params.Xp;
-        d += nbch;
-        p += params.frame_size - nbch;
-        produce(0, produced_per_iteration);
+    plen = (ldpc_tab.frame_size_real + ldpc_tab.Xp) - ldpc_tab.nbch;
+    p += ldpc_tab.nbch;
+    if (ldpc_tab.Xs != 0) {
+        s = &shortening_buffer[0];
+        memset(s, 0, sizeof(output_type) * ldpc_tab.Xs);
+        memcpy(&s[ldpc_tab.Xs], in, sizeof(input_type) * ldpc_tab.nbch);
+        d = s;
     }
-    consume_each(consumed);
-    return WORK_CALLED_PRODUCE;
+    if (ldpc_tab.P != 0) {
+        p = &puncturing_buffer[ldpc_tab.nbch];
+        b = &out[ldpc_tab.nbch];
+    }
+    // First zero all the parity bits
+    memset(p, 0, sizeof(output_type) * plen);
+    memcpy(out, in, sizeof(input_type) * ldpc_tab.nbch);
+    // now do the parity checking
+    unsigned j = 0;
+    for (size_t row = 0; row < ldpc_tab.table.size(); row++) {
+        for (int n = 0; n < 360; n++) {
+            for (int col = 1; col < ldpc_tab.table[row][0]; col++) {
+                auto i = (ldpc_tab.table[row][col] + (n * ldpc_tab.q_val)) % plen;
+                // auto j = row * 360 + n;
+                p[i] ^= d[j];
+            }
+            j++;
+        }
+    }
+
+    // Puncturing
+    if (ldpc_tab.P != 0) {
+        puncture = 0;
+        for (int j = 0; j < plen; j += ldpc_tab.P) {
+            p[j] = 0x55;
+            puncture++;
+            if (puncture == ldpc_tab.Xp) {
+                break;
+            }
+        }
+        index = 0;
+        for (int j = 0; j < plen; j++) {
+            if (p[j] != 0x55) {
+                b[index++] = p[j];
+            }
+        }
+        p = &out[ldpc_tab.nbch];
+    }
+    for (int j = 1; j < (plen - ldpc_tab.Xp); j++) {
+        p[j] ^= p[j - 1];
+    }
+
+    consume_each(ldpc_tab.nbch);
+    return ldpc_tab.frame_size;
 }
 
 } /* namespace dvbs2acm */

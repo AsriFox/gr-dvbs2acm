@@ -10,7 +10,6 @@
 #define INCLUDED_DVBS2ACM_BCH_ENCODER_BB_H
 
 #include <gnuradio/dvbs2acm/api.h>
-#include <gnuradio/dvbs2acm/dvbs2_config.h>
 #include <gnuradio/tagged_stream_block.h>
 
 namespace gr {
