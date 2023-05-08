@@ -135,6 +135,7 @@ int bbheader_bb_impl::general_work(int noutput_items,
     add_item_tag(0, 0, pmt::intern("modcod"), pmt::from_long((long)modcod));
     add_item_tag(0, 0, pmt::intern("vlsnr_header"), pmt::from_long((long)vlsnr_header));
     add_item_tag(0, 0, pmt::intern("pilots"), pmt::from_bool(pilots));
+    add_item_tag(0, 0, pmt::intern("root_code"), pmt::from_long((long)root_code));
 
     auto framesize = modcod_framesize(modcod);
     if (modcod == MC_VLSNR_SET1 || modcod == MC_VLSNR_SET2) {

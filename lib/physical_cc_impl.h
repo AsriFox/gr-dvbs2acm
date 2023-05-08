@@ -3,20 +3,7 @@
  * Copyright 2023 AsriFox.
  * Copyright 2014,2016,2017,2020 Ron Economos.
  *
- * This is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3, or (at your option)
- * any later version.
- *
- * This software is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this software; see the file COPYING.  If not, write to
- * the Free Software Foundation, Inc., 51 Franklin Street,
- * Boston, MA 02110-1301, USA.
+ * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 #ifndef INCLUDED_DVBS2ACM_PHYSICAL_CC_IMPL_H
@@ -24,6 +11,7 @@
 
 #define VLSNR_HEADER_LENGTH 900
 
+#include <gnuradio/dvbs2acm/dvbs2_config.h>
 #include <gnuradio/dvbs2acm/physical_cc.h>
 
 namespace gr {
@@ -32,7 +20,7 @@ namespace dvbs2acm {
 class physical_cc_impl : public physical_cc
 {
 private:
-    int dummy_frames;
+    bool dummy_frames;
     int b[VLSNR_HEADER_LENGTH];
     gr_complex m_bpsk[4][2];
     gr_complex m_pl[90];
@@ -46,22 +34,30 @@ private:
     inline int parity_chk(int, int);
     inline int symbol_scrambler(void);
 
+    int root_code;
+    dvbs2_modcod_t modcod;
+    dvbs2_vlsnr_header_t vlsnr_header;
+    int slots;
+    int pilot_symbols;
+    int get_slots(dvbs2_modcod_t, dvbs2_vlsnr_header_t);
+
     const static unsigned int g[7];
     const static int ph_scram_tab[64];
     const static int ph_sync_seq[26];
     const static int ph_vlsnr_seq[16][VLSNR_HEADER_LENGTH - 4];
 
+protected:
+    void parse_length_tags(const std::vector<std::vector<tag_t>>& tags,
+                           gr_vector_int& n_input_items_reqd) override;
+
 public:
     physical_cc_impl(bool dummyframes);
     ~physical_cc_impl();
 
-    // Where all the action really happens
-    void forecast(int noutput_items, gr_vector_int& ninput_items_required);
-
-    int general_work(int noutput_items,
-                     gr_vector_int& ninput_items,
-                     gr_vector_const_void_star& input_items,
-                     gr_vector_void_star& output_items);
+    int work(int noutput_items,
+             gr_vector_int& ninput_items,
+             gr_vector_const_void_star& input_items,
+             gr_vector_void_star& output_items) override;
 };
 
 } // namespace dvbs2acm

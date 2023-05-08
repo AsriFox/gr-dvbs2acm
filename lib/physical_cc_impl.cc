@@ -3,25 +3,13 @@
  * Copyright 2023 AsriFox.
  * Copyright 2014,2016,2017,2020 Ron Economos.
  *
- * This is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3, or (at your option)
- * any later version.
- *
- * This software is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this software; see the file COPYING.  If not, write to
- * the Free Software Foundation, Inc., 51 Franklin Street,
- * Boston, MA 02110-1301, USA.
+ * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 #include "modcod.hh"
 #include "physical_cc_impl.h"
 #include <gnuradio/io_signature.h>
+#include <pmt/pmt.h>
 
 namespace gr {
 namespace dvbs2acm {
@@ -39,9 +27,10 @@ physical_cc::sptr physical_cc::make(bool dummyframes)
  * The private constructor
  */
 physical_cc_impl::physical_cc_impl(bool dummyframes)
-    : gr::block("physical_cc",
-                gr::io_signature::make(1, 1, sizeof(input_type)),
-                gr::io_signature::make(1, 1, sizeof(output_type)))
+    : gr::tagged_stream_block("physical_cc",
+                              gr::io_signature::make(1, 1, sizeof(input_type)),
+                              gr::io_signature::make(1, 1, sizeof(output_type)),
+                              "frame_length")
 {
     double r0 = 1.0;
 
@@ -79,11 +68,6 @@ physical_cc_impl::physical_cc_impl(bool dummyframes)
  * Our virtual destructor.
  */
 physical_cc_impl::~physical_cc_impl() {}
-
-void physical_cc_impl::forecast(int noutput_items, gr_vector_int& ninput_items_required)
-{
-    ninput_items_required[0] = noutput_items / 2;
-}
 
 void physical_cc_impl::b_64_8_code(unsigned char in, int* out)
 {
@@ -165,7 +149,7 @@ inline int physical_cc_impl::symbol_scrambler(void)
     return (rn);
 }
 
-int get_slots(dvbs2_modcod_t modcod, dvbs2_vlsnr_header_t vlsnr_header)
+int physical_cc_impl::get_slots(dvbs2_modcod_t modcod, dvbs2_vlsnr_header_t vlsnr_header)
 {
     int frame_size;
     if (modcod == MC_VLSNR_SET1) {
@@ -275,63 +259,161 @@ void physical_cc_impl::pl_header_encode(dvbs2_modcod_t modcod,
     }
 }
 
-int physical_cc_impl::general_work(int noutput_items,
-                                   gr_vector_int& ninput_items,
-                                   gr_vector_const_void_star& input_items,
-                                   gr_vector_void_star& output_items)
+void physical_cc_impl::parse_length_tags(const std::vector<std::vector<tag_t>>& tags,
+                                         gr_vector_int& n_input_items_reqd)
 {
-    auto in = static_cast<const input_type*>(input_items[0]);
-    auto out = static_cast<output_type*>(output_items[0]);
-    int consumed = 0;
-    int produced = 0;
-    int slots, pilot_symbols;
-    int slot_count;
-    int group, symbols;
-    gr_complex tempin, tempout;
-
-    std::vector<tag_t> tags;
-    const uint64_t nread = this->nitems_read(0);
-
-    // Read all tags on the input buffer
-    this->get_tags_in_range(tags, 0, nread, nread + noutput_items, pmt::string_to_symbol("modcod"));
-
-    for (tag_t tag : tags) {
-        const uint64_t tagmodcod = pmt::to_uint64(tag.value);
-        auto dummy = (unsigned int)(tagmodcod & 1);
-        auto pilots = (bool)((tagmodcod >> 1) & 1);
-        auto modcod = (dvbs2_modcod_t)((tagmodcod >> 2) & 0x7f);
-        auto vlsnr_header = (dvbs2_vlsnr_header_t)((tagmodcod >> 9) & 0x0f);
-        auto rootcode = (unsigned int)((tagmodcod >> 32) & 0x3ffff);
-
-        slots = get_slots(modcod, vlsnr_header);
+    bool pilots = true;
+    for (tag_t tag : tags[0]) {
+        if (tag.key == pmt::intern("frame_length")) {
+            n_input_items_reqd[0] = pmt::to_long(tag.value);
+            remove_item_tag(0, tag);
+        } else if (tag.key == pmt::intern("modcod")) {
+            modcod = (dvbs2_modcod_t)(pmt::to_long(tag.value) & 0x7f);
+        } else if (tag.key == pmt::intern("vlsnr_header")) {
+            vlsnr_header = (dvbs2_vlsnr_header_t)(pmt::to_long(tag.value) & 0x0f);
+        } else if (tag.key == pmt::intern("root_code")) {
+            root_code = (int)(pmt::to_long(tag.value));
+        } else if (tag.key == pmt::intern("pilots")) {
+            pilots = pmt::to_bool(tag.value);
+        }
+    }
+    slots = get_slots(modcod, vlsnr_header);
+    if (pilots) {
         pilot_symbols = (slots / 16) * 36;
         if (!(slots % 16)) {
             pilot_symbols -= 36;
         }
+    } else {
+        pilot_symbols = 0;
+    }
+}
 
-        const uint64_t tagoffset = this->nitems_written(0);
-        this->add_item_tag(0, tagoffset, pmt::string_to_symbol("modcod"), pmt::from_uint64(tagmodcod));
+int physical_cc_impl::work(int noutput_items,
+                           gr_vector_int& ninput_items,
+                           gr_vector_const_void_star& input_items,
+                           gr_vector_void_star& output_items)
+{
+    if (ninput_items[0] < slots * 90) {
+        consume_each(0);
+        return 0;
+    }
+    int produced = ((slots * 90) + 90 + pilot_symbols) * 2;
 
-        if (dummy == 0 || dummy_frames == 0) {
-            if (produced + (((slots * 90) + 90 + pilot_symbols) * 2) > noutput_items) {
-                break;
+    auto in = static_cast<const input_type*>(input_items[0]);
+    auto out = static_cast<output_type*>(output_items[0]);
+
+    int slot_count;
+    int group, symbols;
+    gr_complex tempin, tempout;
+
+    if (dummy_frames && (modcod == MC_DUMMY || modcod == MC_DUMMY_S)) {
+        // Produce a DUMMY PLFRAME
+        produced = 0;
+        m_cscram_x = root_code;
+        m_cscram_y = 0x3ffff;
+        for (int plh = 0; plh < 90; plh++) {
+            out[produced++] = m_pl_dummy[plh];
+            out[produced++] = m_zero;
+        }
+        for (int j = 0; j < 36; j++) {
+            for (int k = 0; k < 90; k++) {
+                tempin = m_bpsk[0][0];
+                switch (symbol_scrambler()) {
+                case 0:
+                    tempout = tempin;
+                    break;
+                case 1:
+                    tempout = gr_complex(-tempin.imag(), tempin.real());
+                    break;
+                case 2:
+                    tempout = -tempin;
+                    break;
+                case 3:
+                    tempout = gr_complex(tempin.imag(), -tempin.real());
+                    break;
+                }
+                out[produced++] = tempout;
+                out[produced++] = m_zero;
             }
-            if (modcod == MC_VLSNR_SET1) {
-                m_cscram_x = rootcode;
-                m_cscram_y = 0x3ffff;
-                slot_count = 10;
-                group = 0;
-                symbols = 0;
-                for (int plh = 0; plh < 90; plh++) {
-                    out[produced++] = m_pl[plh];
-                    out[produced++] = m_zero;
+        }
+        add_item_tag(0, 0, pmt::intern("frame_length"), pmt::from_long((long)produced));
+        consume_each(slots * 90);
+        return produced;
+    }
+
+    int consumed = 0;
+    if (modcod == MC_VLSNR_SET1) {
+        m_cscram_x = root_code;
+        m_cscram_y = 0x3ffff;
+        slot_count = 10;
+        group = 0;
+        symbols = 0;
+        for (int plh = 0; plh < 90; plh++) {
+            out[produced++] = m_pl[plh];
+            out[produced++] = m_zero;
+        }
+        for (int vlh = 0; vlh < VLSNR_HEADER_LENGTH; vlh++) {
+            out[produced++] = m_vlsnr_header[vlh];
+            out[produced++] = m_zero;
+        }
+        for (int j = 0; j < slots; j++) {
+            for (int k = 0; k < 90; k++) {
+                tempin = in[consumed++];
+                if (vlsnr_header == VLSNR_N_QPSK_2_9) {
+                    switch (symbol_scrambler()) {
+                    case 0:
+                        tempout = tempin;
+                        break;
+                    case 1:
+                        tempout = gr_complex(-tempin.imag(), tempin.real());
+                        break;
+                    case 2:
+                        tempout = -tempin;
+                        break;
+                    case 3:
+                        tempout = gr_complex(tempin.imag(), -tempin.real());
+                        break;
+                    }
+                } else {
+                    switch (symbol_scrambler()) {
+                    case 0:
+                        tempout = tempin;
+                        break;
+                    case 1:
+                        tempout = -tempin;
+                        break;
+                    case 2:
+                        tempout = tempin;
+                        break;
+                    case 3:
+                        tempout = -tempin;
+                        break;
+                    }
                 }
-                for (int vlh = 0; vlh < VLSNR_HEADER_LENGTH; vlh++) {
-                    out[produced++] = m_vlsnr_header[vlh];
-                    out[produced++] = m_zero;
-                }
-                for (int j = 0; j < slots; j++) {
-                    for (int k = 0; k < 90; k++) {
+                out[produced++] = tempout;
+                out[produced++] = m_zero;
+                symbols++;
+                if (group <= 18 && symbols == 703) {
+                    for (int p = 0; p < 34; p++) {
+                        tempin = m_bpsk[0][0];
+                        switch (symbol_scrambler()) {
+                        case 0:
+                            tempout = tempin;
+                            break;
+                        case 1:
+                            tempout = gr_complex(-tempin.imag(), tempin.real());
+                            break;
+                        case 2:
+                            tempout = -tempin;
+                            break;
+                        case 3:
+                            tempout = gr_complex(tempin.imag(), -tempin.real());
+                            break;
+                        }
+                        out[produced++] = tempout;
+                        out[produced++] = m_zero;
+                    }
+                    for (int x = (k + 1 + 34) - 90; x < 90; x++) {
                         tempin = in[consumed++];
                         if (vlsnr_header == VLSNR_N_QPSK_2_9) {
                             switch (symbol_scrambler()) {
@@ -367,172 +449,155 @@ int physical_cc_impl::general_work(int noutput_items,
                         out[produced++] = tempout;
                         out[produced++] = m_zero;
                         symbols++;
-                        if (group <= 18 && symbols == 703) {
-                            for (int p = 0; p < 34; p++) {
-                                tempin = m_bpsk[0][0];
-                                switch (symbol_scrambler()) {
-                                case 0:
-                                    tempout = tempin;
-                                    break;
-                                case 1:
-                                    tempout = gr_complex(-tempin.imag(), tempin.real());
-                                    break;
-                                case 2:
-                                    tempout = -tempin;
-                                    break;
-                                case 3:
-                                    tempout = gr_complex(tempin.imag(), -tempin.real());
-                                    break;
-                                }
-                                out[produced++] = tempout;
-                                out[produced++] = m_zero;
-                            }
-                            for (int x = (k + 1 + 34) - 90; x < 90; x++) {
-                                tempin = in[consumed++];
-                                if (vlsnr_header == VLSNR_N_QPSK_2_9) {
-                                    switch (symbol_scrambler()) {
-                                    case 0:
-                                        tempout = tempin;
-                                        break;
-                                    case 1:
-                                        tempout = gr_complex(-tempin.imag(), tempin.real());
-                                        break;
-                                    case 2:
-                                        tempout = -tempin;
-                                        break;
-                                    case 3:
-                                        tempout = gr_complex(tempin.imag(), -tempin.real());
-                                        break;
-                                    }
-                                } else {
-                                    switch (symbol_scrambler()) {
-                                    case 0:
-                                        tempout = tempin;
-                                        break;
-                                    case 1:
-                                        tempout = -tempin;
-                                        break;
-                                    case 2:
-                                        tempout = tempin;
-                                        break;
-                                    case 3:
-                                        tempout = -tempin;
-                                        break;
-                                    }
-                                }
-                                out[produced++] = tempout;
-                                out[produced++] = m_zero;
-                                symbols++;
-                            }
-                            slot_count = (slot_count + 1) % 16;
-                            j++;
-                            break;
-                        } else if ((group > 18 && group <= 21) && symbols == 702) {
-                            for (int p = 0; p < 36; p++) {
-                                tempin = m_bpsk[0][0];
-                                switch (symbol_scrambler()) {
-                                case 0:
-                                    tempout = tempin;
-                                    break;
-                                case 1:
-                                    tempout = gr_complex(-tempin.imag(), tempin.real());
-                                    break;
-                                case 2:
-                                    tempout = -tempin;
-                                    break;
-                                case 3:
-                                    tempout = gr_complex(tempin.imag(), -tempin.real());
-                                    break;
-                                }
-                                out[produced++] = tempout;
-                                out[produced++] = m_zero;
-                            }
-                            for (int x = (k + 1 + 36) - 90; x < 90; x++) {
-                                tempin = in[consumed++];
-                                if (vlsnr_header == VLSNR_N_QPSK_2_9) {
-                                    switch (symbol_scrambler()) {
-                                    case 0:
-                                        tempout = tempin;
-                                        break;
-                                    case 1:
-                                        tempout = gr_complex(-tempin.imag(), tempin.real());
-                                        break;
-                                    case 2:
-                                        tempout = -tempin;
-                                        break;
-                                    case 3:
-                                        tempout = gr_complex(tempin.imag(), -tempin.real());
-                                        break;
-                                    }
-                                } else {
-                                    switch (symbol_scrambler()) {
-                                    case 0:
-                                        tempout = tempin;
-                                        break;
-                                    case 1:
-                                        tempout = -tempin;
-                                        break;
-                                    case 2:
-                                        tempout = tempin;
-                                        break;
-                                    case 3:
-                                        tempout = -tempin;
-                                        break;
-                                    }
-                                }
-                                out[produced++] = tempout;
-                                out[produced++] = m_zero;
-                                symbols++;
-                            }
-                            slot_count = (slot_count + 1) % 16;
-                            j++;
-                            break;
-                        }
                     }
                     slot_count = (slot_count + 1) % 16;
-                    if ((slot_count == 0) && (j < slots - 1)) {
-                        if (pilots) {
-                            // Add pilots if needed
-                            group++;
-                            symbols = 0;
-                            for (int p = 0; p < 36; p++) {
-                                tempin = m_bpsk[0][0];
-                                switch (symbol_scrambler()) {
-                                case 0:
-                                    tempout = tempin;
-                                    break;
-                                case 1:
-                                    tempout = gr_complex(-tempin.imag(), tempin.real());
-                                    break;
-                                case 2:
-                                    tempout = -tempin;
-                                    break;
-                                case 3:
-                                    tempout = gr_complex(tempin.imag(), -tempin.real());
-                                    break;
-                                }
-                                out[produced++] = tempout;
-                                out[produced++] = m_zero;
+                    j++;
+                    break;
+                } else if ((group > 18 && group <= 21) && symbols == 702) {
+                    for (int p = 0; p < 36; p++) {
+                        tempin = m_bpsk[0][0];
+                        switch (symbol_scrambler()) {
+                        case 0:
+                            tempout = tempin;
+                            break;
+                        case 1:
+                            tempout = gr_complex(-tempin.imag(), tempin.real());
+                            break;
+                        case 2:
+                            tempout = -tempin;
+                            break;
+                        case 3:
+                            tempout = gr_complex(tempin.imag(), -tempin.real());
+                            break;
+                        }
+                        out[produced++] = tempout;
+                        out[produced++] = m_zero;
+                    }
+                    for (int x = (k + 1 + 36) - 90; x < 90; x++) {
+                        tempin = in[consumed++];
+                        if (vlsnr_header == VLSNR_N_QPSK_2_9) {
+                            switch (symbol_scrambler()) {
+                            case 0:
+                                tempout = tempin;
+                                break;
+                            case 1:
+                                tempout = gr_complex(-tempin.imag(), tempin.real());
+                                break;
+                            case 2:
+                                tempout = -tempin;
+                                break;
+                            case 3:
+                                tempout = gr_complex(tempin.imag(), -tempin.real());
+                                break;
+                            }
+                        } else {
+                            switch (symbol_scrambler()) {
+                            case 0:
+                                tempout = tempin;
+                                break;
+                            case 1:
+                                tempout = -tempin;
+                                break;
+                            case 2:
+                                tempout = tempin;
+                                break;
+                            case 3:
+                                tempout = -tempin;
+                                break;
                             }
                         }
+                        out[produced++] = tempout;
+                        out[produced++] = m_zero;
+                        symbols++;
+                    }
+                    slot_count = (slot_count + 1) % 16;
+                    j++;
+                    break;
+                }
+            }
+            slot_count = (slot_count + 1) % 16;
+            if ((slot_count == 0) && (j < slots - 1)) {
+                if (pilot_symbols > 0) {
+                    // Add pilots if needed
+                    group++;
+                    symbols = 0;
+                    for (int p = 0; p < 36; p++) {
+                        tempin = m_bpsk[0][0];
+                        switch (symbol_scrambler()) {
+                        case 0:
+                            tempout = tempin;
+                            break;
+                        case 1:
+                            tempout = gr_complex(-tempin.imag(), tempin.real());
+                            break;
+                        case 2:
+                            tempout = -tempin;
+                            break;
+                        case 3:
+                            tempout = gr_complex(tempin.imag(), -tempin.real());
+                            break;
+                        }
+                        out[produced++] = tempout;
+                        out[produced++] = m_zero;
                     }
                 }
-            } else if (modcod == MC_VLSNR_SET2) {
-                m_cscram_x = rootcode;
-                m_cscram_y = 0x3ffff;
-                slot_count = 10;
-                group = 0;
-                symbols = 0;
-                for (int plh = 0; plh < 90; plh++) {
-                    out[produced++] = m_pl[plh];
-                    out[produced++] = m_zero;
+            }
+        }
+    } else if (modcod == MC_VLSNR_SET2) {
+        m_cscram_x = root_code;
+        m_cscram_y = 0x3ffff;
+        slot_count = 10;
+        group = 0;
+        symbols = 0;
+        for (int plh = 0; plh < 90; plh++) {
+            out[produced++] = m_pl[plh];
+            out[produced++] = m_zero;
+        }
+        for (int vlh = 0; vlh < VLSNR_HEADER_LENGTH; vlh++) {
+            out[produced++] = m_vlsnr_header[vlh];
+            out[produced++] = m_zero;
+        }
+        for (int j = 0; j < slots; j++) {
+            for (int k = 0; k < 90; k++) {
+                tempin = in[consumed++];
+                switch (symbol_scrambler()) {
+                case 0:
+                    tempout = tempin;
+                    break;
+                case 1:
+                    tempout = -tempin;
+                    break;
+                case 2:
+                    tempout = tempin;
+                    break;
+                case 3:
+                    tempout = -tempin;
+                    break;
                 }
-                for (int vlh = 0; vlh < VLSNR_HEADER_LENGTH; vlh++) {
-                    out[produced++] = m_vlsnr_header[vlh];
-                    out[produced++] = m_zero;
-                }
-                for (int j = 0; j < slots; j++) {
-                    for (int k = 0; k < 90; k++) {
+                out[produced++] = tempout;
+                out[produced++] = m_zero;
+                symbols++;
+                if (group <= 9 && symbols == 704) {
+                    for (int p = 0; p < 32; p++) {
+                        tempin = m_bpsk[0][0];
+                        switch (symbol_scrambler()) {
+                        case 0:
+                            tempout = tempin;
+                            break;
+                        case 1:
+                            tempout = gr_complex(-tempin.imag(), tempin.real());
+                            break;
+                        case 2:
+                            tempout = -tempin;
+                            break;
+                        case 3:
+                            tempout = gr_complex(tempin.imag(), -tempin.real());
+                            break;
+                        }
+                        out[produced++] = tempout;
+                        out[produced++] = m_zero;
+                    }
+                    for (int x = (k + 1 + 32) - 90; x < 90; x++) {
                         tempin = in[consumed++];
                         switch (symbol_scrambler()) {
                         case 0:
@@ -551,133 +616,13 @@ int physical_cc_impl::general_work(int noutput_items,
                         out[produced++] = tempout;
                         out[produced++] = m_zero;
                         symbols++;
-                        if (group <= 9 && symbols == 704) {
-                            for (int p = 0; p < 32; p++) {
-                                tempin = m_bpsk[0][0];
-                                switch (symbol_scrambler()) {
-                                case 0:
-                                    tempout = tempin;
-                                    break;
-                                case 1:
-                                    tempout = gr_complex(-tempin.imag(), tempin.real());
-                                    break;
-                                case 2:
-                                    tempout = -tempin;
-                                    break;
-                                case 3:
-                                    tempout = gr_complex(tempin.imag(), -tempin.real());
-                                    break;
-                                }
-                                out[produced++] = tempout;
-                                out[produced++] = m_zero;
-                            }
-                            for (int x = (k + 1 + 32) - 90; x < 90; x++) {
-                                tempin = in[consumed++];
-                                switch (symbol_scrambler()) {
-                                case 0:
-                                    tempout = tempin;
-                                    break;
-                                case 1:
-                                    tempout = -tempin;
-                                    break;
-                                case 2:
-                                    tempout = tempin;
-                                    break;
-                                case 3:
-                                    tempout = -tempin;
-                                    break;
-                                }
-                                out[produced++] = tempout;
-                                out[produced++] = m_zero;
-                                symbols++;
-                            }
-                            slot_count = (slot_count + 1) % 16;
-                            j++;
-                            break;
-                        } else if ((group == 10) && symbols == 702) {
-                            for (int p = 0; p < 36; p++) {
-                                tempin = m_bpsk[0][0];
-                                switch (symbol_scrambler()) {
-                                case 0:
-                                    tempout = tempin;
-                                    break;
-                                case 1:
-                                    tempout = gr_complex(-tempin.imag(), tempin.real());
-                                    break;
-                                case 2:
-                                    tempout = -tempin;
-                                    break;
-                                case 3:
-                                    tempout = gr_complex(tempin.imag(), -tempin.real());
-                                    break;
-                                }
-                                out[produced++] = tempout;
-                                out[produced++] = m_zero;
-                            }
-                            for (int x = (k + 1 + 36) - 90; x < 90; x++) {
-                                tempin = in[consumed++];
-                                switch (symbol_scrambler()) {
-                                case 0:
-                                    tempout = tempin;
-                                    break;
-                                case 1:
-                                    tempout = -tempin;
-                                    break;
-                                case 2:
-                                    tempout = tempin;
-                                    break;
-                                case 3:
-                                    tempout = -tempin;
-                                    break;
-                                }
-                                out[produced++] = tempout;
-                                out[produced++] = m_zero;
-                                symbols++;
-                            }
-                            slot_count = (slot_count + 1) % 16;
-                            j++;
-                            break;
-                        }
                     }
                     slot_count = (slot_count + 1) % 16;
-                    if ((slot_count == 0) && (j < slots - 1)) {
-                        if (pilots) {
-                            // Add pilots if needed
-                            group++;
-                            symbols = 0;
-                            for (int p = 0; p < 36; p++) {
-                                tempin = m_bpsk[0][0];
-                                switch (symbol_scrambler()) {
-                                case 0:
-                                    tempout = tempin;
-                                    break;
-                                case 1:
-                                    tempout = gr_complex(-tempin.imag(), tempin.real());
-                                    break;
-                                case 2:
-                                    tempout = -tempin;
-                                    break;
-                                case 3:
-                                    tempout = gr_complex(tempin.imag(), -tempin.real());
-                                    break;
-                                }
-                                out[produced++] = tempout;
-                                out[produced++] = m_zero;
-                            }
-                        }
-                    }
-                }
-            } else {
-                m_cscram_x = rootcode;
-                m_cscram_y = 0x3ffff;
-                slot_count = 0;
-                for (int plh = 0; plh < 90; plh++) {
-                    out[produced++] = m_pl[plh];
-                    out[produced++] = m_zero;
-                }
-                for (int j = 0; j < slots; j++) {
-                    for (int k = 0; k < 90; k++) {
-                        tempin = in[consumed++];
+                    j++;
+                    break;
+                } else if ((group == 10) && symbols == 702) {
+                    for (int p = 0; p < 36; p++) {
+                        tempin = m_bpsk[0][0];
                         switch (symbol_scrambler()) {
                         case 0:
                             tempout = tempin;
@@ -695,69 +640,116 @@ int physical_cc_impl::general_work(int noutput_items,
                         out[produced++] = tempout;
                         out[produced++] = m_zero;
                     }
-                    slot_count = (slot_count + 1) % 16;
-                    if ((slot_count == 0) && (j < slots - 1)) {
-                        if (pilots) {
-                            // Add pilots if needed
-                            for (int p = 0; p < 36; p++) {
-                                tempin = m_bpsk[0][0];
-                                switch (symbol_scrambler()) {
-                                case 0:
-                                    tempout = tempin;
-                                    break;
-                                case 1:
-                                    tempout = gr_complex(-tempin.imag(), tempin.real());
-                                    break;
-                                case 2:
-                                    tempout = -tempin;
-                                    break;
-                                case 3:
-                                    tempout = gr_complex(tempin.imag(), -tempin.real());
-                                    break;
-                                }
-                                out[produced++] = tempout;
-                                out[produced++] = m_zero;
-                            }
+                    for (int x = (k + 1 + 36) - 90; x < 90; x++) {
+                        tempin = in[consumed++];
+                        switch (symbol_scrambler()) {
+                        case 0:
+                            tempout = tempin;
+                            break;
+                        case 1:
+                            tempout = -tempin;
+                            break;
+                        case 2:
+                            tempout = tempin;
+                            break;
+                        case 3:
+                            tempout = -tempin;
+                            break;
                         }
+                        out[produced++] = tempout;
+                        out[produced++] = m_zero;
+                        symbols++;
+                    }
+                    slot_count = (slot_count + 1) % 16;
+                    j++;
+                    break;
+                }
+            }
+            slot_count = (slot_count + 1) % 16;
+            if ((slot_count == 0) && (j < slots - 1)) {
+                if (pilot_symbols > 0) {
+                    // Add pilots if needed
+                    group++;
+                    symbols = 0;
+                    for (int p = 0; p < 36; p++) {
+                        tempin = m_bpsk[0][0];
+                        switch (symbol_scrambler()) {
+                        case 0:
+                            tempout = tempin;
+                            break;
+                        case 1:
+                            tempout = gr_complex(-tempin.imag(), tempin.real());
+                            break;
+                        case 2:
+                            tempout = -tempin;
+                            break;
+                        case 3:
+                            tempout = gr_complex(tempin.imag(), -tempin.real());
+                            break;
+                        }
+                        out[produced++] = tempout;
+                        out[produced++] = m_zero;
                     }
                 }
             }
-        } else {
-            if (produced + (((36 * 90) + 90) * 2) > noutput_items) {
-                break;
-            }
-            // Produce a DUMMY PLFRAME
-            m_cscram_x = rootcode;
-            m_cscram_y = 0x3ffff;
-            consumed += slots * 90;
-            for (int plh = 0; plh < 90; plh++) {
-                out[produced++] = m_pl_dummy[plh];
+        }
+    } else {
+        m_cscram_x = root_code;
+        m_cscram_y = 0x3ffff;
+        slot_count = 0;
+        for (int plh = 0; plh < 90; plh++) {
+            out[produced++] = m_pl[plh];
+            out[produced++] = m_zero;
+        }
+        for (int j = 0; j < slots; j++) {
+            for (int k = 0; k < 90; k++) {
+                tempin = in[consumed++];
+                switch (symbol_scrambler()) {
+                case 0:
+                    tempout = tempin;
+                    break;
+                case 1:
+                    tempout = gr_complex(-tempin.imag(), tempin.real());
+                    break;
+                case 2:
+                    tempout = -tempin;
+                    break;
+                case 3:
+                    tempout = gr_complex(tempin.imag(), -tempin.real());
+                    break;
+                }
+                out[produced++] = tempout;
                 out[produced++] = m_zero;
             }
-            for (int j = 0; j < 36; j++) {
-                for (int k = 0; k < 90; k++) {
-                    tempin = m_bpsk[0][0];
-                    switch (symbol_scrambler()) {
-                    case 0:
-                        tempout = tempin;
-                        break;
-                    case 1:
-                        tempout = gr_complex(-tempin.imag(), tempin.real());
-                        break;
-                    case 2:
-                        tempout = -tempin;
-                        break;
-                    case 3:
-                        tempout = gr_complex(tempin.imag(), -tempin.real());
-                        break;
+            slot_count = (slot_count + 1) % 16;
+            if ((slot_count == 0) && (j < slots - 1)) {
+                if (pilot_symbols > 0) {
+                    // Add pilots if needed
+                    for (int p = 0; p < 36; p++) {
+                        tempin = m_bpsk[0][0];
+                        switch (symbol_scrambler()) {
+                        case 0:
+                            tempout = tempin;
+                            break;
+                        case 1:
+                            tempout = gr_complex(-tempin.imag(), tempin.real());
+                            break;
+                        case 2:
+                            tempout = -tempin;
+                            break;
+                        case 3:
+                            tempout = gr_complex(tempin.imag(), -tempin.real());
+                            break;
+                        }
+                        out[produced++] = tempout;
+                        out[produced++] = m_zero;
                     }
-                    out[produced++] = tempout;
-                    out[produced++] = m_zero;
                 }
             }
         }
     }
-    consume_each(consumed);
+    add_item_tag(0, 0, pmt::intern("frame_length"), pmt::from_long((long)produced));
+    consume_each(slots * 90);
     return produced;
 }
 
