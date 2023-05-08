@@ -3,28 +3,11 @@
  * Copyright 2023 AsriFox.
  * Copyright 2014,2016 Ron Economos.
  *
- * This is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3, or (at your option)
- * any later version.
- *
- * This software is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this software; see the file COPYING.  If not, write to
- * the Free Software Foundation, Inc., 51 Franklin Street,
- * Boston, MA 02110-1301, USA.
+ * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 #include "interleaver_bb_impl.h"
-#include "modcod.hh"
 #include <gnuradio/io_signature.h>
-#include <pmt/pmt.h>
-#include <cstdint>
-#include <vector>
 
 namespace gr {
 namespace dvbs2acm {
@@ -57,231 +40,221 @@ void interleaver_bb_impl::forecast(int noutput_items, gr_vector_int& ninput_item
     ninput_items_required[0] = noutput_items * 5;
 }
 
-dvbs2_constellation_t interleaver_bb_impl::get_rows(dvbs2_modcod_t modcod,
-                                                    dvbs2_vlsnr_header_t vlsnr_header,
-                                                    int& frame_size,
-                                                    int& mod_order)
+void interleaver_bb_impl::get_rows(dvbs2_framesize_t framesize,
+                                   dvbs2_code_rate_t rate,
+                                   dvbs2_constellation_t constellation,
+                                   int& frame_size,
+                                   int& mod_order)
 {
-    auto framesize = modcod_framesize(modcod);
-    auto rate = modcod_rate(modcod);
-    auto constellation = modcod_constellation(modcod);
-    if (modcod == MC_VLSNR_SET1 || modcod == MC_VLSNR_SET2) {
-        framesize = vlsnr_framesize(vlsnr_header);
-        rate = vlsnr_rate(vlsnr_header);
-        constellation = vlsnr_constellation(vlsnr_header);
-    }
+    int mod, rows;
 
     if (framesize == FECFRAME_NORMAL) {
+        frame_size = FRAME_SIZE_NORMAL;
         if (rate == C2_9_VLSNR) {
             frame_size = FRAME_SIZE_NORMAL - NORMAL_PUNCTURING;
-        } else {
-            frame_size = FRAME_SIZE_NORMAL;
         }
     } else if (framesize == FECFRAME_SHORT) {
-        switch (rate) {
-        case C1_5_VLSNR_SF2:
-        case C11_45_VLSNR_SF2:
+        frame_size = FRAME_SIZE_SHORT;
+        if (rate == C1_5_VLSNR_SF2 || rate == C11_45_VLSNR_SF2) {
             frame_size = FRAME_SIZE_SHORT - SHORT_PUNCTURING_SET1;
-            break;
-        case C1_5_VLSNR:
-        case C4_15_VLSNR:
-        case C1_3_VLSNR:
+        }
+        if (rate == C1_5_VLSNR || rate == C4_15_VLSNR || rate == C1_3_VLSNR) {
             frame_size = FRAME_SIZE_SHORT - SHORT_PUNCTURING_SET2;
-            break;
-        default:
-            frame_size = FRAME_SIZE_SHORT;
-            break;
         }
     } else {
         frame_size = FRAME_SIZE_MEDIUM - MEDIUM_PUNCTURING;
     }
 
-    int rows;
     switch (constellation) {
     case MOD_BPSK:
+        mod = 1;
+        rows = frame_size / mod;
+        break;
     case MOD_BPSK_SF2:
-        mod_order = 1;
+        mod = 1;
+        rows = frame_size / mod;
         break;
     case MOD_QPSK:
-        mod_order = 2;
+        mod = 2;
+        rows = frame_size / mod;
+        break;
+    case MOD_8PSK:
+        mod = 3;
+        rows = frame_size / mod;
+        /* 210 */
+        if (rate == C3_5) {
+            rowaddr[0] = rows * 2;
+            rowaddr[1] = rows;
+            rowaddr[2] = 0;
+        }
+        /* 102 */
+        else if (rate == C25_36 || rate == C13_18 || rate == C7_15 || rate == C8_15 || rate == C26_45) {
+            rowaddr[0] = rows;
+            rowaddr[1] = 0;
+            rowaddr[2] = rows * 2;
+        }
+        /* 012 */
+        else {
+            rowaddr[0] = 0;
+            rowaddr[1] = rows;
+            rowaddr[2] = rows * 2;
+        }
         break;
     case MOD_8APSK:
-        mod_order = 3;
-        rows = frame_size / mod_order;
+        mod = 3;
+        rows = frame_size / mod;
         /* 012 */
         rowaddr[0] = 0;
         rowaddr[1] = rows;
         rowaddr[2] = rows * 2;
         break;
-    case MOD_8PSK:
-        mod_order = 3;
-        rows = frame_size / mod_order;
-        switch (rate) {
-        case C3_5:
-            /* 210 */
-            rowaddr[0] = rows * 2;
-            rowaddr[1] = rows;
-            rowaddr[2] = 0;
-            break;
-        case C25_36:
-        case C13_18:
-        case C7_15:
-        case C8_15:
-        case C26_45:
-            /* 102 */
-            rowaddr[0] = rows;
-            rowaddr[1] = 0;
-            rowaddr[2] = rows * 2;
-            break;
-        default:
-            /* 012 */
-            rowaddr[0] = 0;
-            rowaddr[1] = rows;
-            rowaddr[2] = rows * 2;
-            break;
-        }
-        break;
     case MOD_16APSK:
-        mod_order = 4;
-        rows = frame_size / mod_order;
-        switch (rate) {
-        case C26_45:
-            if (framesize == FECFRAME_NORMAL) {
-                /* 3201 */
+        mod = 4;
+        rows = frame_size / mod;
+        if (rate == C26_45) {
+            /* 3201 */
+            if (frame_size == FRAME_SIZE_NORMAL) {
                 rowaddr[0] = rows * 3;
                 rowaddr[1] = rows * 2;
                 rowaddr[2] = 0;
                 rowaddr[3] = rows;
-            } else {
-                /* 2130 */
+            }
+            /* 2130 */
+            else {
                 rowaddr[0] = rows * 2;
                 rowaddr[1] = rows;
                 rowaddr[2] = rows * 3;
                 rowaddr[3] = 0;
             }
-            break;
-        case C3_5:
-            if (frame_size == FECFRAME_NORMAL) {
-                /* 3210 */
+        } else if (rate == C3_5) {
+            /* 3210 */
+            if (frame_size == FRAME_SIZE_NORMAL) {
                 rowaddr[0] = rows * 3;
                 rowaddr[1] = rows * 2;
                 rowaddr[2] = rows;
                 rowaddr[3] = 0;
-            } else {
-                /* 3201 */
+            }
+            /* 3201 */
+            else {
                 rowaddr[0] = rows * 3;
                 rowaddr[1] = rows * 2;
                 rowaddr[2] = 0;
                 rowaddr[3] = rows;
             }
-            break;
-        case C28_45:
-            /* 3012 */
+        }
+        /* 3012 */
+        else if (rate == C28_45) {
             rowaddr[0] = rows * 3;
             rowaddr[1] = 0;
             rowaddr[2] = rows;
             rowaddr[3] = rows * 2;
-            break;
-        case C23_36:
-        case C13_18:
-            /* 3021 */
+        }
+        /* 3021 */
+        else if (rate == C23_36 || rate == C13_18) {
             rowaddr[0] = rows * 3;
             rowaddr[1] = 0;
             rowaddr[2] = rows * 2;
             rowaddr[3] = rows;
-            break;
-        case C25_36:
-            /* 2310 */
+        }
+        /* 2310 */
+        else if (rate == C25_36) {
             rowaddr[0] = rows * 2;
             rowaddr[1] = rows * 3;
             rowaddr[2] = rows;
             rowaddr[3] = 0;
-            break;
-        case C7_15:
-        case C8_15:
-            /* 2103 */
+        }
+        /* 2103 */
+        else if (rate == C7_15 || rate == C8_15) {
             rowaddr[0] = rows * 2;
             rowaddr[1] = rows;
             rowaddr[2] = 0;
             rowaddr[3] = rows * 3;
-            break;
-        case C140_180:
-            /* 3210 */
+        }
+        /* 3210 */
+        else if (rate == C140_180) {
             rowaddr[0] = rows * 3;
             rowaddr[1] = rows * 2;
             rowaddr[2] = rows;
             rowaddr[3] = 0;
-            break;
-        case C154_180:
-            /* 0321 */
+        }
+        /* 0321 */
+        else if (rate == C154_180) {
             rowaddr[0] = 0;
             rowaddr[1] = rows * 3;
             rowaddr[2] = rows * 2;
             rowaddr[3] = rows;
-            break;
-        default:
-            /* 0123 */
+        }
+        /* 0123 */
+        else {
             rowaddr[0] = 0;
             rowaddr[1] = rows;
             rowaddr[2] = rows * 2;
             rowaddr[3] = rows * 3;
-            break;
         }
         break;
     case MOD_8_8APSK:
-        mod_order = 4;
-        rows = frame_size / mod_order;
-        switch (rate) {
-        case C90_180:
-            /* 3210 */
+        mod = 4;
+        rows = frame_size / mod;
+        /* 3210 */
+        if (rate == C90_180) {
             rowaddr[0] = rows * 3;
             rowaddr[1] = rows * 2;
             rowaddr[2] = rows;
             rowaddr[3] = 0;
-            break;
-        case C96_180:
-            /* 2310 */
+        }
+        /* 2310 */
+        else if (rate == C96_180) {
             rowaddr[0] = rows * 2;
             rowaddr[1] = rows * 3;
             rowaddr[2] = rows;
             rowaddr[3] = 0;
-            break;
-        case C100_180:
-            /* 2301 */
+        }
+        /* 2301 */
+        else if (rate == C100_180) {
             rowaddr[0] = rows * 2;
             rowaddr[1] = rows * 3;
             rowaddr[2] = 0;
             rowaddr[3] = rows;
-            break;
-        default:
-            /* 0123 */
+        }
+        /* 0123 */
+        else {
             rowaddr[0] = 0;
             rowaddr[1] = rows;
             rowaddr[2] = rows * 2;
             rowaddr[3] = rows * 3;
-            break;
         }
         break;
+    case MOD_32APSK:
+        mod = 5;
+        rows = frame_size / mod;
+        /* 01234 */
+        rowaddr[0] = 0;
+        rowaddr[1] = rows;
+        rowaddr[2] = rows * 2;
+        rowaddr[3] = rows * 3;
+        rowaddr[4] = rows * 4;
+        break;
     case MOD_4_12_16APSK:
-        mod_order = 5;
-        rows = frame_size / mod_order;
-        if (framesize == FECFRAME_NORMAL) {
-            /* 21430 */
+        mod = 5;
+        rows = frame_size / mod;
+        /* 21430 */
+        if (frame_size == FRAME_SIZE_NORMAL) {
             rowaddr[0] = rows * 2;
             rowaddr[1] = rows;
             rowaddr[2] = rows * 4;
-            rowaddr[3] = rows * 2;
+            rowaddr[3] = rows * 3;
             rowaddr[4] = 0;
         } else {
+            /* 41230 */
             if (rate == C2_3) {
-                /* 41230 */
                 rowaddr[0] = rows * 4;
                 rowaddr[1] = rows;
                 rowaddr[2] = rows * 2;
                 rowaddr[3] = rows * 3;
                 rowaddr[4] = 0;
-            } else if (rate == C32_45) {
-                /* 10423 */
+            }
+            /* 10423 */
+            else if (rate == C32_45) {
                 rowaddr[0] = rows;
                 rowaddr[1] = 0;
                 rowaddr[2] = rows * 4;
@@ -291,17 +264,18 @@ dvbs2_constellation_t interleaver_bb_impl::get_rows(dvbs2_modcod_t modcod,
         }
         break;
     case MOD_4_8_4_16APSK:
-        mod_order = 5;
-        rows = frame_size / mod_order;
+        mod = 5;
+        rows = frame_size / mod;
+        /* 40213 */
         if (rate == C140_180) {
-            /* 40213 */
             rowaddr[0] = rows * 4;
             rowaddr[1] = 0;
             rowaddr[2] = rows * 2;
             rowaddr[3] = rows;
             rowaddr[4] = rows * 3;
-        } else {
-            /* 40312 */
+        }
+        /* 40312 */
+        else {
             rowaddr[0] = rows * 4;
             rowaddr[1] = 0;
             rowaddr[2] = rows * 3;
@@ -310,11 +284,11 @@ dvbs2_constellation_t interleaver_bb_impl::get_rows(dvbs2_modcod_t modcod,
         }
         break;
     default:
-        mod_order = 2;
+        mod = 2;
+        rows = frame_size / mod;
         break;
     }
-
-    return constellation;
+    mod_order = mod;
 }
 
 int interleaver_bb_impl::general_work(int noutput_items,
@@ -327,6 +301,9 @@ int interleaver_bb_impl::general_work(int noutput_items,
     int consumed = 0;
     int produced = 0;
     int produced_per_iteration;
+    dvbs2_framesize_t framesize;
+    dvbs2_code_rate_t rate;
+    dvbs2_constellation_t constellation;
     int frame_size, mod_order, rows;
     const input_type* c[5];
 
@@ -337,11 +314,12 @@ int interleaver_bb_impl::general_work(int noutput_items,
     this->get_tags_in_range(tags, 0, nread, nread + noutput_items, pmt::string_to_symbol("modcod"));
 
     for (tag_t tag : tags) {
-        const uint64_t tagmodcod = pmt::to_uint64(tag.value);
-        auto modcod = (dvbs2_modcod_t)((tagmodcod >> 2) & 0x7f);
-        auto vlsnr_header = (dvbs2_vlsnr_header_t)((tagmodcod >> 9) & 0x0f);
-        auto constellation = get_rows(modcod, vlsnr_header, frame_size, mod_order);
-        rows = frame_size / mod_order;
+        auto tagmodcod = pmt::to_uint64(tag.value);
+        framesize = (dvbs2_framesize_t)((tagmodcod >> 1) & 0x7f);
+        rate = (dvbs2_code_rate_t)((tagmodcod >> 8) & 0xff);
+        constellation = (dvbs2_constellation_t)((tagmodcod >> 16) & 0xff);
+        get_rows(framesize, rate, constellation, frame_size, mod_order);
+
         if (produced + rows > noutput_items) {
             break;
         }
@@ -351,20 +329,31 @@ int interleaver_bb_impl::general_work(int noutput_items,
         produced_per_iteration = 0;
         switch (constellation) {
         case MOD_BPSK:
+            rows = frame_size;
             for (int j = 0; j < rows; j++) {
                 out[produced++] = in[consumed++];
                 produced_per_iteration++;
             }
             break;
         case MOD_BPSK_SF2:
+            rows = frame_size;
             for (int j = 0; j < rows; j++) {
                 out[produced++] = in[consumed];
                 out[produced++] = in[consumed++];
                 produced_per_iteration += 2;
             }
             break;
+        case MOD_QPSK:
+            rows = frame_size / 2;
+            for (int j = 0; j < rows; j++) {
+                out[produced] = in[consumed++] << 1;
+                out[produced++] |= in[consumed++];
+                produced_per_iteration++;
+            }
+            break;
         case MOD_8PSK:
         case MOD_8APSK:
+            rows = frame_size / 3;
             c[0] = &in[consumed + rowaddr[0]];
             c[1] = &in[consumed + rowaddr[1]];
             c[2] = &in[consumed + rowaddr[2]];
@@ -376,6 +365,7 @@ int interleaver_bb_impl::general_work(int noutput_items,
             break;
         case MOD_16APSK:
         case MOD_8_8APSK:
+            rows = frame_size / 4;
             c[0] = &in[consumed + rowaddr[0]];
             c[1] = &in[consumed + rowaddr[1]];
             c[2] = &in[consumed + rowaddr[2]];
@@ -389,6 +379,7 @@ int interleaver_bb_impl::general_work(int noutput_items,
         case MOD_32APSK:
         case MOD_4_12_16APSK:
         case MOD_4_8_4_16APSK:
+            rows = frame_size / 5;
             c[0] = &in[consumed + rowaddr[0]];
             c[1] = &in[consumed + rowaddr[1]];
             c[2] = &in[consumed + rowaddr[2]];
@@ -396,13 +387,13 @@ int interleaver_bb_impl::general_work(int noutput_items,
             c[4] = &in[consumed + rowaddr[4]];
             for (int j = 0; j < rows; j++) {
                 out[produced++] =
-                    (c[0][j] << 4) | (c[1][j] << 3) | (c[2][j] << 2) | (c[3][j] << 1) | (c[4][j]);
+                    (c[0][j] << 4) | (c[1][j] << 3) | (c[2][j] << 2) | (c[3][j] << 1) | c[4][j];
                 produced_per_iteration++;
                 consumed += 5;
             }
             break;
-        case MOD_QPSK:
         default:
+            rows = frame_size / 2;
             for (int j = 0; j < rows; j++) {
                 out[produced] = in[consumed++] << 1;
                 out[produced++] |= in[consumed++];

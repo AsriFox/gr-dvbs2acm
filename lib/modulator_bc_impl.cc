@@ -1,26 +1,13 @@
 /* -*- c++ -*- */
 /*
  * Copyright 2023 AsriFox.
- * Copyright 2014,2016 Ron Economos.
+ * Copyright 2014,2016,2017,2020 Ron Economos.
  *
- * This is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3, or (at your option)
- * any later version.
- *
- * This software is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this software; see the file COPYING.  If not, write to
- * the Free Software Foundation, Inc., 51 Franklin Street,
- * Boston, MA 02110-1301, USA.
+ * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include "modcod.hh"
 #include "modulator_bc_impl.h"
+#include "gnuradio/dvbs2acm/dvbs2_config.h"
 #include <gnuradio/io_signature.h>
 
 namespace gr {
@@ -297,20 +284,12 @@ void modulator_bc_impl::forecast(int noutput_items, gr_vector_int& ninput_items_
     ninput_items_required[0] = noutput_items;
 }
 
-dvbs2_constellation_t modulator_bc_impl::get_items(dvbs2_modcod_t modcod,
-                                                   dvbs2_vlsnr_header_t vlsnr_header,
-                                                   int& num_items,
-                                                   int& constellation_index)
+void modulator_bc_impl::get_items(dvbs2_framesize_t framesize,
+                                  dvbs2_code_rate_t rate,
+                                  dvbs2_constellation_t constellation,
+                                  int& num_items,
+                                  int& constellation_index)
 {
-    auto framesize = modcod_framesize(modcod);
-    auto constellation = modcod_constellation(modcod);
-    auto rate = modcod_rate(modcod);
-    if (modcod == MC_VLSNR_SET1 || modcod == MC_VLSNR_SET2) {
-        framesize = vlsnr_framesize(vlsnr_header);
-        constellation = vlsnr_constellation(vlsnr_header);
-        rate = vlsnr_rate(vlsnr_header);
-    }
-
     switch (constellation) {
     case MOD_BPSK:
         num_items = FRAME_SIZE_SHORT - SHORT_PUNCTURING_SET2;
@@ -539,8 +518,6 @@ dvbs2_constellation_t modulator_bc_impl::get_items(dvbs2_modcod_t modcod,
         constellation_index = 0;
         break;
     }
-
-    return constellation;
 }
 
 int modulator_bc_impl::general_work(int noutput_items,
@@ -552,6 +529,9 @@ int modulator_bc_impl::general_work(int noutput_items,
     auto out = static_cast<output_type*>(output_items[0]);
     int produced = 0;
     int index, num_items, constellation_index;
+    dvbs2_framesize_t framesize;
+    dvbs2_code_rate_t rate;
+    dvbs2_constellation_t constellation;
 
     std::vector<tag_t> tags;
     const uint64_t nread = this->nitems_read(0);
@@ -560,10 +540,12 @@ int modulator_bc_impl::general_work(int noutput_items,
     this->get_tags_in_range(tags, 0, nread, nread + noutput_items, pmt::string_to_symbol("modcod"));
 
     for (tag_t tag : tags) {
-        const uint64_t tagmodcod = pmt::to_uint64(tag.value);
-        auto modcod = (dvbs2_modcod_t)((tagmodcod >> 2) & 0x7f);
-        auto vlsnr_header = (dvbs2_vlsnr_header_t)((tagmodcod >> 9) & 0x0f);
-        auto constellation = get_items(modcod, vlsnr_header, num_items, constellation_index);
+        auto tagmodcod = pmt::to_uint64(tag.value);
+        framesize = (dvbs2_framesize_t)((tagmodcod >> 1) & 0x7f);
+        rate = (dvbs2_code_rate_t)((tagmodcod >> 8) & 0xff);
+        constellation = (dvbs2_constellation_t)((tagmodcod >> 16) & 0xff);
+        get_items(framesize, rate, constellation, num_items, constellation_index);
+
         if (produced + num_items > noutput_items) {
             break;
         }
