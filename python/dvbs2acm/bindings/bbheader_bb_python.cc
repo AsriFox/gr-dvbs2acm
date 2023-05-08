@@ -14,7 +14,7 @@
 /* BINDTOOL_GEN_AUTOMATIC(0)                                                       */
 /* BINDTOOL_USE_PYGCCXML(0)                                                        */
 /* BINDTOOL_HEADER_FILE(bbheader_bb.h)                                        */
-/* BINDTOOL_HEADER_FILE_HASH(51b7b512d1b80acad0552122e7de6416)                     */
+/* BINDTOOL_HEADER_FILE_HASH(5e969006d8d7c525ea2e8262ff52070d)                     */
 /***********************************************************************************/
 
 #include <pybind11/complex.h>
@@ -38,9 +38,9 @@ void bind_bbheader_bb(py::module& m)
 
         .def(py::init(&bbheader_bb::make),
              py::arg("modcod"),
-             py::arg("pilots") = true,
+             py::arg("pilots"),
              py::arg("rolloff"),
-             py::arg("goldcode") = 0,
+             py::arg("goldcode"),
              D(bbheader_bb, make))
 
 

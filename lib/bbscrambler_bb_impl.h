@@ -20,7 +20,6 @@ private:
     unsigned char bb_randomize[FRAME_SIZE_NORMAL];
     void init_bb_randomizer(void);
 
-
 protected:
     void parse_length_tags(const std::vector<std::vector<tag_t>>& tags,
                            gr_vector_int& n_input_items_reqd) override;
