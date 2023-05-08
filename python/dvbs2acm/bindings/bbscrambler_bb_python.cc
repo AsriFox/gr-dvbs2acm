@@ -14,7 +14,7 @@
 /* BINDTOOL_GEN_AUTOMATIC(0)                                                       */
 /* BINDTOOL_USE_PYGCCXML(0)                                                        */
 /* BINDTOOL_HEADER_FILE(bbscrambler_bb.h)                                        */
-/* BINDTOOL_HEADER_FILE_HASH(f411b1798ad0d931664e32abd8d33a7c)                     */
+/* BINDTOOL_HEADER_FILE_HASH(65155306780985332dad5d0dad4bcaf9)                     */
 /***********************************************************************************/
 
 #include <pybind11/complex.h>
@@ -33,7 +33,7 @@ void bind_bbscrambler_bb(py::module& m)
     using bbscrambler_bb    = ::gr::dvbs2acm::bbscrambler_bb;
 
 
-    py::class_<bbscrambler_bb, gr::sync_block, gr::block, gr::basic_block,
+    py::class_<bbscrambler_bb, gr::tagged_stream_block, gr::block, gr::basic_block,
         std::shared_ptr<bbscrambler_bb>>(m, "bbscrambler_bb", D(bbscrambler_bb))
 
         .def(py::init(&bbscrambler_bb::make),

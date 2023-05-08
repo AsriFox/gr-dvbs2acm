@@ -1,33 +1,21 @@
 /* -*- c++ -*- */
 /*
  * Copyright 2023 AsriFox.
- * Copyright 2014,2016 Ron Economos.
  *
- * This is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3, or (at your option)
- * any later version.
- *
- * This software is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this software; see the file COPYING.  If not, write to
- * the Free Software Foundation, Inc., 51 Franklin Street,
- * Boston, MA 02110-1301, USA.
+ * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 #include "bbscrambler_bb_impl.h"
 #include "bch_code.h"
 #include <gnuradio/io_signature.h>
-#include <pmt/pmt.h>
+#include <vector>
 
 namespace gr {
 namespace dvbs2acm {
+
 using input_type = unsigned char;
 using output_type = unsigned char;
+
 bbscrambler_bb::sptr bbscrambler_bb::make() { return gnuradio::make_block_sptr<bbscrambler_bb_impl>(); }
 
 
@@ -35,12 +23,12 @@ bbscrambler_bb::sptr bbscrambler_bb::make() { return gnuradio::make_block_sptr<b
  * The private constructor
  */
 bbscrambler_bb_impl::bbscrambler_bb_impl()
-    : gr::sync_block("bbscrambler_bb",
-                     gr::io_signature::make(1, 1, sizeof(input_type)),
-                     gr::io_signature::make(1, 1, sizeof(output_type)))
+    : gr::tagged_stream_block("bbscrambler_bb",
+                              gr::io_signature::make(1, 1, sizeof(input_type)),
+                              gr::io_signature::make(1, 1, sizeof(output_type)),
+                              "frame_length")
 {
-    init_bb_randomizer();
-    set_output_multiple(FRAME_SIZE_NORMAL);
+    set_tag_propagation_policy(TPP_ALL_TO_ALL);
 }
 
 /*
@@ -61,35 +49,45 @@ void bbscrambler_bb_impl::init_bb_randomizer(void)
     }
 }
 
+void bbscrambler_bb_impl::parse_length_tags(const std::vector<std::vector<tag_t>>& tags,
+                                            gr_vector_int& n_input_items_reqd)
+{
+    n_input_items_reqd[0] = 0;
+    for (tag_t tag : tags[0]) {
+        if (tag.key == pmt::intern(d_length_tag_key_str)) {
+            n_input_items_reqd[0] = pmt::to_long(tag.value);
+        }
+    }
+}
+
 int bbscrambler_bb_impl::work(int noutput_items,
+                              gr_vector_int& ninput_items,
                               gr_vector_const_void_star& input_items,
                               gr_vector_void_star& output_items)
 {
+    unsigned kbch = ninput_items[0];
     auto in = static_cast<const input_type*>(input_items[0]);
     auto out = static_cast<output_type*>(output_items[0]);
-    unsigned int kbch;
-    unsigned int produced = 0;
-    std::vector<tag_t> tags;
-    const uint64_t nread = this->nitems_read(0);
 
-    // Read all tags on the input buffer
-    this->get_tags_in_range(tags, 0, nread, nread + noutput_items, pmt::string_to_symbol("modcod"));
+    // dvbs2_modcod_t modcod;
+    // dvbs2_vlsnr_header_t vlsnr_header;
+    // std::vector<tag_t> tags;
+    // get_tags_in_window(tags, 0, 0, 1);
+    // for (tag_t tag: tags) {
+    //     if (tag.key == pmt::intern("modcod")) {
+    //         modcod = (dvbs2_modcod_t)(pmt::to_long(tag.value) & 0x7f);
+    //     } else if (tag.key == pmt::intern("vlsnr_header")) {
+    //         vlsnr_header = (dvbs2_vlsnr_header_t)(pmt::to_long(tag.value) & 0x0f);
+    //     }
+    //     add_item_tag(0, tag);
+    // }
+    // auto kbch = bch_code::select(modcod, vlsnr_header).kbch;
 
-    for (tag_t tag : tags) {
-        auto tagmodcod = pmt::to_uint64(tag.value);
-        auto modcod = (dvbs2_modcod_t)((tagmodcod >> 2) & 0x7f);
-        auto vlsnr_header = (dvbs2_vlsnr_header_t)((tagmodcod >> 9) & 0x0f);
-        kbch = bch_code::select(modcod, vlsnr_header).kbch;
-        if (kbch + produced <= (unsigned int)noutput_items) {
-            for (int j = 0; j < (int)kbch; j++) {
-                out[produced + j] = in[produced + j] ^ bb_randomize[j];
-            }
-            produced += kbch;
-        } else {
-            break;
-        }
+    for (unsigned j = 0; j < kbch; j++) {
+        out[j] = in[j] ^ bb_randomize[j];
     }
-    return produced;
+
+    return kbch;
 }
 
 } /* namespace dvbs2acm */
