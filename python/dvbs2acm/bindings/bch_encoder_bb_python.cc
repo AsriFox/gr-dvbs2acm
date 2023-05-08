@@ -14,7 +14,7 @@
 /* BINDTOOL_GEN_AUTOMATIC(0)                                                       */
 /* BINDTOOL_USE_PYGCCXML(0)                                                        */
 /* BINDTOOL_HEADER_FILE(bch_encoder_bb.h)                                        */
-/* BINDTOOL_HEADER_FILE_HASH(ac45817df714f9f41b1e8dfe7b022745)                     */
+/* BINDTOOL_HEADER_FILE_HASH(1310190703f8db7205f3511406b2abcc)                     */
 /***********************************************************************************/
 
 #include <pybind11/complex.h>
@@ -33,7 +33,7 @@ void bind_bch_encoder_bb(py::module& m)
     using bch_encoder_bb    = ::gr::dvbs2acm::bch_encoder_bb;
 
 
-    py::class_<bch_encoder_bb, gr::block, gr::basic_block,
+    py::class_<bch_encoder_bb, gr::tagged_stream_block, gr::block, gr::basic_block,
         std::shared_ptr<bch_encoder_bb>>(m, "bch_encoder_bb", D(bch_encoder_bb))
 
         .def(py::init(&bch_encoder_bb::make),

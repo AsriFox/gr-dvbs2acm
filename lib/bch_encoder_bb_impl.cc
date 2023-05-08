@@ -19,7 +19,6 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "bch_code.h"
 #include "bch_encoder_bb_impl.h"
 #include <gnuradio/io_signature.h>
 #include <pmt/pmt.h>
@@ -36,10 +35,13 @@ bch_encoder_bb::sptr bch_encoder_bb::make() { return gnuradio::make_block_sptr<b
  * The private constructor
  */
 bch_encoder_bb_impl::bch_encoder_bb_impl()
-    : gr::block("bch_encoder_bb",
-                gr::io_signature::make(1, 1, sizeof(input_type)),
-                gr::io_signature::make(1, 1, sizeof(output_type)))
+    : gr::tagged_stream_block("bch_encoder_bb",
+                              gr::io_signature::make(1, 1, sizeof(input_type)),
+                              gr::io_signature::make(1, 1, sizeof(output_type)),
+                              "frame_length"),
+      params(bch_code::bch_code_invalid)
 {
+    set_tag_propagation_policy(TPP_ALL_TO_ALL);
 }
 
 /*
@@ -47,48 +49,46 @@ bch_encoder_bb_impl::bch_encoder_bb_impl()
  */
 bch_encoder_bb_impl::~bch_encoder_bb_impl() {}
 
-void bch_encoder_bb_impl::forecast(int noutput_items, gr_vector_int& ninput_items_required)
+void bch_encoder_bb_impl::parse_length_tags(const std::vector<std::vector<tag_t>>& tags,
+                                            gr_vector_int& n_input_items_reqd)
 {
-    ninput_items_required[0] = noutput_items;
+    dvbs2_modcod_t modcod;
+    dvbs2_vlsnr_header_t vlsnr_header;
+    for (tag_t tag : tags[0]) {
+        if (tag.key == pmt::intern("frame_length")) {
+            n_input_items_reqd[0] = pmt::to_long(tag.value);
+            remove_item_tag(0, tag);
+        } else if (tag.key == pmt::intern("modcod")) {
+            modcod = (dvbs2_modcod_t)(pmt::to_long(tag.value) & 0x7f);
+        } else if (tag.key == pmt::intern("vlsnr_header")) {
+            vlsnr_header = (dvbs2_vlsnr_header_t)(pmt::to_long(tag.value) & 0x0f);
+        }
+    }
+    this->params = bch_code::select(modcod, vlsnr_header);
+    if (n_input_items_reqd[0] != params.kbch) {
+        n_input_items_reqd[0] = params.kbch;
+    }
 }
 
-int bch_encoder_bb_impl::general_work(int noutput_items,
-                                      gr_vector_int& ninput_items,
-                                      gr_vector_const_void_star& input_items,
-                                      gr_vector_void_star& output_items)
+int bch_encoder_bb_impl::work(int noutput_items,
+                              gr_vector_int& ninput_items,
+                              gr_vector_const_void_star& input_items,
+                              gr_vector_void_star& output_items)
 {
+    if (ninput_items[0] < params.kbch) {
+        consume_each(0);
+        return 0;
+    }
+
     auto in = static_cast<const input_type*>(input_items[0]);
     auto out = static_cast<output_type*>(output_items[0]);
-    int consumed = 0;
-    int produced = 0;
 
-    std::vector<tag_t> tags;
-    const uint64_t nread = this->nitems_read(0); // number of items read on port 0
+    add_item_tag(0, 0, pmt::intern("frame_length"), pmt::from_long((long)params.nbch));
 
-    // Read all tags on the input buffer
-    this->get_tags_in_range(tags, 0, nread, nread + noutput_items, pmt::string_to_symbol("modcod"));
+    params.encode(in, out);
 
-    for (tag_t tag : tags) {
-        auto tagmodcod = pmt::to_uint64(tag.value);
-        auto modcod = (dvbs2_modcod_t)((tagmodcod >> 2) & 0x7f);
-        auto vlsnr_header = (dvbs2_vlsnr_header_t)((tagmodcod >> 9) & 0x0f);
-        auto params = bch_code::select(modcod, vlsnr_header);
-        if (params.nbch + produced > (unsigned int)noutput_items) {
-            break;
-        }
-        const uint64_t tagoffset = this->nitems_written(0);
-        pmt::pmt_t key = pmt::string_to_symbol("modcod");
-        pmt::pmt_t value = pmt::from_uint64(tagmodcod);
-        this->add_item_tag(0, tagoffset, key, value);
-
-        params.encode(in, out);
-
-        consumed += params.kbch;
-        produced += params.nbch;
-        produce(0, params.nbch);
-    }
-    consume_each(consumed);
-    return WORK_CALLED_PRODUCE;
+    consume_each(params.kbch);
+    return params.nbch;
 }
 
 } /* namespace dvbs2acm */

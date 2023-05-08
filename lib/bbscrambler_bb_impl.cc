@@ -49,15 +49,9 @@ void bbscrambler_bb_impl::init_bb_randomizer(void)
     }
 }
 
-void bbscrambler_bb_impl::parse_length_tags(const std::vector<std::vector<tag_t>>& tags,
-                                            gr_vector_int& n_input_items_reqd)
+int bbscrambler_bb_impl::calculate_output_stream_length(const gr_vector_int& ninput_items)
 {
-    n_input_items_reqd[0] = 0;
-    for (tag_t tag : tags[0]) {
-        if (tag.key == pmt::intern(d_length_tag_key_str)) {
-            n_input_items_reqd[0] = pmt::to_long(tag.value);
-        }
-    }
+    return ninput_items[0];
 }
 
 int bbscrambler_bb_impl::work(int noutput_items,
@@ -69,19 +63,7 @@ int bbscrambler_bb_impl::work(int noutput_items,
     auto in = static_cast<const input_type*>(input_items[0]);
     auto out = static_cast<output_type*>(output_items[0]);
 
-    // dvbs2_modcod_t modcod;
-    // dvbs2_vlsnr_header_t vlsnr_header;
-    // std::vector<tag_t> tags;
-    // get_tags_in_window(tags, 0, 0, 1);
-    // for (tag_t tag: tags) {
-    //     if (tag.key == pmt::intern("modcod")) {
-    //         modcod = (dvbs2_modcod_t)(pmt::to_long(tag.value) & 0x7f);
-    //     } else if (tag.key == pmt::intern("vlsnr_header")) {
-    //         vlsnr_header = (dvbs2_vlsnr_header_t)(pmt::to_long(tag.value) & 0x0f);
-    //     }
-    //     add_item_tag(0, tag);
-    // }
-    // auto kbch = bch_code::select(modcod, vlsnr_header).kbch;
+    add_item_tag(0, 0, pmt::intern("frame_length"), pmt::from_long((long)kbch));
 
     for (unsigned j = 0; j < kbch; j++) {
         out[j] = in[j] ^ bb_randomize[j];
