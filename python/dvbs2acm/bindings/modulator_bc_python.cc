@@ -14,7 +14,7 @@
 /* BINDTOOL_GEN_AUTOMATIC(0)                                                       */
 /* BINDTOOL_USE_PYGCCXML(0)                                                        */
 /* BINDTOOL_HEADER_FILE(modulator_bc.h)                                        */
-/* BINDTOOL_HEADER_FILE_HASH(185f67e207496d202abb04964a8aca08)                     */
+/* BINDTOOL_HEADER_FILE_HASH(c8c38b9b89f4cb478d48b8ab6b7efa21)                     */
 /***********************************************************************************/
 
 #include <pybind11/complex.h>
@@ -33,7 +33,7 @@ void bind_modulator_bc(py::module& m)
     using modulator_bc    = ::gr::dvbs2acm::modulator_bc;
 
 
-    py::class_<modulator_bc, gr::block, gr::basic_block,
+    py::class_<modulator_bc, gr::tagged_stream_block, gr::block, gr::basic_block,
         std::shared_ptr<modulator_bc>>(m, "modulator_bc", D(modulator_bc))
 
         .def(py::init(&modulator_bc::make),

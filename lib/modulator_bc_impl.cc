@@ -3,20 +3,7 @@
  * Copyright 2023 AsriFox.
  * Copyright 2014,2016 Ron Economos.
  *
- * This is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3, or (at your option)
- * any later version.
- *
- * This software is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this software; see the file COPYING.  If not, write to
- * the Free Software Foundation, Inc., 51 Franklin Street,
- * Boston, MA 02110-1301, USA.
+ * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 #include "modcod.hh"
@@ -36,9 +23,10 @@ modulator_bc::sptr modulator_bc::make() { return gnuradio::make_block_sptr<modul
  * The private constructor
  */
 modulator_bc_impl::modulator_bc_impl()
-    : gr::block("modulator_bc",
-                gr::io_signature::make(1, 1, sizeof(input_type)),
-                gr::io_signature::make(1, 1, sizeof(output_type)))
+    : gr::tagged_stream_block("modulator_bc",
+                              gr::io_signature::make(1, 1, sizeof(input_type)),
+                              gr::io_signature::make(1, 1, sizeof(output_type)),
+                              "frame_length")
 {
     double r0, r1, r2, r3, r4;
     double m = 1.0;
@@ -292,9 +280,22 @@ modulator_bc_impl::modulator_bc_impl()
  */
 modulator_bc_impl::~modulator_bc_impl() {}
 
-void modulator_bc_impl::forecast(int noutput_items, gr_vector_int& ninput_items_required)
+void modulator_bc_impl::parse_length_tags(const std::vector<std::vector<tag_t>>& tags,
+                                          gr_vector_int& n_input_items_reqd)
 {
-    ninput_items_required[0] = noutput_items;
+    dvbs2_modcod_t modcod;
+    dvbs2_vlsnr_header_t vlsnr_header;
+    for (tag_t tag : tags[0]) {
+        if (tag.key == pmt::intern("frame_length")) {
+            n_input_items_reqd[0] = pmt::to_long(tag.value);
+            remove_item_tag(0, tag);
+        } else if (tag.key == pmt::intern("modcod")) {
+            modcod = (dvbs2_modcod_t)(pmt::to_long(tag.value) & 0x7f);
+        } else if (tag.key == pmt::intern("vlsnr_header")) {
+            vlsnr_header = (dvbs2_vlsnr_header_t)(pmt::to_long(tag.value) & 0x0f);
+        }
+    }
+    constellation = get_items(modcod, vlsnr_header, num_items, constellation_index);
 }
 
 dvbs2_constellation_t modulator_bc_impl::get_items(dvbs2_modcod_t modcod,
@@ -543,101 +544,107 @@ dvbs2_constellation_t modulator_bc_impl::get_items(dvbs2_modcod_t modcod,
     return constellation;
 }
 
-int modulator_bc_impl::general_work(int noutput_items,
-                                    gr_vector_int& ninput_items,
-                                    gr_vector_const_void_star& input_items,
-                                    gr_vector_void_star& output_items)
+int modulator_bc_impl::work(int noutput_items,
+                            gr_vector_int& ninput_items,
+                            gr_vector_const_void_star& input_items,
+                            gr_vector_void_star& output_items)
 {
+    int produced;
+    switch (constellation) {
+    case MOD_BPSK:
+    case MOD_BPSK_SF2:
+        produced = num_items;
+    case MOD_QPSK:
+        produced = num_items * 2;
+    case MOD_8PSK:
+        produced = num_items * 3;
+    case MOD_16APSK:
+    case MOD_8_8APSK:
+        produced = num_items * 4;
+    case MOD_32APSK:
+    case MOD_4_12_16APSK:
+    case MOD_4_8_4_16APSK:
+        produced = num_items * 5;
+    default:
+        produced = 0;
+    }
+    if (ninput_items[0] < produced) {
+        consume_each(0);
+        return 0;
+    }
+
     auto in = static_cast<const input_type*>(input_items[0]);
     auto out = static_cast<output_type*>(output_items[0]);
-    int produced = 0;
-    int index, num_items, constellation_index;
 
-    std::vector<tag_t> tags;
-    const uint64_t nread = this->nitems_read(0);
+    add_item_tag(0, 0, pmt::intern("frame_length"), pmt::from_long((long)num_items));
 
-    // Read all tags on the input buffer
-    this->get_tags_in_range(tags, 0, nread, nread + noutput_items, pmt::string_to_symbol("modcod"));
-
-    for (tag_t tag : tags) {
-        const uint64_t tagmodcod = pmt::to_uint64(tag.value);
-        auto modcod = (dvbs2_modcod_t)((tagmodcod >> 2) & 0x7f);
-        auto vlsnr_header = (dvbs2_vlsnr_header_t)((tagmodcod >> 9) & 0x0f);
-        auto constellation = get_items(modcod, vlsnr_header, num_items, constellation_index);
-        if (produced + num_items > noutput_items) {
-            break;
+    int index;
+    switch (constellation) {
+    case MOD_BPSK:
+    case MOD_BPSK_SF2:
+        for (int j = 0; j < num_items; j++) {
+            index = *in++;
+            *out++ = m_bpsk[j & 1][index & 1];
         }
-        const uint64_t tagoffset = this->nitems_written(0);
-        this->add_item_tag(0, tagoffset, pmt::string_to_symbol("modcod"), pmt::from_uint64(tagmodcod));
-
-        switch (constellation) {
-        case MOD_BPSK:
-        case MOD_BPSK_SF2:
-            for (int j = 0; j < num_items; j++) {
-                index = *in++;
-                *out++ = m_bpsk[j & 1][index & 1];
-            }
-            break;
-        case MOD_QPSK:
-            for (int j = 0; j < num_items; j++) {
-                index = *in++;
-                *out++ = m_qpsk[index & 3];
-            }
-            break;
-        case MOD_8PSK:
-            for (int j = 0; j < num_items; j++) {
-                index = *in++;
-                *out++ = m_8psk[index & 7];
-            }
-            break;
-        case MOD_8APSK:
-            for (int j = 0; j < num_items; j++) {
-                index = *in++;
-                *out++ = m_8apsk[index & 7][constellation_index];
-            }
-            break;
-        case MOD_16APSK:
-            for (int j = 0; j < num_items; j++) {
-                index = *in++;
-                *out++ = m_16apsk[index & 15][constellation_index];
-            }
-            break;
-        case MOD_8_8APSK:
-            for (int j = 0; j < num_items; j++) {
-                index = *in++;
-                *out++ = m_8_8apsk[index & 15][constellation_index];
-            }
-            break;
-        case MOD_32APSK:
-            for (int j = 0; j < num_items; j++) {
-                index = *in++;
-                *out++ = m_32apsk[index & 31][constellation_index];
-            }
-            break;
-        case MOD_4_12_16APSK:
-            for (int j = 0; j < num_items; j++) {
-                index = *in++;
-                *out++ = m_4_12_16apsk[index & 31][constellation_index];
-            }
-            break;
-        case MOD_4_8_4_16APSK:
-            for (int j = 0; j < num_items; j++) {
-                index = *in++;
-                *out++ = m_4_8_4_16apsk[index & 31][constellation_index];
-            }
-            break;
-        default:
-            for (int j = 0; j < num_items; j++) {
-                index = *in++;
-                *out++ = m_qpsk[index & 3];
-            }
-            break;
+        break;
+    case MOD_QPSK:
+        for (int j = 0; j < num_items; j++) {
+            index = *in++;
+            *out++ = m_qpsk[index & 3];
         }
-        produced += num_items;
-        produce(0, num_items);
+        break;
+    case MOD_8PSK:
+        for (int j = 0; j < num_items; j++) {
+            index = *in++;
+            *out++ = m_8psk[index & 7];
+        }
+        break;
+    case MOD_8APSK:
+        for (int j = 0; j < num_items; j++) {
+            index = *in++;
+            *out++ = m_8apsk[index & 7][constellation_index];
+        }
+        break;
+    case MOD_16APSK:
+        for (int j = 0; j < num_items; j++) {
+            index = *in++;
+            *out++ = m_16apsk[index & 15][constellation_index];
+        }
+        break;
+    case MOD_8_8APSK:
+        for (int j = 0; j < num_items; j++) {
+            index = *in++;
+            *out++ = m_8_8apsk[index & 15][constellation_index];
+        }
+        break;
+    case MOD_32APSK:
+        for (int j = 0; j < num_items; j++) {
+            index = *in++;
+            *out++ = m_32apsk[index & 31][constellation_index];
+        }
+        break;
+    case MOD_4_12_16APSK:
+        for (int j = 0; j < num_items; j++) {
+            index = *in++;
+            *out++ = m_4_12_16apsk[index & 31][constellation_index];
+        }
+        break;
+    case MOD_4_8_4_16APSK:
+        for (int j = 0; j < num_items; j++) {
+            index = *in++;
+            *out++ = m_4_8_4_16apsk[index & 31][constellation_index];
+        }
+        break;
+    default:
+        for (int j = 0; j < num_items; j++) {
+            index = *in++;
+            *out++ = m_qpsk[index & 3];
+        }
+        break;
     }
+
     consume_each(produced);
-    return WORK_CALLED_PRODUCE;
+    return num_items;
 }
 
 } /* namespace dvbs2acm */
