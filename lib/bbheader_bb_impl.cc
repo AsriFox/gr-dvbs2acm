@@ -10,8 +10,10 @@
 #include "bbheader_bb_impl.h"
 #include "bch_code.h"
 #include "modcod.hh"
+#include "gnuradio/dvbs2acm/dvbs2_config.h"
 #include <gnuradio/io_signature.h>
 #include <pmt/pmt.h>
+#include <string>
 
 namespace gr {
 namespace dvbs2acm {
@@ -122,7 +124,7 @@ int bbheader_bb_impl::general_work(int noutput_items,
                                    gr_vector_const_void_star& input_items,
                                    gr_vector_void_star& output_items)
 {
-    if (((int)nitems_read(0) != ninput_items[0]) || (ninput_items[0] < header.dfl / 8)) {
+    if (ninput_items[0] < header.dfl / 8) {
         consume_each(0);
         return 0;
     }
@@ -131,11 +133,15 @@ int bbheader_bb_impl::general_work(int noutput_items,
     auto in = static_cast<const input_type*>(input_items[0]);
     auto out = static_cast<output_type*>(output_items[0]);
 
-    add_item_tag(0, 0, pmt::intern("frame_size"), pmt::from_long((long)kbch));
-    add_item_tag(0, 0, pmt::intern("modcod"), pmt::from_long((long)modcod));
-    add_item_tag(0, 0, pmt::intern("vlsnr_header"), pmt::from_long((long)vlsnr_header));
-    add_item_tag(0, 0, pmt::intern("pilots"), pmt::from_bool(pilots));
-    add_item_tag(0, 0, pmt::intern("root_code"), pmt::from_long((long)root_code));
+    auto constellation = modcod_constellation(modcod);
+    auto code_rate = modcod_rate(modcod);
+    auto frame_size = modcod_framesize(modcod);
+
+    const auto tagoffset = nitems_written(0);
+    const uint64_t tagmodcod = (uint64_t(root_code) << 32) | (uint64_t(pilots) << 24) |
+                               (uint64_t(constellation) << 16) | (uint64_t(code_rate) << 8) |
+                               (uint64_t(frame_size) << 1) | uint64_t(0);
+    add_item_tag(0, tagoffset, pmt::string_to_symbol("modcod"), pmt::from_uint64(tagmodcod));
 
     auto framesize = modcod_framesize(modcod);
     if (modcod == MC_VLSNR_SET1 || modcod == MC_VLSNR_SET2) {
@@ -148,6 +154,7 @@ int bbheader_bb_impl::general_work(int noutput_items,
         if (dvbs2x) {
             alternate = !alternate;
         }
+        auto offset = BB_HEADER_LENGTH_BITS;
         for (int j = 0; j < (int)(header.dfl / 8); j++) {
             if (header.sync == 0x47) {
                 // MPEG-2 Transport Stream
@@ -163,10 +170,12 @@ int bbheader_bb_impl::general_work(int noutput_items,
                     crc = crc_tab[b ^ crc];
                 }
                 count = (count + 1) % 188; // TODO: GSE
+            } else {
+                b = *in++;
             }
             // else Generic Continous Stream
             // TODO: GSE
-            unpack_bits_8(b, &out[BB_HEADER_LENGTH_BITS]);
+            offset += unpack_bits_8(b, &out[offset]);
         }
     } else {
         header.add_to_frame(out, count, nibble, dvbs2x && alternate);
@@ -203,7 +212,7 @@ int bbheader_bb_impl::general_work(int noutput_items,
         }
     }
 
-    consume_each(header.dfl / 8);
+    // consume_each(header.dfl / 8);
     return kbch;
 }
 

@@ -21,7 +21,8 @@ private:
     void init_bb_randomizer(void);
 
 protected:
-    int calculate_output_stream_length(const gr_vector_int& ninput_items) override;
+    void parse_length_tags(const std::vector<std::vector<tag_t>>& tags,
+                           gr_vector_int& n_input_items_reqd) override;
 
 public:
     bbscrambler_bb_impl();

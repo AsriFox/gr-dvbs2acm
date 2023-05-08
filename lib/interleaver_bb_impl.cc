@@ -46,13 +46,10 @@ void interleaver_bb_impl::parse_length_tags(const std::vector<std::vector<tag_t>
     dvbs2_modcod_t modcod;
     dvbs2_vlsnr_header_t vlsnr_header;
     for (tag_t tag : tags[0]) {
-        if (tag.key == pmt::intern("frame_length")) {
-            n_input_items_reqd[0] = pmt::to_long(tag.value);
-            remove_item_tag(0, tag);
-        } else if (tag.key == pmt::intern("modcod")) {
-            modcod = (dvbs2_modcod_t)(pmt::to_long(tag.value) & 0x7f);
-        } else if (tag.key == pmt::intern("vlsnr_header")) {
-            vlsnr_header = (dvbs2_vlsnr_header_t)(pmt::to_long(tag.value) & 0x0f);
+        if (tag.key == pmt::intern("modcod")) {
+            auto tagmodcod = pmt::to_uint64(tag.value);
+            modcod = (dvbs2_modcod_t)((tagmodcod >> 25) & 0x7f);
+            vlsnr_header = (dvbs2_vlsnr_header_t)((tagmodcod >> 4) & 0x0f);
         }
     }
     constellation = get_rows(modcod, vlsnr_header, frame_size, mod_order);

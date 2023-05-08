@@ -38,21 +38,24 @@ bch_encoder_bb_impl::~bch_encoder_bb_impl() {}
 void bch_encoder_bb_impl::parse_length_tags(const std::vector<std::vector<tag_t>>& tags,
                                             gr_vector_int& n_input_items_reqd)
 {
-    dvbs2_modcod_t modcod;
-    dvbs2_vlsnr_header_t vlsnr_header;
+    // dvbs2_modcod_t modcod;
+    // dvbs2_vlsnr_header_t vlsnr_header;
+    dvbs2_framesize_t framesize;
+    dvbs2_code_rate_t code_rate;
     for (tag_t tag : tags[0]) {
-        if (tag.key == pmt::intern("frame_length")) {
-            n_input_items_reqd[0] = pmt::to_long(tag.value);
-            remove_item_tag(0, tag);
-        } else if (tag.key == pmt::intern("modcod")) {
-            modcod = (dvbs2_modcod_t)(pmt::to_long(tag.value) & 0x7f);
-        } else if (tag.key == pmt::intern("vlsnr_header")) {
-            vlsnr_header = (dvbs2_vlsnr_header_t)(pmt::to_long(tag.value) & 0x0f);
+        if (tag.key == pmt::intern("modcod")) {
+            auto tagmodcod = pmt::to_uint64(tag.value);
+            framesize = (dvbs2_framesize_t)((tagmodcod >> 1) & 0x1);
+            code_rate = (dvbs2_code_rate_t)((tagmodcod >> 8) & 0xff);
+            // modcod = (dvbs2_modcod_t)((tagmodcod >> 25) & 0x7f);
+            // vlsnr_header = (dvbs2_vlsnr_header_t)((tagmodcod >> 4) & 0x0f);
         }
     }
-    this->params = bch_code::select(modcod, vlsnr_header);
-    if (n_input_items_reqd[0] != (int)params.kbch) {
-        n_input_items_reqd[0] = (int)params.kbch;
+    // this->params = bch_code::select(modcod, vlsnr_header);
+    if (framesize == FECFRAME_NORMAL) {
+        n_input_items_reqd[0] = bch_code::select_normal(code_rate).kbch;
+    } else {
+        n_input_items_reqd[0] = bch_code::select_short(code_rate).kbch;
     }
 }
 
@@ -69,7 +72,7 @@ int bch_encoder_bb_impl::work(int noutput_items,
     auto in = static_cast<const input_type*>(input_items[0]);
     auto out = static_cast<output_type*>(output_items[0]);
 
-    add_item_tag(0, 0, pmt::intern("frame_length"), pmt::from_long((long)params.nbch));
+    // add_item_tag(0, 0, pmt::intern("frame_length"), pmt::from_long((long)params.nbch));
 
     params.encode(in, out);
 

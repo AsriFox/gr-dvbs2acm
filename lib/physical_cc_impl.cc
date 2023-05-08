@@ -60,8 +60,8 @@ physical_cc_impl::physical_cc_impl(bool dummyframes)
         m_pl_dummy[i] = m_bpsk[i & 1][b[i]];
     }
 
-    set_tag_propagation_policy(TPP_DONT);
-    set_output_multiple(FRAME_SIZE_NORMAL + 1764);
+    set_tag_propagation_policy(TPP_ALL_TO_ALL);
+    // set_output_multiple(FRAME_SIZE_NORMAL + 1764);
 }
 
 /*
@@ -223,17 +223,17 @@ void physical_cc_impl::pl_header_encode(dvbs2_modcod_t modcod,
         b[i] = ph_sync_seq[i];
     }
     // Add the MODCOD
-    b_64_8_code((modcod << 1) | pilots, &b[26]);
+    b_64_8_code(((int)modcod << 1) | pilots, &b[26]);
 
     // BPSK modulate and create the header
     for (int i = 0; i < 26; i++) {
         m_pl[i] = m_bpsk[i & 1][b[i]];
     }
-    if (modcod < 64) { // DVB-S2
+    if (modcod_is_dvbs2x(modcod)) {
         for (int i = 26; i < 90; i++) {
             m_pl[i] = m_bpsk[(i & 1) + 2][b[i]];
         }
-    } else { // DVB-S2X
+    } else {
         for (int i = 26; i < 90; i++) {
             m_pl[i] = m_bpsk[i & 1][b[i]];
         }
@@ -263,19 +263,19 @@ void physical_cc_impl::parse_length_tags(const std::vector<std::vector<tag_t>>& 
                                          gr_vector_int& n_input_items_reqd)
 {
     bool pilots = true;
+    dvbs2_modcod_t modcod;
+    dvbs2_vlsnr_header_t vlsnr_header;
     for (tag_t tag : tags[0]) {
-        if (tag.key == pmt::intern("frame_length")) {
-            n_input_items_reqd[0] = pmt::to_long(tag.value);
-            remove_item_tag(0, tag);
-        } else if (tag.key == pmt::intern("modcod")) {
-            modcod = (dvbs2_modcod_t)(pmt::to_long(tag.value) & 0x7f);
-        } else if (tag.key == pmt::intern("vlsnr_header")) {
-            vlsnr_header = (dvbs2_vlsnr_header_t)(pmt::to_long(tag.value) & 0x0f);
-        } else if (tag.key == pmt::intern("root_code")) {
-            root_code = (int)(pmt::to_long(tag.value));
-        } else if (tag.key == pmt::intern("pilots")) {
-            pilots = pmt::to_bool(tag.value);
+        if (tag.key == pmt::intern("modcod")) {
+            auto tagmodcod = pmt::to_uint64(tag.value);
+            root_code = (int)((tagmodcod >> 32) & 0xffff);
+            modcod = (dvbs2_modcod_t)((tagmodcod >> 25) & 0x7f);
+            vlsnr_header = (dvbs2_vlsnr_header_t)((tagmodcod >> 4) & 0x0f);
+            pilots = (bool)((tagmodcod >> 24) & 0x1);
         }
+    }
+    if (modcod == MC_VLSNR_SET1 || modcod == MC_VLSNR_SET2) {
+        pilots = true;
     }
     slots = get_slots(modcod, vlsnr_header);
     if (pilots) {
@@ -305,6 +305,8 @@ int physical_cc_impl::work(int noutput_items,
     int slot_count;
     int group, symbols;
     gr_complex tempin, tempout;
+
+    pl_header_encode(modcod, pilot_symbols > 0, vlsnr_header);
 
     if (dummy_frames && (modcod == MC_DUMMY || modcod == MC_DUMMY_S)) {
         // Produce a DUMMY PLFRAME

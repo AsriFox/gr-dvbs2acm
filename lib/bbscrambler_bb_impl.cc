@@ -8,6 +8,7 @@
 #include "bbscrambler_bb_impl.h"
 #include "bch_code.h"
 #include <gnuradio/io_signature.h>
+#include <pmt/pmt.h>
 #include <vector>
 
 namespace gr {
@@ -28,6 +29,7 @@ bbscrambler_bb_impl::bbscrambler_bb_impl()
                               gr::io_signature::make(1, 1, sizeof(output_type)),
                               "frame_length")
 {
+    set_min_output_buffer(FRAME_SIZE_NORMAL * 6);
     set_tag_propagation_policy(TPP_ALL_TO_ALL);
 }
 
@@ -49,9 +51,28 @@ void bbscrambler_bb_impl::init_bb_randomizer(void)
     }
 }
 
-int bbscrambler_bb_impl::calculate_output_stream_length(const gr_vector_int& ninput_items)
+void bbscrambler_bb_impl::parse_length_tags(const std::vector<std::vector<tag_t>>& tags,
+                                            gr_vector_int& n_input_items_reqd)
 {
-    return ninput_items[0];
+    // dvbs2_modcod_t modcod;
+    // dvbs2_vlsnr_header_t vlsnr_header;
+    dvbs2_framesize_t framesize;
+    dvbs2_code_rate_t code_rate;
+    for (tag_t tag : tags[0]) {
+        if (tag.key == pmt::intern("modcod")) {
+            auto tagmodcod = pmt::to_uint64(tag.value);
+            framesize = (dvbs2_framesize_t)((tagmodcod >> 1) & 0x1);
+            code_rate = (dvbs2_code_rate_t)((tagmodcod >> 8) & 0xff);
+            // modcod = (dvbs2_modcod_t)((tagmodcod >> 25) & 0x7f);
+            // vlsnr_header = (dvbs2_vlsnr_header_t)((tagmodcod >> 4) & 0x0f);
+        }
+    }
+    // n_input_items_reqd[0] = bch_code::select(modcod, vlsnr_header).kbch;
+    if (framesize == FECFRAME_NORMAL) {
+        n_input_items_reqd[0] = bch_code::select_normal(code_rate).kbch;
+    } else {
+        n_input_items_reqd[0] = bch_code::select_short(code_rate).kbch;
+    }
 }
 
 int bbscrambler_bb_impl::work(int noutput_items,

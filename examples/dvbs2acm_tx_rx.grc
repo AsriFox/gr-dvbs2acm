@@ -338,7 +338,7 @@ blocks:
     bus_structure: null
     coordinate: [904, 1080.0]
     rotation: 0
-    state: true
+    state: enabled
 - name: blocks_probe_rate_0_0
   id: blocks_probe_rate
   parameters:
@@ -357,7 +357,7 @@ blocks:
     bus_structure: null
     coordinate: [616, 1100.0]
     rotation: 0
-    state: true
+    state: enabled
 - name: blocks_throttle_0
   id: blocks_throttle
   parameters:
@@ -376,7 +376,7 @@ blocks:
     bus_structure: null
     coordinate: [944, 692.0]
     rotation: 0
-    state: true
+    state: enabled
 - name: debug
   id: parameter
   parameters:
@@ -639,7 +639,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [664, 644.0]
+    coordinate: [928, 644.0]
     rotation: 0
     state: disabled
 - name: dvbs2acm_rotator_cc_0
@@ -680,7 +680,7 @@ blocks:
     bus_structure: null
     coordinate: [872, 868.0]
     rotation: 180
-    state: true
+    state: enabled
 - name: dvbs2rx_bbdeheader_bb_0
   id: dvbs2rx_bbdeheader_bb
   parameters:
@@ -699,7 +699,7 @@ blocks:
     bus_structure: null
     coordinate: [368, 1084.0]
     rotation: 0
-    state: true
+    state: enabled
 - name: dvbs2rx_bbdescrambler_bb_0
   id: dvbs2rx_bbdescrambler_bb
   parameters:
@@ -717,7 +717,7 @@ blocks:
     bus_structure: null
     coordinate: [112, 1092.0]
     rotation: 0
-    state: true
+    state: enabled
 - name: dvbs2rx_bch_decoder_bb_0
   id: dvbs2rx_bch_decoder_bb
   parameters:
@@ -737,7 +737,7 @@ blocks:
     bus_structure: null
     coordinate: [112, 932.0]
     rotation: 180
-    state: true
+    state: enabled
 - name: dvbs2rx_ldpc_decoder_cb_0
   id: dvbs2rx_ldpc_decoder_cb
   parameters:
@@ -760,7 +760,7 @@ blocks:
     bus_structure: null
     coordinate: [312, 908.0]
     rotation: 180
-    state: true
+    state: enabled
 - name: dvbs2rx_plsync_cc_0
   id: dvbs2rx_plsync_cc
   parameters:
@@ -783,7 +783,7 @@ blocks:
     bus_structure: null
     coordinate: [632, 844.0]
     rotation: 180
-    state: true
+    state: enabled
 - name: frame_size
   id: parameter
   parameters:
@@ -1272,17 +1272,22 @@ connections:
 - [blocks_probe_rate_0_0, rate, blocks_message_debug_0_0_0, print]
 - [blocks_throttle_0, '0', virtual_sink_1_0, '0']
 - [dvbs2_bbheader_bb_0, '0', dvbs2_bbscrambler_bb_0, '0']
+- [dvbs2_bbheader_bb_0, '0', dvbs2acm_bbscrambler_bb_0, '0']
 - [dvbs2_bbscrambler_bb_0, '0', dvbs2_bch_bb_0, '0']
 - [dvbs2_bch_bb_0, '0', dvbs2_ldpc_bb_0, '0']
 - [dvbs2_interleaver_bb_0, '0', dvbs2_modulator_bc_0, '0']
 - [dvbs2_ldpc_bb_0, '0', dvbs2_interleaver_bb_0, '0']
 - [dvbs2_modulator_bc_0, '0', dvbs2_physical_cc_0, '0']
 - [dvbs2_physical_cc_0, '0', blocks_throttle_0, '0']
+- [dvbs2acm_bbheader_bb_0, '0', dvbs2_bbscrambler_bb_0, '0']
 - [dvbs2acm_bbheader_bb_0, '0', dvbs2acm_bbscrambler_bb_0, '0']
+- [dvbs2acm_bbscrambler_bb_0, '0', dvbs2_bch_bb_0, '0']
 - [dvbs2acm_bbscrambler_bb_0, '0', dvbs2acm_bch_encoder_bb_0, '0']
+- [dvbs2acm_bch_encoder_bb_0, '0', dvbs2_ldpc_bb_0, '0']
 - [dvbs2acm_bch_encoder_bb_0, '0', dvbs2acm_ldpc_encoder_bb_0, '0']
 - [dvbs2acm_interleaver_bb_0, '0', dvbs2acm_modulator_bc_0, '0']
 - [dvbs2acm_ldpc_encoder_bb_0, '0', dvbs2acm_interleaver_bb_0, '0']
+- [dvbs2acm_modulator_bc_0, '0', dvbs2_physical_cc_0, '0']
 - [dvbs2acm_modulator_bc_0, '0', dvbs2acm_physical_cc_0, '0']
 - [dvbs2acm_physical_cc_0, '0', blocks_throttle_0, '0']
 - [dvbs2acm_rotator_cc_0, '0', dvbs2acm_symbol_sync_cc_0, '0']
