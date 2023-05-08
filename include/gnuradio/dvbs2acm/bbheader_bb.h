@@ -1,6 +1,7 @@
 /* -*- c++ -*- */
 /*
  * Copyright 2023 AsriFox.
+ * Copyright 2014,2016,2017,2020 Ron Economos.
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
@@ -37,8 +38,7 @@ public:
      * \param rolloff DVB-S2 root-raised-cosine filter roll-off factor.
      * \param goldcode PL scrambler Gold code (0 to 262141 inclusive).
      */
-    static sptr
-    make(int modcod, bool pilots = true, dvbs2_rolloff_factor_t rolloff = RO_0_20, int goldcode = 0);
+    static sptr make(int modcod, bool pilots, dvbs2_rolloff_factor_t rolloff, int goldcode);
 
     virtual void set_modcod(int modcod) = 0;
 };

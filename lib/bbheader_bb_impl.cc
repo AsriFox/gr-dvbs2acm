@@ -3,26 +3,14 @@
  * Copyright 2023 AsriFox.
  * Copyright 2014,2016,2017,2020 Ron Economos.
  *
- * This is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 3, or (at your option)
- * any later version.
- *
- * This software is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this software; see the file COPYING.  If not, write to
- * the Free Software Foundation, Inc., 51 Franklin Street,
- * Boston, MA 02110-1301, USA.
+ * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
 #include "bb_header.hh"
 #include "bbheader_bb_impl.h"
 #include "bch_code.h"
 #include "modcod.hh"
+#include "gnuradio/dvbs2acm/dvbs2_config.h"
 #include <gnuradio/io_signature.h>
 #include <pmt/pmt.h>
 
@@ -72,11 +60,12 @@ bbheader_bb_impl::bbheader_bb_impl(int modcod,
     header.ro = rolloff & 0x3;
 
     build_crc8_table(crc_tab.data());
-    set_output_multiple(FRAME_SIZE_NORMAL);
 
     const pmt::pmt_t port_id = pmt::mp("cmd");
     message_port_register_in(port_id);
     set_msg_handler(port_id, [this](pmt::pmt_t msg) { this->handle_cmd_msg(msg); });
+
+    set_tag_propagation_policy(TPP_DONT);
 }
 
 /*
@@ -86,7 +75,7 @@ bbheader_bb_impl::~bbheader_bb_impl() {}
 
 void bbheader_bb_impl::forecast(int noutput_items, gr_vector_int& ninput_items_required)
 {
-    ninput_items_required[0] = (noutput_items - 80) / 8;
+    ninput_items_required[0] = (kbch - 80) / 8;
 }
 
 void bbheader_bb_impl::set_modcod(int modcod)
@@ -106,6 +95,8 @@ void bbheader_bb_impl::set_modcod(int modcod)
     } else {
         this->modcod = (dvbs2_modcod_t)modcod;
     }
+    this->kbch = bch_code::select(this->modcod, this->vlsnr_header).kbch;
+    header.dfl = kbch - BB_HEADER_LENGTH_BITS;
 }
 
 void bbheader_bb_impl::handle_cmd_msg(pmt::pmt_t msg)
@@ -133,98 +124,96 @@ int bbheader_bb_impl::general_work(int noutput_items,
                                    gr_vector_const_void_star& input_items,
                                    gr_vector_void_star& output_items)
 {
-    if (ninput_items[0] == 0) {
+    if (ninput_items[0] < header.dfl / 8) {
         consume_each(0);
-        return WORK_CALLED_PRODUCE;
+        return 0;
     }
     gr::thread::scoped_lock l(d_mutex);
 
     auto in = static_cast<const input_type*>(input_items[0]);
     auto out = static_cast<output_type*>(output_items[0]);
-    int consumed = 0;
-    int produced = 0;
-    int offset = 0;
-    unsigned char b;
 
-    while (kbch + produced <= (unsigned int)noutput_items) {
-        const uint64_t tagoffset = this->nitems_written(0);
+    auto constellation = modcod_constellation(modcod);
+    auto code_rate = modcod_rate(modcod);
+    auto framesize = modcod_framesize(modcod);
+    if (modcod == MC_VLSNR_SET1 || modcod == MC_VLSNR_SET2) {
+        constellation = vlsnr_constellation(vlsnr_header);
+        code_rate = vlsnr_rate(vlsnr_header);
+        framesize = vlsnr_framesize(vlsnr_header);
+    }
 
-        auto framesize = (modcod & 2) ? FECFRAME_SHORT : FECFRAME_NORMAL;
+    const auto tagoffset = nitems_written(0);
+    const uint64_t tagmodcod = (uint64_t(root_code) << 32) | (uint64_t(pilots) << 24) |
+                               (uint64_t(constellation) << 16) | (uint64_t(code_rate) << 8) |
+                               (uint64_t(framesize) << 1) | uint64_t(0);
+    add_item_tag(0, tagoffset, pmt::string_to_symbol("modcod"), pmt::from_uint64(tagmodcod));
 
-        const uint64_t tagmodcod = (uint64_t(root_code) << 32) | (uint64_t(vlsnr_header) << 9) |
-                                   (uint64_t(modcod) << 2) | (uint64_t(pilots) << 1) | uint64_t(0);
-        pmt::pmt_t key = pmt::string_to_symbol("modcod");
-        pmt::pmt_t value = pmt::from_uint64(tagmodcod);
-        this->add_item_tag(0, tagoffset, key, value);
-        kbch = bch_code::select(modcod, vlsnr_header).kbch;
-        header.dfl = kbch - BB_HEADER_LENGTH_BITS;
-        if (framesize != FECFRAME_MEDIUM) {
-            header.add_to_frame(&out[offset], count, nibble, dvbs2x && alternate);
-            if (dvbs2x) {
-                alternate = !alternate;
-            }
-            offset += BB_HEADER_LENGTH_BITS;
-            for (int j = 0; j < (int)(header.dfl / 8); j++) {
-                if (header.sync == 0x47) {
-                    // MPEG-2 Transport Stream
-                    if (count == 0) {
-                        if (*in != header.sync) {
-                            GR_LOG_WARN(d_logger, "Transport Stream sync error!");
-                        }
-                        in++;
-                        b = crc;
-                        crc = 0;
-                    } else {
-                        b = *in++;
-                        crc = crc_tab[b ^ crc];
+    input_type b;
+    if (framesize != FECFRAME_MEDIUM) {
+        header.add_to_frame(out, count, nibble, dvbs2x && alternate);
+        if (dvbs2x) {
+            alternate = !alternate;
+        }
+        auto offset = BB_HEADER_LENGTH_BITS;
+        for (int j = 0; j < (int)(header.dfl / 8); j++) {
+            if (header.sync == 0x47) {
+                // MPEG-2 Transport Stream
+                if (count == 0) {
+                    if (*in != header.sync) {
+                        GR_LOG_WARN(d_logger, "Transport Stream sync error!");
                     }
-                    count = (count + 1) % 188; // TODO: GSE
-                }
-                // else Generic Continous Stream
-                // TODO: GSE
-                consumed++;
-                offset += unpack_bits_8(b, &out[offset]);
-            }
-        } else {
-            header.add_to_frame(&out[offset], count, nibble, dvbs2x && alternate);
-            if (dvbs2x) {
-                alternate = !alternate;
-            }
-            offset += BB_HEADER_LENGTH_BITS;
-            for (int j = 0; j < (int)(header.dfl / 4); j++) {
-                // TODO: Generic Streams
-                if (nibble) {
-                    if (count == 0) {
-                        if (header.sync != 0 && *in != header.sync) {
-                            GR_LOG_WARN(d_logger, "Transport Stream sync error!");
-                        }
-                        in++;
-                        b = crc;
-                        crc = 0;
-                    } else {
-                        b = *in++;
-                        crc = crc_tab[b ^ crc];
-                    }
-                    bsave = b;
-                    count = (count + 1) % 188; // TODO: GSE
-                    consumed++;
-                    for (int n = 1 << 7; n >= 1; n >>= 1) {
-                        out[offset++] = (b & n) ? 1 : 0;
-                    }
-                    nibble = false;
+                    in++;
+                    b = crc;
+                    crc = 0;
                 } else {
-                    for (int n = 1 << 3; n >= 1; n >>= 1) {
-                        out[offset++] = (bsave & n) ? 1 : 0;
-                    }
-                    nibble = true;
+                    b = *in++;
+                    crc = crc_tab[b ^ crc];
                 }
+                count = (count + 1) % 188; // TODO: GSE
+            } else {
+                // Generic Continous Stream
+                b = *in++;
+            }
+            // TODO: GSE
+            offset += unpack_bits_8(b, &out[offset]);
+        }
+    } else {
+        header.add_to_frame(out, count, nibble, dvbs2x && alternate);
+        if (dvbs2x) {
+            alternate = !alternate;
+        }
+        auto offset = BB_HEADER_LENGTH_BITS;
+        for (int j = 0; j < (int)(header.dfl / 4); j++) {
+            // TODO: Generic Streams
+            if (nibble) {
+                if (count == 0) {
+                    if (header.sync != 0 && *in != header.sync) {
+                        GR_LOG_WARN(d_logger, "Transport Stream sync error!");
+                    }
+                    in++;
+                    b = crc;
+                    crc = 0;
+                } else {
+                    b = *in++;
+                    crc = crc_tab[b ^ crc];
+                }
+                bsave = b;
+                count = (count + 1) % 188; // TODO: GSE
+                for (int n = 1 << 7; n >= 1; n >>= 1) {
+                    out[offset++] = (b & n) ? 1 : 0;
+                }
+                nibble = false;
+            } else {
+                for (int n = 1 << 3; n >= 1; n >>= 1) {
+                    out[offset++] = (bsave & n) ? 1 : 0;
+                }
+                nibble = true;
             }
         }
-        produced += kbch;
-        produce(0, kbch);
     }
-    consume_each(consumed);
-    return WORK_CALLED_PRODUCE;
+
+    consume_each(header.dfl / 8);
+    return kbch;
 }
 
 } /* namespace dvbs2acm */
