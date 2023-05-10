@@ -909,13 +909,21 @@ int plsync_cc_impl::general_work(int noutput_items,
                     auto modcod = (d_curr_frame_info.pls.modcod << 1) |
                                   d_curr_frame_info.pls.short_fecframe; // TODO: DVB-S2X
                     auto vlsnr_header = 0;                              // TODO
+
+                    auto tagpls = pmt::make_dict();
+                    tagpls = pmt::dict_add(tagpls, pmt::intern("modcod"), pmt::from_long(modcod));
+                    tagpls = pmt::dict_add(
+                        tagpls, pmt::intern("vlsnr_header"), pmt::from_long(vlsnr_header));
+                    tagpls = pmt::dict_add(tagpls, pmt::intern("pilots"), pmt::from_bool(pilots));
+                    tagpls =
+                        pmt::dict_add(tagpls, pmt::intern("dummy_frame"), pmt::from_bool(dummy_frame));
+                    tagpls = pmt::dict_add(tagpls, pmt::intern("root_code"), pmt::from_long(root_code));
+
                     const uint64_t tagoffset = this->nitems_written(0) + n_produced;
-                    const uint64_t tagmodcod = (uint64_t(root_code) << 32) |
-                                               (uint64_t(vlsnr_header) << 9) | (uint64_t(modcod) << 2) |
-                                               (uint64_t(pilots) << 1) | uint64_t(dummy_frame);
-                    pmt::pmt_t key = pmt::string_to_symbol("modcod");
-                    pmt::pmt_t value = pmt::from_uint64(tagmodcod);
-                    this->add_item_tag(0, tagoffset, key, value);
+                    // const uint64_t tagmodcod = (uint64_t(root_code) << 32) |
+                    //                            (uint64_t(vlsnr_header) << 9) | (uint64_t(modcod) <<
+                    //                            2) | (uint64_t(pilots) << 1) | uint64_t(dummy_frame);
+                    this->add_item_tag(0, tagoffset, pmt::intern("pls"), tagpls);
                 }
                 break;
             }

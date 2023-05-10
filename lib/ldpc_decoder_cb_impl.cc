@@ -10,12 +10,12 @@
 
 #include "cpu_features_macros.h"
 #include "debug_level.h"
+#include "ldpc_decoder/dvb_s2_tables.hh"
+#include "ldpc_decoder/dvb_s2x_tables.hh"
 #include "ldpc_decoder_cb_impl.h"
 #include "modcod.hh"
 #include <gnuradio/io_signature.h>
 #include <pmt/pmt.h>
-#include <cstddef>
-#include <string>
 
 #ifdef CPU_FEATURES_ARCH_ARM
 #include "cpu_features/cpuinfo_arm.h"
@@ -53,6 +53,226 @@ namespace ldpc_generic {
 void ldpc_dec_init(LDPCInterface* it);
 int ldpc_dec_decode(void* buffer, int8_t* code, int trials);
 } // namespace ldpc_generic
+
+constexpr int DVB_S2_TABLE_B1::DEG[];
+constexpr int DVB_S2_TABLE_B1::LEN[];
+constexpr int DVB_S2_TABLE_B1::POS[];
+
+constexpr int DVB_S2_TABLE_B2::DEG[];
+constexpr int DVB_S2_TABLE_B2::LEN[];
+constexpr int DVB_S2_TABLE_B2::POS[];
+
+constexpr int DVB_S2_TABLE_B3::DEG[];
+constexpr int DVB_S2_TABLE_B3::LEN[];
+constexpr int DVB_S2_TABLE_B3::POS[];
+
+constexpr int DVB_S2_TABLE_B4::DEG[];
+constexpr int DVB_S2_TABLE_B4::LEN[];
+constexpr int DVB_S2_TABLE_B4::POS[];
+
+constexpr int DVB_S2_TABLE_B5::DEG[];
+constexpr int DVB_S2_TABLE_B5::LEN[];
+constexpr int DVB_S2_TABLE_B5::POS[];
+
+constexpr int DVB_S2_TABLE_B6::DEG[];
+constexpr int DVB_S2_TABLE_B6::LEN[];
+constexpr int DVB_S2_TABLE_B6::POS[];
+
+constexpr int DVB_S2_TABLE_B7::DEG[];
+constexpr int DVB_S2_TABLE_B7::LEN[];
+constexpr int DVB_S2_TABLE_B7::POS[];
+
+constexpr int DVB_S2_TABLE_B8::DEG[];
+constexpr int DVB_S2_TABLE_B8::LEN[];
+constexpr int DVB_S2_TABLE_B8::POS[];
+
+constexpr int DVB_S2_TABLE_B9::DEG[];
+constexpr int DVB_S2_TABLE_B9::LEN[];
+constexpr int DVB_S2_TABLE_B9::POS[];
+
+constexpr int DVB_S2_TABLE_B10::DEG[];
+constexpr int DVB_S2_TABLE_B10::LEN[];
+constexpr int DVB_S2_TABLE_B10::POS[];
+
+constexpr int DVB_S2_TABLE_B11::DEG[];
+constexpr int DVB_S2_TABLE_B11::LEN[];
+constexpr int DVB_S2_TABLE_B11::POS[];
+
+constexpr int DVB_S2X_TABLE_B1::DEG[];
+constexpr int DVB_S2X_TABLE_B1::LEN[];
+constexpr int DVB_S2X_TABLE_B1::POS[];
+
+constexpr int DVB_S2X_TABLE_B2::DEG[];
+constexpr int DVB_S2X_TABLE_B2::LEN[];
+constexpr int DVB_S2X_TABLE_B2::POS[];
+
+constexpr int DVB_S2X_TABLE_B3::DEG[];
+constexpr int DVB_S2X_TABLE_B3::LEN[];
+constexpr int DVB_S2X_TABLE_B3::POS[];
+
+constexpr int DVB_S2X_TABLE_B4::DEG[];
+constexpr int DVB_S2X_TABLE_B4::LEN[];
+constexpr int DVB_S2X_TABLE_B4::POS[];
+
+constexpr int DVB_S2X_TABLE_B5::DEG[];
+constexpr int DVB_S2X_TABLE_B5::LEN[];
+constexpr int DVB_S2X_TABLE_B5::POS[];
+
+constexpr int DVB_S2X_TABLE_B6::DEG[];
+constexpr int DVB_S2X_TABLE_B6::LEN[];
+constexpr int DVB_S2X_TABLE_B6::POS[];
+
+constexpr int DVB_S2X_TABLE_B7::DEG[];
+constexpr int DVB_S2X_TABLE_B7::LEN[];
+constexpr int DVB_S2X_TABLE_B7::POS[];
+
+constexpr int DVB_S2X_TABLE_B8::DEG[];
+constexpr int DVB_S2X_TABLE_B8::LEN[];
+constexpr int DVB_S2X_TABLE_B8::POS[];
+
+constexpr int DVB_S2X_TABLE_B9::DEG[];
+constexpr int DVB_S2X_TABLE_B9::LEN[];
+constexpr int DVB_S2X_TABLE_B9::POS[];
+
+constexpr int DVB_S2X_TABLE_B10::DEG[];
+constexpr int DVB_S2X_TABLE_B10::LEN[];
+constexpr int DVB_S2X_TABLE_B10::POS[];
+
+constexpr int DVB_S2X_TABLE_B11::DEG[];
+constexpr int DVB_S2X_TABLE_B11::LEN[];
+constexpr int DVB_S2X_TABLE_B11::POS[];
+
+constexpr int DVB_S2X_TABLE_B12::DEG[];
+constexpr int DVB_S2X_TABLE_B12::LEN[];
+constexpr int DVB_S2X_TABLE_B12::POS[];
+
+constexpr int DVB_S2X_TABLE_B13::DEG[];
+constexpr int DVB_S2X_TABLE_B13::LEN[];
+constexpr int DVB_S2X_TABLE_B13::POS[];
+
+constexpr int DVB_S2X_TABLE_B14::DEG[];
+constexpr int DVB_S2X_TABLE_B14::LEN[];
+constexpr int DVB_S2X_TABLE_B14::POS[];
+
+constexpr int DVB_S2X_TABLE_B15::DEG[];
+constexpr int DVB_S2X_TABLE_B15::LEN[];
+constexpr int DVB_S2X_TABLE_B15::POS[];
+
+constexpr int DVB_S2X_TABLE_B16::DEG[];
+constexpr int DVB_S2X_TABLE_B16::LEN[];
+constexpr int DVB_S2X_TABLE_B16::POS[];
+
+constexpr int DVB_S2X_TABLE_B17::DEG[];
+constexpr int DVB_S2X_TABLE_B17::LEN[];
+constexpr int DVB_S2X_TABLE_B17::POS[];
+
+constexpr int DVB_S2X_TABLE_B18::DEG[];
+constexpr int DVB_S2X_TABLE_B18::LEN[];
+constexpr int DVB_S2X_TABLE_B18::POS[];
+
+constexpr int DVB_S2X_TABLE_B19::DEG[];
+constexpr int DVB_S2X_TABLE_B19::LEN[];
+constexpr int DVB_S2X_TABLE_B19::POS[];
+
+constexpr int DVB_S2X_TABLE_B20::DEG[];
+constexpr int DVB_S2X_TABLE_B20::LEN[];
+constexpr int DVB_S2X_TABLE_B20::POS[];
+
+constexpr int DVB_S2X_TABLE_B21::DEG[];
+constexpr int DVB_S2X_TABLE_B21::LEN[];
+constexpr int DVB_S2X_TABLE_B21::POS[];
+
+constexpr int DVB_S2X_TABLE_B22::DEG[];
+constexpr int DVB_S2X_TABLE_B22::LEN[];
+constexpr int DVB_S2X_TABLE_B22::POS[];
+
+constexpr int DVB_S2X_TABLE_B23::DEG[];
+constexpr int DVB_S2X_TABLE_B23::LEN[];
+constexpr int DVB_S2X_TABLE_B23::POS[];
+
+constexpr int DVB_S2X_TABLE_B24::DEG[];
+constexpr int DVB_S2X_TABLE_B24::LEN[];
+constexpr int DVB_S2X_TABLE_B24::POS[];
+
+constexpr int DVB_S2_TABLE_C1::DEG[];
+constexpr int DVB_S2_TABLE_C1::LEN[];
+constexpr int DVB_S2_TABLE_C1::POS[];
+
+constexpr int DVB_S2_TABLE_C2::DEG[];
+constexpr int DVB_S2_TABLE_C2::LEN[];
+constexpr int DVB_S2_TABLE_C2::POS[];
+
+constexpr int DVB_S2_TABLE_C3::DEG[];
+constexpr int DVB_S2_TABLE_C3::LEN[];
+constexpr int DVB_S2_TABLE_C3::POS[];
+
+constexpr int DVB_S2_TABLE_C4::DEG[];
+constexpr int DVB_S2_TABLE_C4::LEN[];
+constexpr int DVB_S2_TABLE_C4::POS[];
+
+constexpr int DVB_S2_TABLE_C5::DEG[];
+constexpr int DVB_S2_TABLE_C5::LEN[];
+constexpr int DVB_S2_TABLE_C5::POS[];
+
+constexpr int DVB_S2_TABLE_C6::DEG[];
+constexpr int DVB_S2_TABLE_C6::LEN[];
+constexpr int DVB_S2_TABLE_C6::POS[];
+
+constexpr int DVB_S2_TABLE_C7::DEG[];
+constexpr int DVB_S2_TABLE_C7::LEN[];
+constexpr int DVB_S2_TABLE_C7::POS[];
+
+constexpr int DVB_S2_TABLE_C8::DEG[];
+constexpr int DVB_S2_TABLE_C8::LEN[];
+constexpr int DVB_S2_TABLE_C8::POS[];
+
+constexpr int DVB_S2_TABLE_C9::DEG[];
+constexpr int DVB_S2_TABLE_C9::LEN[];
+constexpr int DVB_S2_TABLE_C9::POS[];
+
+constexpr int DVB_S2_TABLE_C10::DEG[];
+constexpr int DVB_S2_TABLE_C10::LEN[];
+constexpr int DVB_S2_TABLE_C10::POS[];
+
+constexpr int DVB_S2X_TABLE_C1::DEG[];
+constexpr int DVB_S2X_TABLE_C1::LEN[];
+constexpr int DVB_S2X_TABLE_C1::POS[];
+
+constexpr int DVB_S2X_TABLE_C2::DEG[];
+constexpr int DVB_S2X_TABLE_C2::LEN[];
+constexpr int DVB_S2X_TABLE_C2::POS[];
+
+constexpr int DVB_S2X_TABLE_C3::DEG[];
+constexpr int DVB_S2X_TABLE_C3::LEN[];
+constexpr int DVB_S2X_TABLE_C3::POS[];
+
+constexpr int DVB_S2X_TABLE_C4::DEG[];
+constexpr int DVB_S2X_TABLE_C4::LEN[];
+constexpr int DVB_S2X_TABLE_C4::POS[];
+
+constexpr int DVB_S2X_TABLE_C5::DEG[];
+constexpr int DVB_S2X_TABLE_C5::LEN[];
+constexpr int DVB_S2X_TABLE_C5::POS[];
+
+constexpr int DVB_S2X_TABLE_C6::DEG[];
+constexpr int DVB_S2X_TABLE_C6::LEN[];
+constexpr int DVB_S2X_TABLE_C6::POS[];
+
+constexpr int DVB_S2X_TABLE_C7::DEG[];
+constexpr int DVB_S2X_TABLE_C7::LEN[];
+constexpr int DVB_S2X_TABLE_C7::POS[];
+
+constexpr int DVB_S2X_TABLE_C8::DEG[];
+constexpr int DVB_S2X_TABLE_C8::LEN[];
+constexpr int DVB_S2X_TABLE_C8::POS[];
+
+constexpr int DVB_S2X_TABLE_C9::DEG[];
+constexpr int DVB_S2X_TABLE_C9::LEN[];
+constexpr int DVB_S2X_TABLE_C9::POS[];
+
+constexpr int DVB_S2X_TABLE_C10::DEG[];
+constexpr int DVB_S2X_TABLE_C10::LEN[];
+constexpr int DVB_S2X_TABLE_C10::POS[];
 
 namespace gr {
 namespace dvbs2acm {
@@ -126,16 +346,16 @@ ldpc_decoder_cb_impl::ldpc_decoder_cb_impl(bool outputmode,
     assert(decode != nullptr);
     d_debug_logger->debug("LDPC decoder implementation: {:s}", impl);
 
-    soft = new int8_t[FRAME_SIZE_NORMAL];
-    dint = new int8_t[FRAME_SIZE_NORMAL];
-    tempu = new int8_t[FRAME_SIZE_NORMAL];
-    tempv = new int8_t[FRAME_SIZE_NORMAL];
+    soft.resize(FRAME_SIZE_NORMAL * d_simd_size);
+    dint.resize(FRAME_SIZE_NORMAL * d_simd_size);
+    tempu.resize(FRAME_SIZE_NORMAL);
+    tempv.resize(FRAME_SIZE_NORMAL);
     aligned_buffer = aligned_alloc(d_simd_size, d_simd_size * FRAME_SIZE_NORMAL);
-    set_output_multiple(FRAME_SIZE_NORMAL);
-    // if (outputmode == OM_MESSAGE) {
+    set_output_multiple(FRAME_SIZE_NORMAL * d_simd_size);
+    // if (outputmode) { // == OM_MESSAGE
     //     set_output_multiple(nbch * d_simd_size);
     //     set_relative_rate((double)nbch / frame_size);
-    // } else {
+    // } else { // == OM_CODEWORD
     //     set_output_multiple(frame_size * d_simd_size);
     // }
 }
@@ -146,20 +366,20 @@ ldpc_decoder_cb_impl::ldpc_decoder_cb_impl(bool outputmode,
 ldpc_decoder_cb_impl::~ldpc_decoder_cb_impl()
 {
     free(aligned_buffer);
-    delete[] tempv;
-    delete[] tempu;
-    delete[] dint;
-    delete[] soft;
-    delete mod;
-    delete ldpc;
+    mod.reset();
+    ldpc.reset();
 }
 
 void ldpc_decoder_cb_impl::forecast(int noutput_items, gr_vector_int& ninput_items_required)
 {
-    ninput_items_required[0] = noutput_items;
-    // if (output_mode == OM_MESSAGE) {
+    if (mod) {
+        ninput_items_required[0] = noutput_items / mod->bits();
+    } else {
+        ninput_items_required[0] = noutput_items / 2; // QPSK is the default
+    }
+    // if (output_mode) { // == OM_MESSAGE
     //     ninput_items_required[0] = (noutput_items / nbch) * (frame_size / mod->bits());
-    // } else {
+    // } else { // == OM_CODEWORD
     //     ninput_items_required[0] = noutput_items / mod->bits();
     // }
 }
@@ -172,50 +392,65 @@ int ldpc_decoder_cb_impl::general_work(int noutput_items,
                                        gr_vector_const_void_star& input_items,
                                        gr_vector_void_star& output_items)
 {
-    const gr_complex* in = (const gr_complex*)input_items[0];
-    const gr_complex* insnr = (const gr_complex*)input_items[0];
-    unsigned char* out = (unsigned char*)output_items[0];
+    auto in = static_cast<const input_type*>(input_items[0]);
+    auto insnr = static_cast<const input_type*>(input_items[0]);
+    auto out = static_cast<output_type*>(output_items[0]);
     float sp, np, sigma, precision_sum;
     gr_complex s, e;
     const int trials = (d_max_trials == 0) ? DEFAULT_TRIALS : d_max_trials;
     int consumed = 0;
     int rows, offset, indexin, indexout;
     const int* mux;
-    int8_t *c1, *c2, *c3;
     // int output_size = output_mode ? nbch : frame_size;
 
     std::vector<tag_t> tags;
     const uint64_t nread = this->nitems_read(0); // number of items read on port 0
 
     // Read all tags on the input buffer
-    this->get_tags_in_range(tags, 0, nread, nread + noutput_items, pmt::string_to_symbol("modcod"));
+    this->get_tags_in_range(tags, 0, nread, nread + noutput_items, pmt::intern("pls"));
 
-    // TODO: SIMD stuff
+    // TODO: SIMD stuff ???
     for (tag_t tag : tags) {
-        const uint64_t tagmodcod = pmt::to_uint64(tag.value);
-        auto modcod = (dvbs2_modcod_t)((tagmodcod >> 2) & 0x7f);
+        auto dict = tag.value;
+        dvbs2_modcod_t modcod;
+        dvbs2_vlsnr_header_t vlsnr_header;
+        if (dict->is_dict() && pmt::dict_has_key(dict, pmt::intern("modcod")) &&
+            pmt::dict_has_key(dict, pmt::intern("vlsnr_header"))) {
+            auto not_found = pmt::get_PMT_NIL();
+
+            auto modcod_r = pmt::dict_ref(dict, pmt::intern("modcod"), not_found);
+            if (modcod_r == not_found) {
+                continue;
+            }
+            modcod = (dvbs2_modcod_t)pmt::to_long(modcod_r);
+
+            auto vlsnr_header_r = pmt::dict_ref(dict, pmt::intern("vlsnr_header"), not_found);
+            if (vlsnr_header_r == not_found) {
+                continue;
+            }
+            vlsnr_header = (dvbs2_vlsnr_header_t)pmt::to_long(vlsnr_header_r);
+        } else {
+            continue;
+        }
         auto framesize = modcod_framesize(modcod);
         auto rate = modcod_rate(modcod);
         auto constellation = modcod_constellation(modcod);
         if (modcod == MC_VLSNR_SET1 || modcod == MC_VLSNR_SET2) {
-            auto vlsnr_header = (dvbs2_vlsnr_header_t)((tagmodcod >> 9) & 0x0f);
             framesize = vlsnr_framesize(vlsnr_header);
             rate = vlsnr_rate(vlsnr_header);
             constellation = vlsnr_constellation(vlsnr_header);
         }
-        const uint64_t tagoffset = this->nitems_written(0);
-        this->add_item_tag(0, tagoffset, pmt::string_to_symbol("modcod"), pmt::from_uint64(tagmodcod));
 
-        ldpc = build_decoder(framesize, rate);
-        init(ldpc);
+        ldpc.reset(build_decoder(framesize, rate));
+        init(ldpc.get());
 
         // TODO: Make a class
         switch (constellation) {
         case MOD_QPSK:
-            mod = new PhaseShiftKeying<4, gr_complex, int8_t>();
+            mod.reset(new PhaseShiftKeying<4, gr_complex, int8_t>());
             break;
         case MOD_8PSK:
-            mod = new PhaseShiftKeying<8, gr_complex, int8_t>();
+            mod.reset(new PhaseShiftKeying<8, gr_complex, int8_t>());
             rows = ldpc->code_len() / mod->bits();
             /* 210 */
             if (rate == C3_5) {
@@ -237,31 +472,21 @@ int ldpc_decoder_cb_impl::general_work(int noutput_items,
                 rowaddr2 = rows * 2;
             }
             break;
-        // These modulations are from DVB-T2:
-        // case MOD_16QAM:
-        //     mod = new QuadratureAmplitudeModulation<16, gr_complex, int8_t>();
-        //     break;
-        // case MOD_64QAM:
-        //     mod = new QuadratureAmplitudeModulation<64, gr_complex, int8_t>();
-        //     break;
-        // case MOD_256QAM:
-        //     mod = new QuadratureAmplitudeModulation<256, gr_complex, int8_t>();
-        //     break;
         default:
             break;
         }
 
-        const int CODE_LEN = ldpc->code_len();
-        const int MOD_BITS = mod->bits();
-        int8_t tmp[MOD_BITS];
+        int code_len = ldpc->code_len();
+        int mod_bits = mod->bits();
+        int8_t tmp[mod_bits];
         int8_t* code = nullptr;
-        const int SYMBOLS = CODE_LEN / MOD_BITS;
+        int symbols = code_len / mod_bits;
 
         // Determine target precision for demodulator based on noise level
         if (frame == 0) {
             sp = 0;
             np = 0;
-            for (int j = 0; j < SYMBOLS; j++) {
+            for (int j = 0; j < symbols; j++) {
                 mod->hard(tmp, in[j]);
                 s = mod->map(tmp);
                 e = in[j] - s;
@@ -277,8 +502,8 @@ int ldpc_decoder_cb_impl::general_work(int noutput_items,
         }
 
         // Demodulate
-        for (int j = 0; j < SYMBOLS; j++) {
-            mod->soft(soft + (j * MOD_BITS /*+ (blk * CODE_LEN)*/), in[j], precision);
+        for (int j = 0; j < symbols; j++) {
+            mod->soft(soft.data() + (j * mod_bits /*+ (blk * CODE_LEN)*/), in[j], precision);
         }
         int frame_size;
         switch (framesize) {
@@ -292,23 +517,20 @@ int ldpc_decoder_cb_impl::general_work(int noutput_items,
             frame_size = FRAME_SIZE_MEDIUM;
             break;
         }
-        rows = frame_size / MOD_BITS;
+        rows = frame_size / mod_bits;
         switch (constellation) {
         case MOD_8PSK:
-            c1 = &dint[rowaddr0];
-            c2 = &dint[rowaddr1];
-            c3 = &dint[rowaddr2];
             indexin = 0;
             for (int j = 0; j < rows; j++) {
-                c1[j] = soft[indexin++];
-                c2[j] = soft[indexin++];
-                c3[j] = soft[indexin++];
+                dint[rowaddr0 + j] = soft[indexin++];
+                dint[rowaddr1 + j] = soft[indexin++];
+                dint[rowaddr2 + j] = soft[indexin++];
             }
-            code = dint;
+            code = dint.data();
             break;
         case MOD_QPSK:
         default:
-            code = soft;
+            code = soft.data();
             break;
         }
         in += rows;
@@ -331,29 +553,26 @@ int ldpc_decoder_cb_impl::general_work(int noutput_items,
                                snr,
                                (trials - count));
         }
-
-        // Deinterleave?
         chunk++;
-        precision_sum = 0;
+
+        // Evaluate corrected SNR
+        // For that, codeword needs to be interleaved and modulated
         switch (constellation) {
         case MOD_QPSK:
-            for (int j = 0; j < CODE_LEN; j++) {
+            for (int j = 0; j < code_len; j++) {
                 tempv[j] = code[j] < 0 ? -1 : 1;
             }
             break;
         case MOD_8PSK:
-            for (int j = 0; j < CODE_LEN; j++) {
+            for (int j = 0; j < code_len; j++) {
                 tempu[j] = code[j] < 0 ? -1 : 1;
             }
-            rows = frame_size / MOD_BITS;
-            c1 = &tempu[rowaddr0];
-            c2 = &tempu[rowaddr1];
-            c3 = &tempu[rowaddr2];
+            rows = frame_size / mod_bits;
             indexout = 0;
             for (int j = 0; j < rows; j++) {
-                tempv[indexout++] = c1[j];
-                tempv[indexout++] = c2[j];
-                tempv[indexout++] = c3[j];
+                tempv[indexout++] = tempu[rowaddr0 + j];
+                tempv[indexout++] = tempu[rowaddr1 + j];
+                tempv[indexout++] = tempu[rowaddr2 + j];
             }
             break;
         default:
@@ -361,8 +580,9 @@ int ldpc_decoder_cb_impl::general_work(int noutput_items,
         }
         sp = 0;
         np = 0;
-        for (int j = 0; j < SYMBOLS; j++) {
-            s = mod->map(&tempv[(j * MOD_BITS)]);
+        precision_sum = 0;
+        for (int j = 0; j < symbols; j++) {
+            s = mod->map(&tempv[(j * mod_bits)]);
             e = insnr[j] - s;
             sp += std::norm(s);
             np += std::norm(e);
@@ -383,19 +603,15 @@ int ldpc_decoder_cb_impl::general_work(int noutput_items,
                                (total_trials / chunk),
                                (total_snr / (frame + 1)));
         }
-        insnr += frame_size / MOD_BITS;
+        insnr += frame_size / mod_bits;
         frame++;
 
         // Produce information bits
         precision = precision_sum / d_simd_size;
-        for (int j = 0; j < CODE_LEN; j++) {
-            if (code[j] >= 0) {
-                *out++ = 0;
-            } else {
-                *out++ = 1;
-            }
+        for (int j = 0; j < code_len; j++) {
+            *out++ = code[j] < 0 ? 1 : 0;
         }
-        produce(0, CODE_LEN);
+        produce(0, code_len);
     }
     consume_each(consumed);
     return WORK_CALLED_PRODUCE;

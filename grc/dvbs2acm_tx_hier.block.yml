@@ -96,8 +96,10 @@ parameters:
 - id: pilots
   label: Pilots
   dtype: enum
-  options: [True, False]
+  options: [PILOTS_ON, PILOTS_OFF]
   option_labels: ['On', 'Off']
+  option_attributes:
+    val: [True, False]
 - id: rolloff
   label: Rolloff factor
   dtype: enum
@@ -139,7 +141,7 @@ templates:
       % else:
         modcod=${modcod_short.val},
       % endif
-      pilots=${pilots},
+      pilots=${pilots.val},
       rolloff=dvbs2acm.${rolloff},
       goldcode=${goldcode},
       sym_rate=${sym_rate},

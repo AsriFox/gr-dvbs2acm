@@ -123,7 +123,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [880, 212.0]
+    coordinate: [896, 212.0]
     rotation: 0
     state: enabled
 - name: pilot_len
@@ -263,7 +263,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [648, 484.0]
+    coordinate: [752, 484.0]
     rotation: 0
     state: true
 - name: analog_noise_source_x_0
@@ -282,7 +282,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [304, 588.0]
+    coordinate: [272, 588.0]
     rotation: 0
     state: true
 - name: blocks_add_xx_0
@@ -300,7 +300,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [544, 496.0]
+    coordinate: [464, 496.0]
     rotation: 0
     state: true
 - name: blocks_file_source_0_0
@@ -358,6 +358,25 @@ blocks:
     coordinate: [664, 1004.0]
     rotation: 180
     state: enabled
+- name: blocks_throttle_0
+  id: blocks_throttle
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    ignoretag: 'True'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    samples_per_second: samp_rate
+    type: complex
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [560, 508.0]
+    rotation: 0
+    state: true
 - name: debug
   id: parameter
   parameters:
@@ -374,6 +393,48 @@ blocks:
     bus_structure: null
     coordinate: [984, 4.0]
     rotation: 0
+    state: true
+- name: dvbs2acm_ldpc_decoder_cb_0
+  id: dvbs2acm_ldpc_decoder_cb
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    debug_level: debug
+    infomode: INFO_OFF
+    max_trials: '25'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    outputmode: OM_MESSAGE
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [56, 1020.0]
+    rotation: 0
+    state: disabled
+- name: dvbs2acm_plsync_cc_0
+  id: dvbs2acm_plsync_cc
+  parameters:
+    acm_vcm: 'True'
+    affinity: ''
+    alias: ''
+    comment: ''
+    debug_level: debug
+    freq_est_period: pl_freq_est_period
+    gold_code: gold_code
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    multistream: 'False'
+    pls_filter_hi: '0xFFFFFFFFFFFFFFFF'
+    pls_filter_lo: '0xFFFFFFFFFFFFFFFF'
+    sps: sps
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [144, 668.0]
+    rotation: 180
     state: true
 - name: dvbs2acm_rotator_cc_0
   id: dvbs2acm_rotator_cc
@@ -434,7 +495,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [272, 444.0]
+    coordinate: [240, 444.0]
     rotation: 0
     state: true
 - name: dvbs2rx_bbdeheader_bb_0
@@ -455,7 +516,7 @@ blocks:
     bus_structure: null
     coordinate: [664, 892.0]
     rotation: 0
-    state: enabled
+    state: bypassed
 - name: dvbs2rx_bbdescrambler_bb_0
   id: dvbs2rx_bbdescrambler_bb
   parameters:
@@ -516,29 +577,6 @@ blocks:
     bus_structure: null
     coordinate: [56, 860.0]
     rotation: 0
-    state: enabled
-- name: dvbs2rx_plsync_cc_0
-  id: dvbs2rx_plsync_cc
-  parameters:
-    acm_vcm: 'True'
-    affinity: ''
-    alias: ''
-    comment: ''
-    debug_level: '0'
-    freq_est_period: pl_freq_est_period
-    gold_code: gold_code
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    multistream: 'False'
-    pls_filter_hi: '0xFFFFFFFFFFFFFFFF'
-    pls_filter_lo: '0xFFFFFFFFFFFFFFFF'
-    sps: sps
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [144, 668.0]
-    rotation: 180
     state: enabled
 - name: frame_size
   id: parameter
@@ -996,20 +1034,23 @@ blocks:
 connections:
 - [analog_agc_xx_0, '0', dvbs2acm_rotator_cc_0, '0']
 - [analog_noise_source_x_0, '0', blocks_add_xx_0, '1']
-- [blocks_add_xx_0, '0', analog_agc_xx_0, '0']
+- [blocks_add_xx_0, '0', blocks_throttle_0, '0']
 - [blocks_file_source_0_0, '0', dvbs2acm_tx_hier_0, '0']
 - [blocks_probe_rate_0_0, rate, blocks_message_debug_0_0_0, print]
+- [blocks_throttle_0, '0', analog_agc_xx_0, '0']
+- [dvbs2acm_ldpc_decoder_cb_0, '0', dvbs2rx_bch_decoder_bb_0, '0']
+- [dvbs2acm_plsync_cc_0, '0', dvbs2acm_ldpc_decoder_cb_0, '0']
+- [dvbs2acm_plsync_cc_0, '0', dvbs2rx_ldpc_decoder_cb_0, '0']
+- [dvbs2acm_plsync_cc_0, '0', qtgui_const_sink_x_1, '0']
+- [dvbs2acm_plsync_cc_0, rotator_phase_inc, dvbs2acm_rotator_cc_0, cmd]
 - [dvbs2acm_rotator_cc_0, '0', dvbs2acm_symbol_sync_cc_0, '0']
-- [dvbs2acm_symbol_sync_cc_0, '0', dvbs2rx_plsync_cc_0, '0']
+- [dvbs2acm_symbol_sync_cc_0, '0', dvbs2acm_plsync_cc_0, '0']
 - [dvbs2acm_symbol_sync_cc_0, '0', qtgui_const_sink_x_1_0, '0']
 - [dvbs2acm_tx_hier_0, '0', blocks_add_xx_0, '0']
 - [dvbs2rx_bbdeheader_bb_0, '0', blocks_probe_rate_0_0, '0']
 - [dvbs2rx_bbdescrambler_bb_0, '0', dvbs2rx_bbdeheader_bb_0, '0']
 - [dvbs2rx_bch_decoder_bb_0, '0', dvbs2rx_bbdescrambler_bb_0, '0']
 - [dvbs2rx_ldpc_decoder_cb_0, '0', dvbs2rx_bch_decoder_bb_0, '0']
-- [dvbs2rx_plsync_cc_0, '0', dvbs2rx_ldpc_decoder_cb_0, '0']
-- [dvbs2rx_plsync_cc_0, '0', qtgui_const_sink_x_1, '0']
-- [dvbs2rx_plsync_cc_0, rotator_phase_inc, dvbs2acm_rotator_cc_0, cmd]
 
 metadata:
   file_format: 1

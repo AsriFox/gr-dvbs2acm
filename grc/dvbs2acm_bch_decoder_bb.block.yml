@@ -4,9 +4,12 @@ category: '[DVB]/DVB-S2 ACM/Receiver'
 
 parameters:
 - id: outputmode
-  label: Output mode (True = Message, False = Codeword)
-  dtype: bool
-  default: False
+  label: Output mode
+  dtype: enum
+  options: [OM_CODEWORD, OM_MESSAGE]
+  option_labels: ['Codeword', 'Message']
+  option_attributes:
+    val: [True, False]
 - id: debug_level
   label: Debug Level
   dtype: int
@@ -22,6 +25,6 @@ outputs:
 
 templates:
   imports: from gnuradio import dvbs2acm
-  make: dvbs2acm.bch_decoder_bb(${outputmode}, ${debug_level})
+  make: dvbs2acm.bch_decoder_bb(${outputmode.val}, ${debug_level})
 
 file_format: 1

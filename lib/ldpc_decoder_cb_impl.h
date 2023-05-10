@@ -11,6 +11,7 @@
 #include "ldpc_decoder/ldpc.hh"
 #include "modulation.hh"
 #include <gnuradio/dvbs2acm/ldpc_decoder_cb.h>
+#include <vector>
 
 namespace gr {
 namespace dvbs2acm {
@@ -31,13 +32,13 @@ private:
     unsigned int rowaddr0;
     unsigned int rowaddr1;
     unsigned int rowaddr2;
-    LDPCInterface* ldpc;
-    Modulation<gr_complex, int8_t>* mod;
+    std::unique_ptr<LDPCInterface> ldpc;
+    std::unique_ptr<Modulation<gr_complex, int8_t>> mod;
     int d_simd_size;
-    int8_t* soft;
-    int8_t* dint;
-    int8_t* tempu;
-    int8_t* tempv;
+    std::vector<int8_t> soft;
+    std::vector<int8_t> dint;
+    std::vector<int8_t> tempu;
+    std::vector<int8_t> tempv;
     void* aligned_buffer;
     int (*decode)(void*, int8_t*, int);
     void (*init)(LDPCInterface*);

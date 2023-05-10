@@ -4,13 +4,20 @@ category: '[DVB]/DVB-S2 ACM/Receiver'
 
 parameters:
 - id: outputmode
-  label: Output mode (True = Message, False = Codeword)
-  dtype: bool
-  default: False
+  label: Output mode
+  dtype: enum
+  options: [OM_CODEWORD, OM_MESSAGE]
+  option_labels: ['Codeword', 'Message']
+  option_attributes:
+    val: [True, False]
 - id: infomode
   label: Show Corrected SNR
-  dtype: bool
-  default: False
+  dtype: enum
+  options: [INFO_OFF, INFO_ON]
+  option_labels: ['Off', 'On']
+  option_attributes:
+    val: [False, True]
+
 - id: max_trials
   label: Max Iterations
   dtype: int
@@ -30,6 +37,6 @@ outputs:
 
 templates:
   imports: from gnuradio import dvbs2acm
-  make: dvbs2acm.ldpc_decoder_cb(${outputmode}, ${infomode}, ${max_trials}, ${debug_level})
+  make: dvbs2acm.ldpc_decoder_cb(${outputmode.val}, ${infomode.val}, ${max_trials}, ${debug_level})
 
 file_format: 1
