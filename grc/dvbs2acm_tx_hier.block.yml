@@ -3,11 +3,6 @@ label: DVB-S2 ACM Transmitter
 category: '[DVB]/DVB-S2 ACM'
 
 parameters:
-- id: bitrate
-  label: Accepted bitrate
-  dtype: int
-  default: 64800*8
-  hide: none
 - id: framesize
   label: FECFRAME size
   dtype: enum
@@ -112,8 +107,12 @@ parameters:
   label: Gold Code
   dtype: int
   default: 0
+- id: sym_rate
+  label: Symbol rate
+  dtype: int
+  default: 64800
 - id: sps
-  label: FIR Filter supersampling factor
+  label: Supersampling
   dtype: real
   default: '2.0'
 
@@ -135,7 +134,6 @@ templates:
     from gnuradio import dvbs2acm
   make: |-
     dvbs2acm.tx_hier(
-      bitrate=${bitrate},
       % if str(framesize) == 'Normal':
         modcod=${modcod_normal.val},
       % else:
@@ -144,11 +142,12 @@ templates:
       pilots=${pilots},
       rolloff=dvbs2acm.${rolloff},
       goldcode=${goldcode},
+      sym_rate=${sym_rate},
       sps=${sps},
     )
   callbacks:
-  - set_bitrate(${bitrate})
   - set_rolloff(dvbs2acm.${rolloff})
+  - set_sym_rate(${sym_rate})
   - set_sps(${sps})
   - |-
     set_modcod(

@@ -14,7 +14,7 @@
 /* BINDTOOL_GEN_AUTOMATIC(0)                                                       */
 /* BINDTOOL_USE_PYGCCXML(0)                                                        */
 /* BINDTOOL_HEADER_FILE(bbheader_bb.h)                                        */
-/* BINDTOOL_HEADER_FILE_HASH(51b7b512d1b80acad0552122e7de6416)                     */
+/* BINDTOOL_HEADER_FILE_HASH(a2d470b14aacc77e6a2b6cc7ea23315c)                     */
 /***********************************************************************************/
 
 #include <pybind11/complex.h>
@@ -30,21 +30,41 @@ namespace py = pybind11;
 void bind_bbheader_bb(py::module& m)
 {
 
-    using bbheader_bb = ::gr::dvbs2acm::bbheader_bb;
+    using bbheader_bb    = ::gr::dvbs2acm::bbheader_bb;
 
 
-    py::class_<bbheader_bb, gr::block, gr::basic_block, std::shared_ptr<bbheader_bb>>(
-        m, "bbheader_bb", D(bbheader_bb))
+    py::class_<bbheader_bb, gr::block, gr::basic_block,
+        std::shared_ptr<bbheader_bb>>(m, "bbheader_bb", D(bbheader_bb))
 
         .def(py::init(&bbheader_bb::make),
-             py::arg("modcod"),
-             py::arg("pilots") = true,
-             py::arg("rolloff"),
-             py::arg("goldcode") = 0,
-             D(bbheader_bb, make))
+           py::arg("modcod"),
+           py::arg("pilots"),
+           py::arg("rolloff"),
+           py::arg("goldcode"),
+           D(bbheader_bb,make)
+        )
+        
 
 
-        .def("set_modcod", &bbheader_bb::set_modcod, py::arg("modcod"), D(bbheader_bb, set_modcod))
+
+
+        
+        .def("set_modcod",&bbheader_bb::set_modcod,       
+            py::arg("modcod"),
+            D(bbheader_bb,set_modcod)
+        )
 
         ;
+
+
+
+
 }
+
+
+
+
+
+
+
+

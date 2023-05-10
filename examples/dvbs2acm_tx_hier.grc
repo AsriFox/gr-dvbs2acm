@@ -42,19 +42,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [480, 68.0]
-    rotation: 0
-    state: enabled
-- name: sym_rate
-  id: variable
-  parameters:
-    comment: ''
-    value: bitrate / 4
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [480, 4.0]
+    coordinate: [464, 4.0]
     rotation: 0
     state: enabled
 - name: taps
@@ -66,45 +54,9 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [728, 4.0]
+    coordinate: [632, 100.0]
     rotation: 0
     state: enabled
-- name: bitrate
-  id: parameter
-  parameters:
-    alias: ''
-    comment: ''
-    hide: none
-    label: Accepted bitrate
-    short_id: b
-    type: intx
-    value: 64800*8
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [192, 4.0]
-    rotation: 0
-    state: true
-- name: blocks_throttle_0
-  id: blocks_throttle
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    ignoretag: 'True'
-    maxoutbuf: '0'
-    minoutbuf: '0'
-    samples_per_second: bitrate
-    type: byte
-    vlen: '1'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [144, 148.0]
-    rotation: 0
-    state: true
 - name: blocks_throttle_0_0
   id: blocks_throttle
   parameters:
@@ -135,14 +87,14 @@ blocks:
     maxoutbuf: '0'
     minoutbuf: '0'
     modcod_normal: MC_QPSK_3_4
-    modcod_short: '3'
+    modcod_short: MC_QPSK_1_4_S
     pilots: 'True'
     rolloff: RO_0_20
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [344, 132.0]
+    coordinate: [208, 140.0]
     rotation: 0
     state: true
 - name: dvbs2acm_bbscrambler_bb_0
@@ -157,7 +109,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [544, 168.0]
+    coordinate: [456, 176.0]
     rotation: 0
     state: true
 - name: dvbs2acm_bch_encoder_bb_0
@@ -172,7 +124,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [560, 256.0]
+    coordinate: [496, 256.0]
     rotation: 180
     state: true
 - name: dvbs2acm_interleaver_bb_0
@@ -187,7 +139,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [232, 256.0]
+    coordinate: [208, 256.0]
     rotation: 180
     state: true
 - name: dvbs2acm_ldpc_encoder_bb_0
@@ -202,7 +154,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [392, 256.0]
+    coordinate: [344, 256.0]
     rotation: 180
     state: true
 - name: dvbs2acm_modulator_bc_0
@@ -327,7 +279,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [576, 4.0]
+    coordinate: [560, 4.0]
     rotation: 0
     state: true
 - name: sps
@@ -344,12 +296,28 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [328, 4.0]
+    coordinate: [312, 4.0]
+    rotation: 0
+    state: true
+- name: sym_rate
+  id: parameter
+  parameters:
+    alias: ''
+    comment: ''
+    hide: none
+    label: Symbol rate
+    short_id: r
+    type: intx
+    value: 64800*2
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [192, 4.0]
     rotation: 0
     state: true
 
 connections:
-- [blocks_throttle_0, '0', dvbs2acm_bbheader_bb_0, '0']
 - [blocks_throttle_0_0, '0', pad_sink_0, '0']
 - [dvbs2acm_bbheader_bb_0, '0', dvbs2acm_bbscrambler_bb_0, '0']
 - [dvbs2acm_bbscrambler_bb_0, '0', dvbs2acm_bch_encoder_bb_0, '0']
@@ -359,7 +327,7 @@ connections:
 - [dvbs2acm_modulator_bc_0, '0', dvbs2acm_physical_cc_0, '0']
 - [dvbs2acm_physical_cc_0, '0', interp_fir_filter_xxx_0, '0']
 - [interp_fir_filter_xxx_0, '0', blocks_throttle_0_0, '0']
-- [pad_source_0, '0', blocks_throttle_0, '0']
+- [pad_source_0, '0', dvbs2acm_bbheader_bb_0, '0']
 - [pad_source_0_0, out, dvbs2acm_bbheader_bb_0, cmd]
 
 metadata:
