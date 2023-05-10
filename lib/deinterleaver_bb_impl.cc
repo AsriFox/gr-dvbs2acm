@@ -12,8 +12,8 @@
 namespace gr {
 namespace dvbs2acm {
 
-using input_type = char;
-using output_type = char;
+using input_type = int8_t;
+using output_type = int8_t;
 deinterleaver_bb::sptr deinterleaver_bb::make()
 {
     return gnuradio::make_block_sptr<deinterleaver_bb_impl>();

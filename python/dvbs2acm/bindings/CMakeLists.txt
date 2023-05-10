@@ -38,7 +38,7 @@ list(APPEND dvbs2acm_python_files
     symbol_sync_cc_python.cc
     plsync_cc_python.cc
     ldpc_encoder_bb_python.cc
-    ldpc_decoder_cb_python.cc
+    ldpc_decoder_bb_python.cc
     bch_decoder_bb_python.cc
     bbdescrambler_bb_python.cc
     bbdeheader_bb_python.cc

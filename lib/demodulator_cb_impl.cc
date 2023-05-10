@@ -16,7 +16,7 @@ namespace gr {
 namespace dvbs2acm {
 
 using input_type = gr_complex;
-using output_type = char;
+using output_type = int8_t;
 
 demodulator_cb::sptr demodulator_cb::make(float precision)
 {

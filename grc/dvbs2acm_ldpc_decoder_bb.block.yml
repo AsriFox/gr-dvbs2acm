@@ -1,0 +1,27 @@
+id: dvbs2acm_ldpc_decoder_bb
+label: LDPC Decoder
+category: '[DVB]/DVB-S2 ACM/Receiver'
+
+parameters:
+- id: max_trials
+  label: Max Iterations
+  dtype: int
+  default: 25
+- id: debug_level
+  label: Debug Level
+  dtype: int
+  default: 0
+
+inputs:
+- domain: stream
+  dtype: complex
+
+outputs:
+- domain: stream
+  dtype: byte
+
+templates:
+  imports: from gnuradio import dvbs2acm
+  make: dvbs2acm.ldpc_decoder_bb(${max_trials}, ${debug_level})
+
+file_format: 1
