@@ -447,10 +447,10 @@ int ldpc_decoder_cb_impl::general_work(int noutput_items,
         // TODO: Make a class
         switch (constellation) {
         case MOD_QPSK:
-            mod.reset(new PhaseShiftKeying<4, gr_complex, int8_t>());
+            mod.reset(new ModulationQPSK<gr_complex, int8_t>());
             break;
         case MOD_8PSK:
-            mod.reset(new PhaseShiftKeying<8, gr_complex, int8_t>());
+            mod.reset(new Modulation8PSK<gr_complex, int8_t>());
             rows = ldpc->code_len() / mod->bits();
             /* 210 */
             if (rate == C3_5) {

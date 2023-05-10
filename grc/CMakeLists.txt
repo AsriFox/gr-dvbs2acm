@@ -22,5 +22,6 @@ install(FILES
     dvbs2acm_bbdeheader_bb.block.yml
     dvbs2acm_tx_hier.block.yml 
     dvbs2acm_modcod_probe.block.yml
-    DESTINATION share/gnuradio/grc/blocks
+    dvbs2acm_demodulator_cb.block.yml
+    dvbs2acm_deinterleaver_bb.block.yml DESTINATION share/gnuradio/grc/blocks
 )
