@@ -30,7 +30,7 @@ deinterleaver_bb_impl::deinterleaver_bb_impl()
                 gr::io_signature::make(1, 1, sizeof(output_type)))
 {
     set_output_multiple(FRAME_SIZE_NORMAL);
-    set_tag_propagation_policy(TPP_ALL_TO_ALL);
+    set_tag_propagation_policy(TPP_CUSTOM);
 }
 
 /*
@@ -50,11 +50,12 @@ int deinterleaver_bb_impl::general_work(int noutput_items,
 {
     auto in = static_cast<const input_type*>(input_items[0]);
     auto out = static_cast<output_type*>(output_items[0]);
-
+    int consumed_total = 0;
     dvbs2_modcod_t modcod = MC_DUMMY;
     dvbs2_vlsnr_header_t vlsnr_header;
     std::vector<tag_t> tags;
-    get_tags_in_window(tags, 0, 0, ninput_items[0]);
+    auto abs_start = nitems_read(0);
+    get_tags_in_range(tags, 0, abs_start, abs_start + ninput_items[0]);
     for (tag_t tag : tags) {
         if (tag.key == pmt::intern("pls") && tag.value->is_dict()) {
             auto dict = tag.value;
@@ -89,18 +90,26 @@ int deinterleaver_bb_impl::general_work(int noutput_items,
         switch (framesize) {
         case FECFRAME_NORMAL:
             frame_size = FRAME_SIZE_NORMAL;
+            break;
         case FECFRAME_SHORT:
             frame_size = FRAME_SIZE_SHORT;
+            break;
         case FECFRAME_MEDIUM:
             frame_size = FRAME_SIZE_MEDIUM;
+            break;
         }
         get_rows(framesize, rate, constellation);
 
+        auto abs_offset = nitems_written(0);
+        add_item_tag(0, abs_offset, tag.key, tag.value);
+
         int consumed, produced;
         deinterleave(in, out, consumed, produced);
-        consume_each(consumed);
+
+        consumed_total += consumed;
         produce(0, produced);
     }
+    consume_each(consumed_total);
     return WORK_CALLED_PRODUCE;
 }
 
@@ -108,7 +117,7 @@ void deinterleaver_bb_impl::get_rows(dvbs2_framesize_t framesize,
                                      dvbs2_code_rate_t rate,
                                      dvbs2_constellation_t constellation)
 {
-    int mod, rows;
+    int rows;
 
     if (framesize == FECFRAME_NORMAL) {
         frame_size = FRAME_SIZE_NORMAL;
@@ -129,20 +138,20 @@ void deinterleaver_bb_impl::get_rows(dvbs2_framesize_t framesize,
 
     switch (constellation) {
     case MOD_BPSK:
-        mod = 1;
-        rows = frame_size / mod;
+        mod_order = 1;
+        rows = frame_size / mod_order;
         break;
     case MOD_BPSK_SF2:
-        mod = 1;
-        rows = frame_size / mod;
+        mod_order = 1;
+        rows = frame_size / mod_order;
         break;
     case MOD_QPSK:
-        mod = 2;
-        rows = frame_size / mod;
+        mod_order = 2;
+        rows = frame_size / mod_order;
         break;
     case MOD_8PSK:
-        mod = 3;
-        rows = frame_size / mod;
+        mod_order = 3;
+        rows = frame_size / mod_order;
         /* 210 */
         if (rate == C3_5) {
             rowaddr[0] = rows * 2;
@@ -163,16 +172,16 @@ void deinterleaver_bb_impl::get_rows(dvbs2_framesize_t framesize,
         }
         break;
     case MOD_8APSK:
-        mod = 3;
-        rows = frame_size / mod;
+        mod_order = 3;
+        rows = frame_size / mod_order;
         /* 012 */
         rowaddr[0] = 0;
         rowaddr[1] = rows;
         rowaddr[2] = rows * 2;
         break;
     case MOD_16APSK:
-        mod = 4;
-        rows = frame_size / mod;
+        mod_order = 4;
+        rows = frame_size / mod_order;
         if (rate == C26_45) {
             /* 3201 */
             if (frame_size == FRAME_SIZE_NORMAL) {
@@ -255,8 +264,8 @@ void deinterleaver_bb_impl::get_rows(dvbs2_framesize_t framesize,
         }
         break;
     case MOD_8_8APSK:
-        mod = 4;
-        rows = frame_size / mod;
+        mod_order = 4;
+        rows = frame_size / mod_order;
         /* 3210 */
         if (rate == C90_180) {
             rowaddr[0] = rows * 3;
@@ -287,8 +296,8 @@ void deinterleaver_bb_impl::get_rows(dvbs2_framesize_t framesize,
         }
         break;
     case MOD_32APSK:
-        mod = 5;
-        rows = frame_size / mod;
+        mod_order = 5;
+        rows = frame_size / mod_order;
         /* 01234 */
         rowaddr[0] = 0;
         rowaddr[1] = rows;
@@ -297,8 +306,8 @@ void deinterleaver_bb_impl::get_rows(dvbs2_framesize_t framesize,
         rowaddr[4] = rows * 4;
         break;
     case MOD_4_12_16APSK:
-        mod = 5;
-        rows = frame_size / mod;
+        mod_order = 5;
+        rows = frame_size / mod_order;
         /* 21430 */
         if (frame_size == FRAME_SIZE_NORMAL) {
             rowaddr[0] = rows * 2;
@@ -326,8 +335,8 @@ void deinterleaver_bb_impl::get_rows(dvbs2_framesize_t framesize,
         }
         break;
     case MOD_4_8_4_16APSK:
-        mod = 5;
-        rows = frame_size / mod;
+        mod_order = 5;
+        rows = frame_size / mod_order;
         /* 40213 */
         if (rate == C140_180) {
             rowaddr[0] = rows * 4;
@@ -346,11 +355,10 @@ void deinterleaver_bb_impl::get_rows(dvbs2_framesize_t framesize,
         }
         break;
     default:
-        mod = 2;
-        rows = frame_size / mod;
+        mod_order = 2;
+        rows = frame_size / mod_order;
         break;
     }
-    mod_order = mod;
 }
 
 void deinterleaver_bb_impl::deinterleave(const int8_t* in, int8_t* out, int& consumed, int& produced)
@@ -390,8 +398,10 @@ void deinterleaver_bb_impl::deinterleave(const int8_t* in, int8_t* out, int& con
     case MOD_QPSK:
     default:
         memcpy(out, in, sizeof(input_type) * frame_size);
+        in += frame_size;
         break;
     }
+    out += frame_size;
     consumed = produced = frame_size;
 }
 

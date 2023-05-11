@@ -87,11 +87,12 @@ int demodulator_cb_impl::general_work(int noutput_items,
 {
     auto in = static_cast<const input_type*>(input_items[0]);
     auto out = static_cast<output_type*>(output_items[0]);
-
+    int consumed_total = 0;
     dvbs2_modcod_t modcod = MC_DUMMY;
     dvbs2_vlsnr_header_t vlsnr_header;
     std::vector<tag_t> tags;
-    get_tags_in_window(tags, 0, 0, ninput_items[0]);
+    auto abs_start = nitems_read(0);
+    get_tags_in_range(tags, 0, abs_start, abs_start + ninput_items[0]);
     for (tag_t tag : tags) {
         if (tag.key == pmt::intern("pls") && tag.value->is_dict()) {
             auto dict = tag.value;
@@ -123,21 +124,25 @@ int demodulator_cb_impl::general_work(int noutput_items,
         switch (framesize) {
         case FECFRAME_NORMAL:
             frame_size = FRAME_SIZE_NORMAL;
+            break;
         case FECFRAME_SHORT:
             frame_size = FRAME_SIZE_SHORT;
+            break;
         case FECFRAME_MEDIUM:
             frame_size = FRAME_SIZE_MEDIUM;
+            break;
         }
-
-        int consumed, produced;
-        demodulate(in, out, consumed, produced);
 
         const auto tagoffset = nitems_written(0);
         add_item_tag(0, tagoffset, tag.key, tag.value);
 
-        consume_each(consumed);
+        int consumed, produced;
+        demodulate(in, out, consumed, produced);
+
+        consumed_total += consumed;
         produce(0, produced);
     }
+    consume_each(consumed_total);
     return WORK_CALLED_PRODUCE;
 }
 
@@ -173,6 +178,7 @@ void demodulator_cb_impl::demodulate(const gr_complex* in, int8_t* out, int& con
             *out++ = tmp[n];
         }
     }
+    in += symbols;
     consumed = symbols;
     produced = frame_size;
 }

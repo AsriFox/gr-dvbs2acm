@@ -358,25 +358,6 @@ blocks:
     coordinate: [664, 1004.0]
     rotation: 180
     state: enabled
-- name: blocks_tag_debug_0
-  id: blocks_tag_debug
-  parameters:
-    affinity: ''
-    alias: ''
-    comment: ''
-    display: 'True'
-    filter: '"pls"'
-    name: deinterleaver
-    num_inputs: '1'
-    type: byte
-    vlen: '1'
-  states:
-    bus_sink: false
-    bus_source: false
-    bus_structure: null
-    coordinate: [424, 1084.0]
-    rotation: 0
-    state: true
 - name: blocks_throttle_0
   id: blocks_throttle
   parameters:
@@ -516,7 +497,7 @@ blocks:
     goldcode: gold_code
     maxoutbuf: '0'
     minoutbuf: '0'
-    modcod_normal: MC_QPSK_3_4
+    modcod_normal: MC_8PSK_3_4
     modcod_short: MC_QPSK_1_4_S
     pilots: PILOTS_ON
     rolloff: RO_0_20
@@ -1070,7 +1051,6 @@ connections:
 - [blocks_probe_rate_0_0, rate, blocks_message_debug_0_0_0, print]
 - [blocks_throttle_0, '0', analog_agc_xx_0, '0']
 - [dvbs2acm_deinterleaver_bb_0, '0', blocks_probe_rate_0_0, '0']
-- [dvbs2acm_deinterleaver_bb_0, '0', blocks_tag_debug_0, '0']
 - [dvbs2acm_demodulator_cb_0, '0', dvbs2acm_deinterleaver_bb_0, '0']
 - [dvbs2acm_plsync_cc_0, '0', dvbs2acm_demodulator_cb_0, '0']
 - [dvbs2acm_plsync_cc_0, '0', dvbs2rx_ldpc_decoder_cb_0, '0']
