@@ -27,6 +27,8 @@ public:
     demodulator_cb_impl(float precision);
     ~demodulator_cb_impl();
 
+    void forecast(int noutput_items, gr_vector_int& ninput_items_required) override;
+
     int general_work(int noutput_items,
                      gr_vector_int& ninput_items,
                      gr_vector_const_void_star& input_items,

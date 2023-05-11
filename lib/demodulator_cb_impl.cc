@@ -32,6 +32,7 @@ demodulator_cb_impl::demodulator_cb_impl(float precision)
 {
     set_precision(precision);
     set_output_multiple(FRAME_SIZE_NORMAL);
+    set_tag_propagation_policy(TPP_CUSTOM);
 }
 
 /*
@@ -63,14 +64,26 @@ void demodulator_cb_impl::set_constellation(dvbs2_constellation_t constellation)
         mod.reset(nullptr);
         break;
     }
+    if (mod) {
+        set_relative_rate(1, mod->bits());
+    }
+}
+
+void demodulator_cb_impl::forecast(int noutput_items, gr_vector_int& ninput_items_required)
+{
+    if (mod) {
+        ninput_items_required[0] = noutput_items / mod->bits();
+    } else {
+        ninput_items_required[0] = noutput_items;
+    }
 }
 
 #define FACTOR 2
 
 int demodulator_cb_impl::general_work(int noutput_items,
-                                       gr_vector_int& ninput_items,
-                                       gr_vector_const_void_star& input_items,
-                                       gr_vector_void_star& output_items)
+                                      gr_vector_int& ninput_items,
+                                      gr_vector_const_void_star& input_items,
+                                      gr_vector_void_star& output_items)
 {
     auto in = static_cast<const input_type*>(input_items[0]);
     auto out = static_cast<output_type*>(output_items[0]);
@@ -118,6 +131,10 @@ int demodulator_cb_impl::general_work(int noutput_items,
 
         int consumed, produced;
         demodulate(in, out, consumed, produced);
+
+        const auto tagoffset = nitems_written(0);
+        add_item_tag(0, tagoffset, tag.key, tag.value);
+
         consume_each(consumed);
         produce(0, produced);
     }
@@ -156,6 +173,8 @@ void demodulator_cb_impl::demodulate(const gr_complex* in, int8_t* out, int& con
             *out++ = tmp[n];
         }
     }
+    consumed = symbols;
+    produced = frame_size;
 }
 
 } /* namespace dvbs2acm */

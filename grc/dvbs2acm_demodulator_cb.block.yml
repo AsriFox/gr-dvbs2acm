@@ -1,6 +1,6 @@
 id: dvbs2acm_demodulator_cb
 label: Demodulator
-category: '[DVB]/DVB-S2 ACM'
+category: '[DVB]/DVB-S2 ACM/Receiver'
 
 parameters:
 - id: precision

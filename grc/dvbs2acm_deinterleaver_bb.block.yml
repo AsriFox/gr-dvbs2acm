@@ -1,0 +1,17 @@
+id: dvbs2acm_deinterleaver_bb
+label: Deinterleaver
+category: '[DVB]/DVB-S2 ACM/Receiver'
+
+inputs:
+- domain: stream
+  dtype: byte
+
+outputs:
+- domain: stream
+  dtype: byte
+
+templates:
+  imports: from gnuradio import dvbs2acm
+  make: dvbs2acm.deinterleaver_bb()
+
+file_format: 1

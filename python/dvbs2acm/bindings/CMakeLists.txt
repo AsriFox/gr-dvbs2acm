@@ -43,7 +43,8 @@ list(APPEND dvbs2acm_python_files
     bbdescrambler_bb_python.cc
     bbdeheader_bb_python.cc
     dvbs2_config_python.cc
-    demodulator_cb_python.cc python_bindings.cc)
+    demodulator_cb_python.cc
+    deinterleaver_bb_python.cc python_bindings.cc)
 
 GR_PYBIND_MAKE_OOT(dvbs2acm
    ../../..
