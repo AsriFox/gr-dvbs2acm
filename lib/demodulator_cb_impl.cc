@@ -5,6 +5,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
+#include "debug_level.h"
 #include "demodulator_cb_impl.h"
 #include "modcod.hh"
 #include <gnuradio/io_signature.h>
@@ -28,11 +29,10 @@ demodulator_cb::sptr demodulator_cb::make(float precision)
  * The private constructor
  */
 demodulator_cb_impl::demodulator_cb_impl(float precision)
-    : gr::tagged_stream_block(
-          "demodulator_cb",
-          gr::io_signature::make(1 /* min inputs */, 1 /* max inputs */, sizeof(input_type)),
-          gr::io_signature::make(1 /* min outputs */, 1 /*max outputs */, sizeof(output_type)),
-          "frame_size"),
+    : gr::tagged_stream_block("demodulator_cb",
+                              gr::io_signature::make(1, 1, sizeof(input_type)),
+                              gr::io_signature::make(1, 1, sizeof(output_type)),
+                              "frame_size"),
       precision(precision)
 {
     const pmt::pmt_t port_id = pmt::mp("precision");
@@ -40,6 +40,7 @@ demodulator_cb_impl::demodulator_cb_impl(float precision)
     set_msg_handler(port_id, [this](pmt::pmt_t msg) { this->handle_precision_msg(msg); });
 
     set_tag_propagation_policy(TPP_ALL_TO_ALL);
+    set_output_multiple(FRAME_SIZE_SHORT);
 }
 
 /*
@@ -68,6 +69,7 @@ void demodulator_cb_impl::set_constellation(dvbs2_constellation_t constellation)
         // TODO
         break;
     }
+    d_logger->debug("Modulation width: {:d}", mod->bits());
 }
 
 void demodulator_cb_impl::set_precision(float precision) { this->precision = precision; }
@@ -115,6 +117,7 @@ void demodulator_cb_impl::parse_length_tags(const std::vector<std::vector<tag_t>
         set_constellation(modcod_constellation(modcod));
         framesize = modcod_framesize(modcod);
     }
+
     switch (framesize) {
     case FECFRAME_NORMAL:
         n_input_items_reqd[0] = FRAME_SIZE_NORMAL / mod->bits();
@@ -177,6 +180,7 @@ int demodulator_cb_impl::work(int noutput_items,
         float snr = 10 * std::log10(sp / np);
         float sigma = std::sqrt(np / (2 * sp));
         precision = FACTOR / (sigma * sigma);
+        d_logger->debug("Detected SNR: {:.2f}", snr);
     }
 
     for (int j = 0; j < ninput_items[0]; j++) {

@@ -6,7 +6,7 @@ gr_modtool bind bbscrambler_bb
 gr_modtool bind bch_decoder_bb
 gr_modtool bind bch_encoder_bb
 gr_modtool bind deinterleaver_bb
-gr_modtool bind demodulator_bb
+gr_modtool bind demodulator_cb
 gr_modtool bind interleaver_bb
 gr_modtool bind ldpc_decoder_bb
 gr_modtool bind ldpc_encoder_bb

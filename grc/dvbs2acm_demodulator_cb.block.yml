@@ -6,7 +6,7 @@ parameters:
 - id: precision
   label: Initial precision
   dtype: float
-  default: 'Inf'
+  default: float('Inf')
 
 inputs:
 - domain: stream

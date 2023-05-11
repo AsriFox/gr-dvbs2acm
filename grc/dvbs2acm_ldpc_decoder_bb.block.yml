@@ -14,7 +14,7 @@ parameters:
 
 inputs:
 - domain: stream
-  dtype: complex
+  dtype: byte
 
 outputs:
 - domain: stream
