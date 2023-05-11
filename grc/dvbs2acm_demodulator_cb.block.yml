@@ -1,0 +1,25 @@
+id: dvbs2acm_demodulator_cb
+label: Demodulator
+category: '[DVB]/DVB-S2 ACM'
+
+parameters:
+- id: precision
+  label: Initial Precision
+  dtype: float
+  default: float('Inf')
+
+inputs:
+- domain: stream
+  dtype: complex
+
+outputs:
+- domain: stream
+  dtype: byte
+
+templates:
+  imports: from gnuradio import dvbs2acm
+  make: dvbs2acm.demodulator_cb(${precision})
+  callbacks:
+  - set_precision(${precision})
+
+file_format: 1

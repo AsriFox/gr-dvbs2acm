@@ -26,5 +26,5 @@ install(FILES
     bbdescrambler_bb.h
     bbdeheader_bb.h 
     dvbs2_config.h
-    DESTINATION include/gnuradio/dvbs2acm
+    demodulator_cb.h DESTINATION include/gnuradio/dvbs2acm
 )

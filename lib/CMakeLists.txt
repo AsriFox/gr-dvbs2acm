@@ -31,7 +31,7 @@ list(APPEND dvbs2acm_sources
     bch_decoder_bb_impl.cc
     bbdescrambler_bb_impl.cc
     bbdeheader_bb_impl.cc
-)
+    demodulator_cb_impl.cc )
 
 set(dvbs2acm_sources "${dvbs2acm_sources}" PARENT_SCOPE)
 if(NOT dvbs2acm_sources)

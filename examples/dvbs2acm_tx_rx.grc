@@ -394,25 +394,22 @@ blocks:
     coordinate: [984, 4.0]
     rotation: 0
     state: true
-- name: dvbs2acm_ldpc_decoder_cb_0
-  id: dvbs2acm_ldpc_decoder_cb
+- name: dvbs2acm_demodulator_cvb_0
+  id: dvbs2acm_demodulator_cvb
   parameters:
     affinity: ''
     alias: ''
     comment: ''
-    debug_level: debug
-    infomode: INFO_OFF
-    max_trials: '25'
     maxoutbuf: '0'
     minoutbuf: '0'
-    outputmode: OM_MESSAGE
+    precision: float('Inf')
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [56, 1020.0]
+    coordinate: [56, 1036.0]
     rotation: 0
-    state: disabled
+    state: true
 - name: dvbs2acm_plsync_cc_0
   id: dvbs2acm_plsync_cc
   parameters:
@@ -487,7 +484,7 @@ blocks:
     minoutbuf: '0'
     modcod_normal: MC_8PSK_3_4
     modcod_short: MC_QPSK_1_4_S
-    pilots: 'True'
+    pilots: PILOTS_ON
     rolloff: RO_0_20
     sps: sps
     sym_rate: sym_rate
@@ -516,7 +513,7 @@ blocks:
     bus_structure: null
     coordinate: [664, 892.0]
     rotation: 0
-    state: bypassed
+    state: disabled
 - name: dvbs2rx_bbdescrambler_bb_0
   id: dvbs2rx_bbdescrambler_bb
   parameters:
@@ -534,7 +531,7 @@ blocks:
     bus_structure: null
     coordinate: [464, 900.0]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: dvbs2rx_bch_decoder_bb_0
   id: dvbs2rx_bch_decoder_bb
   parameters:
@@ -554,7 +551,7 @@ blocks:
     bus_structure: null
     coordinate: [264, 884.0]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: dvbs2rx_ldpc_decoder_cb_0
   id: dvbs2rx_ldpc_decoder_cb
   parameters:
@@ -577,7 +574,7 @@ blocks:
     bus_structure: null
     coordinate: [56, 860.0]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: frame_size
   id: parameter
   parameters:
@@ -1038,8 +1035,8 @@ connections:
 - [blocks_file_source_0_0, '0', dvbs2acm_tx_hier_0, '0']
 - [blocks_probe_rate_0_0, rate, blocks_message_debug_0_0_0, print]
 - [blocks_throttle_0, '0', analog_agc_xx_0, '0']
-- [dvbs2acm_ldpc_decoder_cb_0, '0', dvbs2rx_bch_decoder_bb_0, '0']
-- [dvbs2acm_plsync_cc_0, '0', dvbs2acm_ldpc_decoder_cb_0, '0']
+- [dvbs2acm_demodulator_cvb_0, '0', blocks_probe_rate_0_0, '0']
+- [dvbs2acm_plsync_cc_0, '0', dvbs2acm_demodulator_cvb_0, '0']
 - [dvbs2acm_plsync_cc_0, '0', dvbs2rx_ldpc_decoder_cb_0, '0']
 - [dvbs2acm_plsync_cc_0, '0', qtgui_const_sink_x_1, '0']
 - [dvbs2acm_plsync_cc_0, rotator_phase_inc, dvbs2acm_rotator_cc_0, cmd]
