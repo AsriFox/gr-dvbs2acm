@@ -27,7 +27,7 @@ list(APPEND dvbs2acm_sources
     symbol_sync_cc_impl.cc
     plsync_cc_impl.cc
     ldpc_encoder_bb_impl.cc
-    ldpc_decoder_cb_impl.cc
+    ldpc_decoder_bb_impl.cc
     bch_decoder_bb_impl.cc
     bbdescrambler_bb_impl.cc
     bbdeheader_bb_impl.cc

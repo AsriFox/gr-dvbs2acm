@@ -12,10 +12,9 @@
 #include "debug_level.h"
 #include "ldpc_decoder/dvb_s2_tables.hh"
 #include "ldpc_decoder/dvb_s2x_tables.hh"
-#include "ldpc_decoder_cb_impl.h"
+#include "ldpc_decoder_bb_impl.h"
 #include "modcod.hh"
 #include <gnuradio/io_signature.h>
-#include <pmt/pmt.h>
 
 #ifdef CPU_FEATURES_ARCH_ARM
 #include "cpu_features/cpuinfo_arm.h"
@@ -277,35 +276,26 @@ constexpr int DVB_S2X_TABLE_C10::POS[];
 namespace gr {
 namespace dvbs2acm {
 
-using input_type = gr_complex;
+using input_type = int8_t;
 using output_type = unsigned char;
 
-ldpc_decoder_cb::sptr
-ldpc_decoder_cb::make(bool outputmode, bool infomode, int max_trials, int debug_level)
+ldpc_decoder_bb::sptr ldpc_decoder_bb::make(int max_trials, int debug_level)
 {
-    return gnuradio::make_block_sptr<ldpc_decoder_cb_impl>(
-        outputmode, infomode, max_trials, debug_level);
+    return gnuradio::make_block_sptr<ldpc_decoder_bb_impl>(max_trials, debug_level);
 }
 
 
 /*
  * The private constructor
  */
-ldpc_decoder_cb_impl::ldpc_decoder_cb_impl(bool outputmode,
-                                           bool infomode,
-                                           int max_trials,
-                                           int debug_level)
-    : gr::block("ldpc_decoder_cb",
+ldpc_decoder_bb_impl::ldpc_decoder_bb_impl(int max_trials, int debug_level)
+    : gr::block("ldpc_decoder_bb",
                 gr::io_signature::make(1, 1, sizeof(input_type)),
                 gr::io_signature::make(1, 1, sizeof(output_type))),
       d_debug_level(debug_level),
-      output_mode(outputmode),
-      info_mode(infomode),
-      frame(0),
       chunk(0),
       total_trials(0),
       d_max_trials(max_trials),
-      total_snr(0.0),
       decode(nullptr),
       init(nullptr)
 {
@@ -346,62 +336,42 @@ ldpc_decoder_cb_impl::ldpc_decoder_cb_impl(bool outputmode,
     assert(decode != nullptr);
     d_debug_logger->debug("LDPC decoder implementation: {:s}", impl);
 
-    soft.resize(FRAME_SIZE_NORMAL * d_simd_size);
-    dint.resize(FRAME_SIZE_NORMAL * d_simd_size);
-    tempu.resize(FRAME_SIZE_NORMAL);
-    tempv.resize(FRAME_SIZE_NORMAL);
     aligned_buffer = aligned_alloc(d_simd_size, d_simd_size * FRAME_SIZE_NORMAL);
     set_output_multiple(FRAME_SIZE_NORMAL * d_simd_size);
-    // if (outputmode) { // == OM_MESSAGE
-    //     set_output_multiple(nbch * d_simd_size);
-    //     set_relative_rate((double)nbch / frame_size);
-    // } else { // == OM_CODEWORD
-    //     set_output_multiple(frame_size * d_simd_size);
-    // }
+    set_tag_propagation_policy(TPP_CUSTOM);
 }
 
 /*
  * Our virtual destructor.
  */
-ldpc_decoder_cb_impl::~ldpc_decoder_cb_impl()
+ldpc_decoder_bb_impl::~ldpc_decoder_bb_impl()
 {
     free(aligned_buffer);
-    mod.reset();
     ldpc.reset();
 }
 
-void ldpc_decoder_cb_impl::forecast(int noutput_items, gr_vector_int& ninput_items_required)
+void ldpc_decoder_bb_impl::forecast(int noutput_items, gr_vector_int& ninput_items_required)
 {
-    if (mod) {
-        ninput_items_required[0] = noutput_items / mod->bits();
+    if (ldpc) {
+        set_relative_rate(ldpc->data_len(), ldpc->code_len());
+        ninput_items_required[0] = noutput_items / ldpc->data_len() * ldpc->code_len();
     } else {
-        ninput_items_required[0] = noutput_items / 2; // QPSK is the default
+        ninput_items_required[0] = noutput_items;
     }
-    // if (output_mode) { // == OM_MESSAGE
-    //     ninput_items_required[0] = (noutput_items / nbch) * (frame_size / mod->bits());
-    // } else { // == OM_CODEWORD
-    //     ninput_items_required[0] = noutput_items / mod->bits();
-    // }
 }
 
 const int DEFAULT_TRIALS = 25;
-#define FACTOR 2 // same factor used on the decoder implementation
 
-int ldpc_decoder_cb_impl::general_work(int noutput_items,
+int ldpc_decoder_bb_impl::general_work(int noutput_items,
                                        gr_vector_int& ninput_items,
                                        gr_vector_const_void_star& input_items,
                                        gr_vector_void_star& output_items)
 {
     auto in = static_cast<const input_type*>(input_items[0]);
-    auto insnr = static_cast<const input_type*>(input_items[0]);
     auto out = static_cast<output_type*>(output_items[0]);
-    float sp, np, sigma, precision_sum;
-    gr_complex s, e;
+    auto code = reinterpret_cast<int8_t*>(output_items[0]);
     const int trials = (d_max_trials == 0) ? DEFAULT_TRIALS : d_max_trials;
-    int consumed = 0;
-    int rows, offset, indexin, indexout;
-    const int* mux;
-    // int output_size = output_mode ? nbch : frame_size;
+    int consumed_total = 0;
 
     std::vector<tag_t> tags;
     const uint64_t nread = this->nitems_read(0); // number of items read on port 0
@@ -409,211 +379,84 @@ int ldpc_decoder_cb_impl::general_work(int noutput_items,
     // Read all tags on the input buffer
     this->get_tags_in_range(tags, 0, nread, nread + noutput_items, pmt::intern("pls"));
 
-    // TODO: SIMD stuff ???
-    for (tag_t tag : tags) {
-        auto dict = tag.value;
+    for (size_t t = 0; t < tags.size(); t += d_simd_size) {
         dvbs2_modcod_t modcod;
         dvbs2_vlsnr_header_t vlsnr_header;
-        if (dict->is_dict() && pmt::dict_has_key(dict, pmt::intern("modcod")) &&
-            pmt::dict_has_key(dict, pmt::intern("vlsnr_header"))) {
-            auto not_found = pmt::get_PMT_NIL();
+        for (int blk = 0; blk < d_simd_size; blk++) {
+            auto dict = tags[t + blk].value;
+            if (dict->is_dict() && pmt::dict_has_key(dict, pmt::intern("modcod")) &&
+                pmt::dict_has_key(dict, pmt::intern("vlsnr_header"))) {
+                auto not_found = pmt::get_PMT_NIL();
 
-            auto modcod_r = pmt::dict_ref(dict, pmt::intern("modcod"), not_found);
-            if (modcod_r == not_found) {
+                auto modcod_r = pmt::dict_ref(dict, pmt::intern("modcod"), not_found);
+                if (modcod_r == not_found) {
+                    continue;
+                }
+                modcod = (dvbs2_modcod_t)pmt::to_long(modcod_r);
+
+                auto vlsnr_header_r = pmt::dict_ref(dict, pmt::intern("vlsnr_header"), not_found);
+                if (vlsnr_header_r == not_found) {
+                    continue;
+                }
+                vlsnr_header = (dvbs2_vlsnr_header_t)pmt::to_long(vlsnr_header_r);
+            } else {
                 continue;
             }
-            modcod = (dvbs2_modcod_t)pmt::to_long(modcod_r);
-
-            auto vlsnr_header_r = pmt::dict_ref(dict, pmt::intern("vlsnr_header"), not_found);
-            if (vlsnr_header_r == not_found) {
-                continue;
-            }
-            vlsnr_header = (dvbs2_vlsnr_header_t)pmt::to_long(vlsnr_header_r);
-        } else {
-            continue;
         }
-        auto framesize = modcod_framesize(modcod);
-        auto rate = modcod_rate(modcod);
-        auto constellation = modcod_constellation(modcod);
+
+        dvbs2_framesize_t framesize;
+        dvbs2_code_rate_t rate;
         if (modcod == MC_VLSNR_SET1 || modcod == MC_VLSNR_SET2) {
             framesize = vlsnr_framesize(vlsnr_header);
             rate = vlsnr_rate(vlsnr_header);
-            constellation = vlsnr_constellation(vlsnr_header);
+        } else {
+            framesize = modcod_framesize(modcod);
+            rate = modcod_rate(modcod);
         }
 
-        ldpc.reset(build_decoder(framesize, rate));
-        init(ldpc.get());
+        if (this->framesize != framesize || this->rate != rate) {
+            this->framesize = framesize;
+            this->rate = rate;
 
-        // TODO: Make a class
-        switch (constellation) {
-        case MOD_QPSK:
-            mod.reset(new PhaseShiftKeying<4, gr_complex, int8_t>());
-            break;
-        case MOD_8PSK:
-            mod.reset(new PhaseShiftKeying<8, gr_complex, int8_t>());
-            rows = ldpc->code_len() / mod->bits();
-            /* 210 */
-            if (rate == C3_5) {
-                rowaddr0 = rows * 2;
-                rowaddr1 = rows;
-                rowaddr2 = 0;
-            }
-            /* 102 */
-            else if (rate == C25_36 || rate == C13_18 || rate == C7_15 || rate == C8_15 ||
-                     rate == C26_45) {
-                rowaddr0 = rows;
-                rowaddr1 = 0;
-                rowaddr2 = rows * 2;
-            }
-            /* 012 */
-            else {
-                rowaddr0 = 0;
-                rowaddr1 = rows;
-                rowaddr2 = rows * 2;
-            }
-            break;
-        default:
-            break;
+            ldpc.reset(build_decoder(framesize, rate));
+            init(ldpc.get());
+            GR_LOG_DEBUG_LEVEL(1, "LDPC decoder changed to modcod {:d}", modcod);
         }
 
-        int code_len = ldpc->code_len();
-        int mod_bits = mod->bits();
-        int8_t tmp[mod_bits];
-        int8_t* code = nullptr;
-        int symbols = code_len / mod_bits;
-
-        // Determine target precision for demodulator based on noise level
-        if (frame == 0) {
-            sp = 0;
-            np = 0;
-            for (int j = 0; j < symbols; j++) {
-                mod->hard(tmp, in[j]);
-                s = mod->map(tmp);
-                e = in[j] - s;
-                sp += std::norm(s);
-                np += std::norm(e);
-            }
-            if (!(np > 0)) {
-                np = 1e-12;
-            }
-            snr = 10 * std::log10(sp / np);
-            sigma = std::sqrt(np / (2 * sp));
-            precision = FACTOR / (sigma * sigma);
+        auto abs_offset = nitems_written(0);
+        for (int blk = 0; blk < d_simd_size; blk++) {
+            auto key = tags[t + blk].key;
+            auto value = tags[t + blk].value;
+            add_item_tag(0, abs_offset, key, value);
+            abs_offset += ldpc->data_len();
         }
-
-        // Demodulate
-        for (int j = 0; j < symbols; j++) {
-            mod->soft(soft.data() + (j * mod_bits /*+ (blk * CODE_LEN)*/), in[j], precision);
-        }
-        int frame_size;
-        switch (framesize) {
-        case FECFRAME_NORMAL:
-            frame_size = FRAME_SIZE_NORMAL;
-            break;
-        case FECFRAME_SHORT:
-            frame_size = FRAME_SIZE_SHORT;
-            break;
-        case FECFRAME_MEDIUM:
-            frame_size = FRAME_SIZE_MEDIUM;
-            break;
-        }
-        rows = frame_size / mod_bits;
-        switch (constellation) {
-        case MOD_8PSK:
-            indexin = 0;
-            for (int j = 0; j < rows; j++) {
-                dint[rowaddr0 + j] = soft[indexin++];
-                dint[rowaddr1 + j] = soft[indexin++];
-                dint[rowaddr2 + j] = soft[indexin++];
-            }
-            code = dint.data();
-            break;
-        case MOD_QPSK:
-        default:
-            code = soft.data();
-            break;
-        }
-        in += rows;
-        consumed += rows;
 
         // Decode LDPC
+        memcpy(code, in, sizeof(input_type) * ldpc->code_len() * d_simd_size);
         int count = decode(aligned_buffer, code, trials);
         if (count < 0) {
             total_trials += trials;
-            GR_LOG_DEBUG_LEVEL(1,
-                               "frame = {:d}, snr = {:.2f}, trials = {:d} (max)",
-                               (chunk * d_simd_size),
-                               snr,
-                               trials);
+            GR_LOG_DEBUG_LEVEL(1, "frame = {:d}, trials = {:d} (max)", (chunk * d_simd_size), trials);
         } else {
             total_trials += (trials - count);
-            GR_LOG_DEBUG_LEVEL(1,
-                               "frame = {:d}, snr = {:.2f}, trials = {:d}",
-                               (chunk * d_simd_size),
-                               snr,
-                               (trials - count));
+            GR_LOG_DEBUG_LEVEL(
+                1, "frame = {:d}, trials = {:d}", (chunk * d_simd_size), (trials - count));
         }
         chunk++;
 
-        // Evaluate corrected SNR
-        // For that, codeword needs to be interleaved and modulated
-        switch (constellation) {
-        case MOD_QPSK:
-            for (int j = 0; j < code_len; j++) {
-                tempv[j] = code[j] < 0 ? -1 : 1;
+        int code_len = ldpc->code_len();
+        int data_len = ldpc->data_len();
+        for (int blk = 0; blk < d_simd_size; blk++) {
+            // Produce information bits
+            for (int j = 0; j < data_len; j++) {
+                *out++ = code[j] < 0 ? 1 : 0;
             }
-            break;
-        case MOD_8PSK:
-            for (int j = 0; j < code_len; j++) {
-                tempu[j] = code[j] < 0 ? -1 : 1;
-            }
-            rows = frame_size / mod_bits;
-            indexout = 0;
-            for (int j = 0; j < rows; j++) {
-                tempv[indexout++] = tempu[rowaddr0 + j];
-                tempv[indexout++] = tempu[rowaddr1 + j];
-                tempv[indexout++] = tempu[rowaddr2 + j];
-            }
-            break;
-        default:
-            break;
+            code += code_len;
         }
-        sp = 0;
-        np = 0;
-        precision_sum = 0;
-        for (int j = 0; j < symbols; j++) {
-            s = mod->map(&tempv[(j * mod_bits)]);
-            e = insnr[j] - s;
-            sp += std::norm(s);
-            np += std::norm(e);
-        }
-        if (!(np > 0)) {
-            np = 1e-12;
-        }
-        snr = 10 * std::log10(sp / np);
-        sigma = std::sqrt(np / (2 * sp));
-        precision_sum += FACTOR / (sigma * sigma);
-        total_snr += snr;
-        if (info_mode) {
-            GR_LOG_DEBUG_LEVEL(1,
-                               "frame = {:d}, snr = {:.2f}, average trials = {:d}, "
-                               "average snr =,.2f",
-                               frame,
-                               snr,
-                               (total_trials / chunk),
-                               (total_snr / (frame + 1)));
-        }
-        insnr += frame_size / mod_bits;
-        frame++;
-
-        // Produce information bits
-        precision = precision_sum / d_simd_size;
-        for (int j = 0; j < code_len; j++) {
-            *out++ = code[j] < 0 ? 1 : 0;
-        }
-        produce(0, code_len);
+        consumed_total += code_len * d_simd_size;
+        produce(0, data_len * d_simd_size);
     }
-    consume_each(consumed);
+    consume_each(consumed_total);
     return WORK_CALLED_PRODUCE;
 }
 

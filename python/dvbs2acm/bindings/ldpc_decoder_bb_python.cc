@@ -13,8 +13,8 @@
 /* If manual edits are made, the following tags should be modified accordingly.    */
 /* BINDTOOL_GEN_AUTOMATIC(0)                                                       */
 /* BINDTOOL_USE_PYGCCXML(0)                                                        */
-/* BINDTOOL_HEADER_FILE(ldpc_decoder_cb.h)                                        */
-/* BINDTOOL_HEADER_FILE_HASH(d0ae77d6e7bbac600d9c8f990bf07932)                     */
+/* BINDTOOL_HEADER_FILE(ldpc_decoder_bb.h)                                        */
+/* BINDTOOL_HEADER_FILE_HASH(fbb81e296dd425b983205e0ea8d1c72b)                     */
 /***********************************************************************************/
 
 #include <pybind11/complex.h>
@@ -23,25 +23,23 @@
 
 namespace py = pybind11;
 
-#include <gnuradio/dvbs2acm/ldpc_decoder_cb.h>
+#include <gnuradio/dvbs2acm/ldpc_decoder_bb.h>
 // pydoc.h is automatically generated in the build directory
-#include <ldpc_decoder_cb_pydoc.h>
+#include <ldpc_decoder_bb_pydoc.h>
 
-void bind_ldpc_decoder_cb(py::module& m)
+void bind_ldpc_decoder_bb(py::module& m)
 {
 
-    using ldpc_decoder_cb    = ::gr::dvbs2acm::ldpc_decoder_cb;
+    using ldpc_decoder_bb    = ::gr::dvbs2acm::ldpc_decoder_bb;
 
 
-    py::class_<ldpc_decoder_cb, gr::block, gr::basic_block,
-        std::shared_ptr<ldpc_decoder_cb>>(m, "ldpc_decoder_cb", D(ldpc_decoder_cb))
+    py::class_<ldpc_decoder_bb, gr::block, gr::basic_block,
+        std::shared_ptr<ldpc_decoder_bb>>(m, "ldpc_decoder_bb", D(ldpc_decoder_bb))
 
-        .def(py::init(&ldpc_decoder_cb::make),
-           py::arg("outputmode") = false,
-           py::arg("infomode") = false,
+        .def(py::init(&ldpc_decoder_bb::make),
            py::arg("max_trials") = 25,
            py::arg("debug_level") = 0,
-           D(ldpc_decoder_cb,make)
+           D(ldpc_decoder_bb,make)
         )
         
 
@@ -49,14 +47,8 @@ void bind_ldpc_decoder_cb(py::module& m)
 
 
         
-        .def("get_snr",&ldpc_decoder_cb::get_snr,       
-            D(ldpc_decoder_cb,get_snr)
-        )
-
-
-        
-        .def("get_average_trials",&ldpc_decoder_cb::get_average_trials,       
-            D(ldpc_decoder_cb,get_average_trials)
+        .def("get_average_trials",&ldpc_decoder_bb::get_average_trials,       
+            D(ldpc_decoder_bb,get_average_trials)
         )
 
         ;

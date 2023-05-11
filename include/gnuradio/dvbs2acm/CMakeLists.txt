@@ -21,7 +21,7 @@ install(FILES
     symbol_sync_cc.h
     plsync_cc.h
     ldpc_encoder_bb.h
-    ldpc_decoder_cb.h
+    ldpc_decoder_bb.h
     bch_decoder_bb.h
     bbdescrambler_bb.h
     bbdeheader_bb.h 
