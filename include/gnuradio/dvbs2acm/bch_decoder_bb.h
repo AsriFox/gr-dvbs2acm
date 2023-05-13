@@ -33,10 +33,8 @@ public:
 
     /*!
      * \brief Create a baseband frame BCH decoder.
-     *
-     * \param outputmode Use Message block output mode instead of Codeword.
      */
-    static sptr make(bool outputmode = false, int debug_level = 0);
+    static sptr make(int debug_level = 0);
 
     /*!
      * \brief Get count of processed FECFRAMEs.

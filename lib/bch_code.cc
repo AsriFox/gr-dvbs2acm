@@ -520,5 +520,10 @@ const bch_code bch_code::bch_code_N12 = { BCH_CODE_N12 };
 const bch_code bch_code::bch_code_S12 = { BCH_CODE_S12 };
 const bch_code bch_code::bch_code_M12 = { BCH_CODE_M12 };
 
+bool bch_code::operator!=(bch_code other)
+{
+    return kbch != other.kbch || nbch != other.nbch || code != other.code;
+}
+
 } // namespace dvbs2acm
 } // namespace gr

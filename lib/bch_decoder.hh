@@ -62,7 +62,11 @@ public:
         return compute_syndromes(data, parity, reinterpret_cast<ValueType*>(syndromes), data_len);
     }
 
-    int operator()(uint8_t* data, uint8_t* parity, value_type* erasures = 0, int erasures_count = 0, int data_len = K)
+    int decode(uint8_t* data,
+               uint8_t* parity,
+               value_type* erasures = 0,
+               int erasures_count = 0,
+               int data_len = K)
     {
         assert(0 <= erasures_count && erasures_count <= NR);
         assert(0 < data_len && data_len <= K);
@@ -87,7 +91,8 @@ public:
         }
         IndexType locations[NR];
         ValueType magnitudes[NR];
-        int count = algorithm(syndromes, locations, magnitudes, reinterpret_cast<IndexType*>(erasures), erasures_count);
+        int count = algorithm(
+            syndromes, locations, magnitudes, reinterpret_cast<IndexType*>(erasures), erasures_count);
         if (count <= 0) {
             return count;
         }

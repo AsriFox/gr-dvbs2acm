@@ -52,6 +52,8 @@ public:
     static const bch_code bch_code_N12;
     static const bch_code bch_code_S12;
     static const bch_code bch_code_M12;
+
+    bool operator!=(bch_code other);
 };
 
 } // namespace dvbs2acm
