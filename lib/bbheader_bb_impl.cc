@@ -52,6 +52,7 @@ bbheader_bb_impl::bbheader_bb_impl(int modcod,
     header.sis_mis = SIS_MIS_SINGLE;
     header.ccm_acm = ACM;
     header.issyi = ISSYI_NOT_ACTIVE;
+    header.npd = NPD_NOT_ACTIVE;
     header.upl = 0;  // TODO: GSE
     header.sync = 0; // TODO: GSE
     if (rolloff & 0x4 || modcod >= MC_QPSK_13_45) {

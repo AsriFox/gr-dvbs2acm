@@ -14,9 +14,6 @@
 #include <gnuradio/io_signature.h>
 #include <gnuradio/logger.h>
 
-#define TRANSPORT_PACKET_LENGTH 188
-#define TRANSPORT_ERROR_INDICATOR 0x80
-
 namespace gr {
 namespace dvbs2acm {
 
@@ -37,6 +34,7 @@ bbdeheader_bb_impl::bbdeheader_bb_impl(int debug_level)
                 gr::io_signature::make(1, 1, sizeof(input_type)),
                 gr::io_signature::make(1, 1, sizeof(output_type))),
       d_debug_level(debug_level),
+      kbch(FRAME_SIZE_NORMAL),
       count(0),
       synched(false),
       spanning(false),
@@ -45,6 +43,7 @@ bbdeheader_bb_impl::bbdeheader_bb_impl(int debug_level)
       d_error_cnt(0)
 {
     build_crc8_table(crc_tab.data());
+    set_output_multiple((kbch - BB_HEADER_LENGTH_BITS) / 8 * 2);
 }
 
 /*
@@ -54,8 +53,8 @@ bbdeheader_bb_impl::~bbdeheader_bb_impl() {}
 
 void bbdeheader_bb_impl::forecast(int noutput_items, gr_vector_int& ninput_items_required)
 {
-    ninput_items_required[0] = noutput_items * 8 + BB_HEADER_LENGTH_BITS;
-    // TODO: output count
+    auto n_bbframes = noutput_items / ((kbch - BB_HEADER_LENGTH_BITS) / 8);
+    ninput_items_required[0] = n_bbframes * kbch;
 }
 
 int bbdeheader_bb_impl::general_work(int noutput_items,
@@ -67,54 +66,53 @@ int bbdeheader_bb_impl::general_work(int noutput_items,
     auto out = static_cast<output_type*>(output_items[0]);
     // unsigned char* tei = out;
     unsigned int errors = 0;
-    bool check, enable_crc_check;
-    unsigned int consumed = 0;
-    unsigned int produced = 0;
+    unsigned int consumed_total = 0;
+    unsigned int produced_total = 0;
+    dvbs2_modcod_t modcod = MC_DUMMY;
+    dvbs2_vlsnr_header_t vlsnr_header = VLSNR_DUMMY;
     unsigned char tmp;
 
     std::vector<tag_t> tags;
     const uint64_t nread = this->nitems_read(0);
 
     // Read all tags on the input buffer
-    this->get_tags_in_range(tags, 0, nread, nread + noutput_items, pmt::string_to_symbol("modcod"));
+    this->get_tags_in_range(tags, 0, nread, nread + noutput_items, pmt::string_to_symbol("pls"));
 
     for (tag_t tag : tags) {
-        auto tagmodcod = pmt::to_uint64(tag.value);
-        auto modcod = (dvbs2_modcod_t)((tagmodcod >> 2) & 0x7f);
-        auto vlsnr_header = (dvbs2_vlsnr_header_t)((tagmodcod >> 9) & 0x0f);
+        if (tag.key == pmt::intern("pls") && tag.value->is_dict()) {
+            auto dict = tag.value;
+            if (pmt::dict_has_key(dict, pmt::intern("modcod")) &&
+                pmt::dict_has_key(dict, pmt::intern("vlsnr_header"))) {
+                auto not_found = pmt::get_PMT_NIL();
+
+                auto modcod_r = pmt::dict_ref(dict, pmt::intern("modcod"), not_found);
+                if (modcod_r == not_found) {
+                    continue;
+                }
+                modcod = (dvbs2_modcod_t)pmt::to_long(modcod_r);
+
+                auto vlsnr_header_r = pmt::dict_ref(dict, pmt::intern("vlsnr_header"), not_found);
+                if (vlsnr_header_r == not_found) {
+                    continue;
+                }
+                vlsnr_header = (dvbs2_vlsnr_header_t)pmt::to_long(vlsnr_header_r);
+            }
+        }
         auto kbch = bch_code::select(modcod, vlsnr_header).kbch;
+        if (this->kbch != kbch) {
+            this->kbch = kbch;
+            set_output_multiple((kbch - BB_HEADER_LENGTH_BITS) / 8 * 2);
+        }
         auto max_dfl = kbch - BB_HEADER_LENGTH_BITS;
 
-        if (produced + max_dfl > (unsigned)noutput_items) {
+        if (produced_total + max_dfl / 8 > (unsigned)noutput_items) {
             break;
         }
-        consumed += kbch;
+        consumed_total += kbch;
 
         // Check the BBHEADER integrity
-        check = check_crc8_bits(in, BB_HEADER_LENGTH_BITS) != 0;
-
-        // if (dvb_standard == STANDARD_DVBS2) {
-        //     mode = INPUTMODE_NORMAL;
-        //     if (check == 0) {
-        //         check = TRUE;
-        //     } else {
-        //         check = FALSE;
-        //     }
-        // } else {
-        //     mode = INPUTMODE_NORMAL;ui
-        //     if (check == 0) {
-        //         check = TRUE;
-        //     } else if (check == CRC_POLY) {
-        //         check = TRUE;
-        //         mode = INPUTMODE_HIEFF;
-        //     } else {
-        //         check = FALSE;
-        //     }
-        // }
-        enable_crc_check = false; // INPUTMODE_NORMAL -> true; INPUTMODE_HIEFF -> false
-        check = !check;
-
-        if (!check) {
+        // enable_crc_check = true;
+        if (check_crc8_bits(in, BB_HEADER_LENGTH_BITS) != 0) {
             synched = false;
             GR_LOG_DEBUG_LEVEL(1, "Baseband header crc failed.");
             in += kbch;
@@ -153,23 +151,18 @@ int bbdeheader_bb_impl::general_work(int noutput_items,
         //     continue;
         // }
 
-        // if (header.syncd % 8 != 0) {
-        //     synched = FALSE;
-        //     d_logger->warn("Baseband header unsupported (syncd not byte-aligned).");
-        //     in += max_dfl;
-        //     continue;
-        // }
+        if (header.syncd % 8 != 0) {
+            synched = false;
+            d_logger->warn("Baseband header unsupported (syncd not byte-aligned).");
+            in += max_dfl;
+            continue;
+        }
 
         // Skip the initial SYNCD bits of the DATAFIELD if re-synchronizing
         if (!synched) {
             GR_LOG_DEBUG_LEVEL(1, "Baseband header resynchronizing.");
-            if (enable_crc_check) {
-                in += header.syncd + 8;
-                df_remaining -= header.syncd + 8;
-            } else {
-                in += header.syncd;
-                df_remaining -= header.syncd;
-            }
+            in += header.syncd + 8;
+            df_remaining -= header.syncd + 8;
             count = 0;
             synched = true;
             index = 0;
@@ -268,7 +261,7 @@ int bbdeheader_bb_impl::general_work(int noutput_items,
                 tmp |= *in++ << n;
             }
             *out++ = tmp;
-            produced++;
+            produced_total++;
             df_remaining -= 8;
         }
         in += max_dfl - header.dfl; // Skip the DATAFIELD padding, if any
@@ -281,12 +274,8 @@ int bbdeheader_bb_impl::general_work(int noutput_items,
                            ((double)d_error_cnt / d_packet_cnt));
     }
 
-    // Tell runtime system how many input items we consumed on
-    // each input stream.
-    consume_each(consumed);
-
-    // Tell runtime system how many output items we produced.
-    return produced;
+    consume_each(consumed_total);
+    return produced_total;
 }
 
 } /* namespace dvbs2acm */

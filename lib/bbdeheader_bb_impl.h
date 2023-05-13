@@ -21,7 +21,7 @@ class bbdeheader_bb_impl : public bbdeheader_bb
 {
 private:
     const int d_debug_level;
-    unsigned int dvb_standard;
+    unsigned int kbch;
     unsigned int df_remaining;
     unsigned int count;
     bool synched;
