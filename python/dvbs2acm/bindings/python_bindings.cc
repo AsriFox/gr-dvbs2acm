@@ -38,6 +38,7 @@ void bind_bbdeheader_bb(py::module& m);
 void bind_dvbs2_config(py::module& m);
 void bind_demodulator_cb(py::module& m);
 void bind_deinterleaver_bb(py::module& m);
+    void bind_ldpc_decoder_hybrid_cb(py::module& m);
 // ) END BINDING_FUNCTION_PROTOTYPES
 
 
@@ -83,5 +84,6 @@ PYBIND11_MODULE(dvbs2acm_python, m)
     bind_dvbs2_config(m);
     bind_demodulator_cb(m);
     bind_deinterleaver_bb(m);
+    bind_ldpc_decoder_hybrid_cb(m);
     // ) END BINDING_FUNCTION_CALLS
 }

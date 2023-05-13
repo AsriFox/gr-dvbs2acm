@@ -1,0 +1,34 @@
+id: dvbs2acm_ldpc_decoder_hybrid_cb
+label: LDPC Decoder Hybrid
+category: '[DVB]/DVB-S2 ACM/Receiver'
+
+parameters:
+- id: infomode
+  label: Show Corrected SNR
+  dtype: enum
+  options: [INFO_OFF, INFO_ON]
+  option_labels: ['Off', 'On']
+  option_attributes:
+    val: [False, True]
+- id: max_trials
+  label: Max Iterations
+  dtype: int
+  default: 25
+- id: debug_level
+  label: Debug Level
+  dtype: int
+  default: 0
+
+inputs:
+- domain: stream
+  dtype: complex
+
+outputs:
+- domain: stream
+  dtype: byte
+
+templates:
+  imports: from gnuradio import dvbs2acm
+  make: dvbs2acm.ldpc_decoder_hybrid_cb(${infomode.val}, ${max_trials}, ${debug_level})
+
+file_format: 1

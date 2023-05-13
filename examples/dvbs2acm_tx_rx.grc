@@ -477,6 +477,24 @@ blocks:
     coordinate: [424, 1084.0]
     rotation: 0
     state: disabled
+- name: dvbs2acm_ldpc_decoder_hybrid_cb_0
+  id: dvbs2acm_ldpc_decoder_hybrid_cb
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    debug_level: debug
+    infomode: INFO_ON
+    max_trials: '25'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [56, 1068.0]
+    rotation: 0
+    state: enabled
 - name: dvbs2acm_plsync_cc_0
   id: dvbs2acm_plsync_cc
   parameters:
@@ -641,7 +659,7 @@ blocks:
     bus_structure: null
     coordinate: [56, 860.0]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: frame_size
   id: parameter
   parameters:
@@ -1107,7 +1125,9 @@ connections:
 - [dvbs2acm_demodulator_cb_0, '0', dvbs2acm_deinterleaver_bb_0, '0']
 - [dvbs2acm_ldpc_decoder_bb_0, '0', blocks_tag_debug_0, '0']
 - [dvbs2acm_ldpc_decoder_bb_0, '0', dvbs2acm_bch_decoder_bb_0, '0']
+- [dvbs2acm_ldpc_decoder_hybrid_cb_0, '0', blocks_probe_rate_0_0, '0']
 - [dvbs2acm_plsync_cc_0, '0', dvbs2acm_demodulator_cb_0, '0']
+- [dvbs2acm_plsync_cc_0, '0', dvbs2acm_ldpc_decoder_hybrid_cb_0, '0']
 - [dvbs2acm_plsync_cc_0, '0', dvbs2rx_ldpc_decoder_cb_0, '0']
 - [dvbs2acm_plsync_cc_0, '0', qtgui_const_sink_x_1, '0']
 - [dvbs2acm_plsync_cc_0, rotator_phase_inc, dvbs2acm_rotator_cc_0, cmd]
