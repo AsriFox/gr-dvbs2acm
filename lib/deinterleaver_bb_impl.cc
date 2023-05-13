@@ -52,7 +52,7 @@ int deinterleaver_bb_impl::general_work(int noutput_items,
     auto out = static_cast<output_type*>(output_items[0]);
     int consumed_total = 0;
     dvbs2_modcod_t modcod = MC_DUMMY;
-    dvbs2_vlsnr_header_t vlsnr_header;
+    dvbs2_vlsnr_header_t vlsnr_header = VLSNR_DUMMY;
     std::vector<tag_t> tags;
     auto abs_start = nitems_read(0);
     get_tags_in_range(tags, 0, abs_start, abs_start + ninput_items[0]);

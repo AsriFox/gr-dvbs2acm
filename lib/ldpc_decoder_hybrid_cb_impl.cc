@@ -645,7 +645,7 @@ int ldpc_decoder_hybrid_cb_impl::general_work(int noutput_items,
             break;
         }
         dvbs2_modcod_t modcod = MC_DUMMY;
-        dvbs2_vlsnr_header_t vlsnr_header;
+        dvbs2_vlsnr_header_t vlsnr_header = VLSNR_DUMMY;
         for (int blk = 0; blk < d_simd_size; blk++) {
             auto dict = tags[i + blk].value;
             if (dict->is_dict() && pmt::dict_has_key(dict, pmt::intern("modcod")) &&
@@ -755,7 +755,7 @@ int ldpc_decoder_hybrid_cb_impl::general_work(int noutput_items,
                 if (!(np > 0)) {
                     np = 1e-12;
                 }
-                float snr = 10 * std::log10(sp / np);
+                snr = 10 * std::log10(sp / np);
                 float sigma = std::sqrt(np / (2 * sp));
                 precision = FACTOR / (sigma * sigma);
             }
@@ -827,12 +827,12 @@ int ldpc_decoder_hybrid_cb_impl::general_work(int noutput_items,
             int rows = frame_size / mod_order;
             switch (constellation) {
             case MOD_QPSK:
-                for (int j = 0; j < frame_size; j++) {
+                for (unsigned j = 0; j < frame_size; j++) {
                     tempv[j] = code[j + (blk * frame_size)] < 0 ? -1 : 1;
                 }
                 break;
             case MOD_8PSK:
-                for (int j = 0; j < frame_size; j++) {
+                for (unsigned j = 0; j < frame_size; j++) {
                     tempu[j] = code[j + (blk * frame_size)] < 0 ? -1 : 1;
                 }
                 for (int j = 0; j < rows; j++) {

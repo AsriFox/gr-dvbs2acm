@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Attach LLDB to flowgraph",
+            "name": "LLDB: Debug flowgraph",
             "type": "lldb",
             "request": "launch",
             "program": "/usr/bin/python3",
@@ -16,13 +16,13 @@
             "cwd": "${workspaceRoot}",
         },
         {
-            "name": "Launch GNU Radio Companion",
+            "name": "Docker: Launch GNU Radio Companion",
             "type": "node-terminal",
             "request": "launch",
             "command": "docker compose run app gnuradio-companion"
         },
         {
-            "name": "Launch container shell",
+            "name": "Docker: Launch container shell",
             "type": "node-terminal",
             "request": "launch",
             "command": "docker compose run app bash"

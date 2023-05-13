@@ -383,8 +383,8 @@ int ldpc_decoder_bb_impl::general_work(int noutput_items,
         if (i + d_simd_size > tags.size()) {
             break;
         }
-        dvbs2_modcod_t modcod;
-        dvbs2_vlsnr_header_t vlsnr_header;
+        dvbs2_modcod_t modcod = MC_DUMMY;
+        dvbs2_vlsnr_header_t vlsnr_header = VLSNR_DUMMY;
         for (int blk = 0; blk < d_simd_size; blk++) {
             auto dict = tags[i + blk].value;
             if (dict->is_dict() && pmt::dict_has_key(dict, pmt::intern("modcod")) &&

@@ -77,16 +77,15 @@ int bch_decoder_bb_impl::general_work(int noutput_items,
     int consumed_total = 0;
     int produced_total = 0;
     dvbs2_modcod_t modcod = MC_DUMMY;
-    dvbs2_vlsnr_header_t vlsnr_header;
+    dvbs2_vlsnr_header_t vlsnr_header = VLSNR_DUMMY;
 
     std::vector<tag_t> tags;
     const uint64_t nread = this->nitems_read(0); // number of items read on port 0
 
     // Read all tags on the input buffer
-    this->get_tags_in_range(tags, 0, nread, nread + noutput_items, pmt::string_to_symbol("modcod"));
+    this->get_tags_in_range(tags, 0, nread, nread + ninput_items[0], pmt::string_to_symbol("pls"));
 
     for (tag_t tag : tags) {
-        d_logger->debug("Frame found");
         if (tag.key == pmt::intern("pls") && tag.value->is_dict()) {
             auto dict = tag.value;
             if (pmt::dict_has_key(dict, pmt::intern("modcod")) &&
@@ -112,7 +111,7 @@ int bch_decoder_bb_impl::general_work(int noutput_items,
             set_relative_rate(params.kbch, params.nbch);
             set_output_multiple(params.kbch);
         }
-        if (this->params.nbch + produced_total > (unsigned int)noutput_items) {
+        if (this->params.kbch + produced_total > (unsigned int)noutput_items) {
             break;
         }
 
