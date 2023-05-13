@@ -334,7 +334,7 @@ ldpc_decoder_bb_impl::ldpc_decoder_bb_impl(int max_trials, int debug_level)
 #endif
     assert(init != nullptr);
     assert(decode != nullptr);
-    d_debug_logger->debug("LDPC decoder implementation: {:s}", impl);
+    d_logger->debug("LDPC decoder implementation: {:s}", impl);
 
     aligned_buffer = aligned_alloc(d_simd_size, d_simd_size * FRAME_SIZE_NORMAL);
     set_output_multiple(FRAME_SIZE_NORMAL * d_simd_size);
@@ -353,7 +353,6 @@ ldpc_decoder_bb_impl::~ldpc_decoder_bb_impl()
 void ldpc_decoder_bb_impl::forecast(int noutput_items, gr_vector_int& ninput_items_required)
 {
     if (ldpc) {
-        set_relative_rate(ldpc->data_len(), ldpc->code_len());
         ninput_items_required[0] = noutput_items / ldpc->data_len() * ldpc->code_len();
     } else {
         ninput_items_required[0] = noutput_items;
@@ -372,18 +371,22 @@ int ldpc_decoder_bb_impl::general_work(int noutput_items,
     auto code = reinterpret_cast<int8_t*>(output_items[0]);
     const int trials = (d_max_trials == 0) ? DEFAULT_TRIALS : d_max_trials;
     int consumed_total = 0;
+    int produced_total = 0;
 
     std::vector<tag_t> tags;
     const uint64_t nread = this->nitems_read(0); // number of items read on port 0
 
     // Read all tags on the input buffer
-    this->get_tags_in_range(tags, 0, nread, nread + noutput_items, pmt::intern("pls"));
+    this->get_tags_in_range(tags, 0, nread, nread + ninput_items[0], pmt::intern("pls"));
 
-    for (size_t t = 0; t < tags.size(); t += d_simd_size) {
+    for (size_t i = 0; i < tags.size(); i += d_simd_size) {
+        if (i + d_simd_size > tags.size()) {
+            break;
+        }
         dvbs2_modcod_t modcod;
         dvbs2_vlsnr_header_t vlsnr_header;
         for (int blk = 0; blk < d_simd_size; blk++) {
-            auto dict = tags[t + blk].value;
+            auto dict = tags[i + blk].value;
             if (dict->is_dict() && pmt::dict_has_key(dict, pmt::intern("modcod")) &&
                 pmt::dict_has_key(dict, pmt::intern("vlsnr_header"))) {
                 auto not_found = pmt::get_PMT_NIL();
@@ -420,32 +423,42 @@ int ldpc_decoder_bb_impl::general_work(int noutput_items,
 
             ldpc.reset(build_decoder(framesize, rate));
             init(ldpc.get());
-            GR_LOG_DEBUG_LEVEL(1, "LDPC decoder changed to modcod {:d}", modcod);
+            set_relative_rate(ldpc->data_len() * d_simd_size, ldpc->code_len() * d_simd_size);
+            set_output_multiple(ldpc->data_len() * d_simd_size);
+            d_logger->debug("LDPC decoder changed to modcod {:d}", modcod);
+            // GR_LOG_DEBUG_LEVEL(1, "LDPC decoder changed to modcod {:d}", modcod);
+        }
+        int code_len = ldpc->code_len();
+        int data_len = ldpc->data_len();
+        if (data_len * d_simd_size + produced_total > noutput_items) {
+            break;
         }
 
         auto abs_offset = nitems_written(0);
         for (int blk = 0; blk < d_simd_size; blk++) {
-            auto key = tags[t + blk].key;
-            auto value = tags[t + blk].value;
+            auto key = tags[i + blk].key;
+            auto value = tags[i + blk].value;
             add_item_tag(0, abs_offset, key, value);
             abs_offset += ldpc->data_len();
         }
 
         // Decode LDPC
-        memcpy(code, in, sizeof(input_type) * ldpc->code_len() * d_simd_size);
+        memcpy(code, in, sizeof(input_type) * code_len * d_simd_size);
+        in += code_len * d_simd_size;
         int count = decode(aligned_buffer, code, trials);
         if (count < 0) {
             total_trials += trials;
-            GR_LOG_DEBUG_LEVEL(1, "frame = {:d}, trials = {:d} (max)", (chunk * d_simd_size), trials);
+            d_logger->debug("frame = {:d}, trials = {:d} (max)", (chunk * d_simd_size), trials);
+            // GR_LOG_DEBUG_LEVEL(1, "frame = {:d}, trials = {:d} (max)", (chunk * d_simd_size),
+            // trials);
         } else {
             total_trials += (trials - count);
-            GR_LOG_DEBUG_LEVEL(
-                1, "frame = {:d}, trials = {:d}", (chunk * d_simd_size), (trials - count));
+            // GR_LOG_DEBUG_LEVEL(
+            //     1, "frame = {:d}, trials = {:d}", (chunk * d_simd_size), (trials - count));
+            d_logger->debug("frame = {:d}, trials = {:d}", (chunk * d_simd_size), (trials - count));
         }
         chunk++;
 
-        int code_len = ldpc->code_len();
-        int data_len = ldpc->data_len();
         for (int blk = 0; blk < d_simd_size; blk++) {
             // Produce information bits
             for (int j = 0; j < data_len; j++) {
@@ -454,6 +467,7 @@ int ldpc_decoder_bb_impl::general_work(int noutput_items,
             code += code_len;
         }
         consumed_total += code_len * d_simd_size;
+        produced_total += data_len * d_simd_size;
         produce(0, data_len * d_simd_size);
     }
     consume_each(consumed_total);

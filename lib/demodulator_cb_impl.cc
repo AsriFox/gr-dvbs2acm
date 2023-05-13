@@ -152,28 +152,28 @@ void demodulator_cb_impl::demodulate(const gr_complex* in, int8_t* out, int& con
     int symbols = frame_size / mod_bits;
     int8_t tmp[mod_bits];
 
-    if (std::isinf(precision)) {
-        // Determine target precision for demodulator based on noise level
-        float sp = 0, np = 0;
-        std::complex<float> s, e;
-        for (int j = 0; j < symbols; j++) {
-            mod->hard(tmp, in[j]);
-            s = mod->map(tmp);
-            e = in[j] - s;
-            sp += std::norm(s);
-            np += std::norm(e);
-        }
-        if (!(np > 0)) {
-            np = 1e-12;
-        }
-        float snr = 10 * std::log10(sp / np);
-        float sigma = std::sqrt(np / (2 * sp));
-        set_precision(FACTOR / (sigma * sigma));
-        d_logger->debug("Detected SNR: {:.2f}", snr);
+    // if (std::isinf(precision)) {
+    // Determine target precision for demodulator based on noise level
+    float sp = 0, np = 0;
+    std::complex<float> s, e;
+    for (int j = 0; j < symbols; j++) {
+        mod->hard(tmp, in[j]);
+        s = mod->map(tmp);
+        e = in[j] - s;
+        sp += std::norm(s);
+        np += std::norm(e);
     }
+    if (!(np > 0)) {
+        np = 1e-12;
+    }
+    float snr = 10 * std::log10(sp / np);
+    float sigma = std::sqrt(np / (2 * sp));
+    set_precision(FACTOR / (sigma * sigma));
+    // d_logger->debug("Detected SNR: {:.2f}", snr);
 
     for (int j = 0; j < symbols; j++) {
         mod->soft(tmp, in[j], precision);
+        // mod->hard(tmp, in[j]);
         for (int n = 0; n < mod_bits; n++) {
             *out++ = tmp[n];
         }

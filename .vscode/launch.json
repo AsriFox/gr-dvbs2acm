@@ -5,6 +5,17 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Attach LLDB to flowgraph",
+            "type": "lldb",
+            "request": "launch",
+            "program": "/usr/bin/python3",
+            "args": [
+                "-u",
+                "examples/dvbs2_tx_rx.py"
+            ],
+            "cwd": "${workspaceRoot}",
+        },
+        {
             "name": "Launch GNU Radio Companion",
             "type": "node-terminal",
             "request": "launch",

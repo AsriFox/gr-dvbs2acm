@@ -374,7 +374,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [656, 1124.0]
+    coordinate: [616, 1140.0]
     rotation: 0
     state: disabled
 - name: blocks_throttle_0
@@ -413,6 +413,22 @@ blocks:
     coordinate: [984, 4.0]
     rotation: 0
     state: true
+- name: dvbs2acm_bch_decoder_bb_0
+  id: dvbs2acm_bch_decoder_bb
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    debug_level: debug
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [608, 1092.0]
+    rotation: 0
+    state: disabled
 - name: dvbs2acm_deinterleaver_bb_0
   id: dvbs2acm_deinterleaver_bb
   parameters:
@@ -427,7 +443,7 @@ blocks:
     bus_structure: null
     coordinate: [240, 1024.0]
     rotation: 0
-    state: enabled
+    state: disabled
 - name: dvbs2acm_demodulator_cb_0
   id: dvbs2acm_demodulator_cb
   parameters:
@@ -443,7 +459,7 @@ blocks:
     bus_structure: null
     coordinate: [56, 1020.0]
     rotation: 0
-    state: true
+    state: disabled
 - name: dvbs2acm_ldpc_decoder_bb_0
   id: dvbs2acm_ldpc_decoder_bb
   parameters:
@@ -460,7 +476,7 @@ blocks:
     bus_structure: null
     coordinate: [424, 1084.0]
     rotation: 0
-    state: true
+    state: disabled
 - name: dvbs2acm_plsync_cc_0
   id: dvbs2acm_plsync_cc
   parameters:
@@ -625,7 +641,7 @@ blocks:
     bus_structure: null
     coordinate: [56, 860.0]
     rotation: 0
-    state: disabled
+    state: enabled
 - name: frame_size
   id: parameter
   parameters:
@@ -1086,10 +1102,11 @@ connections:
 - [blocks_file_source_0_0, '0', dvbs2acm_tx_hier_0, '0']
 - [blocks_probe_rate_0_0, rate, blocks_message_debug_0_0_0, print]
 - [blocks_throttle_0, '0', analog_agc_xx_0, '0']
+- [dvbs2acm_bch_decoder_bb_0, '0', blocks_probe_rate_0_0, '0']
 - [dvbs2acm_deinterleaver_bb_0, '0', dvbs2acm_ldpc_decoder_bb_0, '0']
 - [dvbs2acm_demodulator_cb_0, '0', dvbs2acm_deinterleaver_bb_0, '0']
-- [dvbs2acm_ldpc_decoder_bb_0, '0', blocks_probe_rate_0_0, '0']
 - [dvbs2acm_ldpc_decoder_bb_0, '0', blocks_tag_debug_0, '0']
+- [dvbs2acm_ldpc_decoder_bb_0, '0', dvbs2acm_bch_decoder_bb_0, '0']
 - [dvbs2acm_plsync_cc_0, '0', dvbs2acm_demodulator_cb_0, '0']
 - [dvbs2acm_plsync_cc_0, '0', dvbs2rx_ldpc_decoder_cb_0, '0']
 - [dvbs2acm_plsync_cc_0, '0', qtgui_const_sink_x_1, '0']
@@ -1101,6 +1118,7 @@ connections:
 - [dvbs2rx_bbdeheader_bb_0, '0', blocks_probe_rate_0_0, '0']
 - [dvbs2rx_bbdescrambler_bb_0, '0', dvbs2rx_bbdeheader_bb_0, '0']
 - [dvbs2rx_bch_decoder_bb_0, '0', dvbs2rx_bbdescrambler_bb_0, '0']
+- [dvbs2rx_ldpc_decoder_cb_0, '0', blocks_probe_rate_0_0, '0']
 - [dvbs2rx_ldpc_decoder_cb_0, '0', dvbs2rx_bch_decoder_bb_0, '0']
 
 metadata:
