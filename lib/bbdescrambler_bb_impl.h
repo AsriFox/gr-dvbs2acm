@@ -20,6 +20,7 @@ namespace dvbs2acm {
 class bbdescrambler_bb_impl : public bbdescrambler_bb
 {
 private:
+    unsigned int kbch;
     unsigned char bb_derandomize[FRAME_SIZE_NORMAL];
     void init_bb_derandomiser(void);
 
@@ -28,7 +29,8 @@ public:
     ~bbdescrambler_bb_impl();
 
     // Where all the action really happens
-    int work(int noutput_items, gr_vector_const_void_star& input_items, gr_vector_void_star& output_items);
+    int
+    work(int noutput_items, gr_vector_const_void_star& input_items, gr_vector_void_star& output_items);
 };
 
 } // namespace dvbs2acm
