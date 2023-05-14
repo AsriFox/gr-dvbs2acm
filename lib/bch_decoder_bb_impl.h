@@ -13,12 +13,16 @@
 
 #include "bch_code.h"
 #include "bch_decoder.hh"
+#include "frame_stream.hh"
 #include "galois_field.hh"
 #include <gnuradio/dvbs2acm/bch_decoder_bb.h>
 #include <array>
 
 namespace gr {
 namespace dvbs2acm {
+
+using input_type = unsigned char;
+using output_type = unsigned char;
 
 class bch_decoder_bb_impl : public bch_decoder_bb
 {
@@ -56,12 +60,9 @@ public:
     // Where all the action really happens
     void forecast(int noutput_items, gr_vector_int& ninput_items_required);
 
-    int general_work(int noutput_items,
-                     gr_vector_int& ninput_items,
-                     gr_vector_const_void_star& input_items,
-                     gr_vector_void_star& output_items);
+    int FRAMESTREAM_GENERAL_WORK();
 
-    void decode_bch(const unsigned char* in, unsigned char* out, int& consumed, int& produced);
+    void FRAMESTREAM_SPECIFIC_WORK();
 
     uint64_t get_frame_count() { return d_frame_cnt; }
     uint64_t get_error_count() { return d_frame_error_cnt; }

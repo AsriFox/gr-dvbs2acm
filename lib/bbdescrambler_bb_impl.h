@@ -17,6 +17,9 @@
 namespace gr {
 namespace dvbs2acm {
 
+using input_type = unsigned char;
+using output_type = unsigned char;
+
 class bbdescrambler_bb_impl : public bbdescrambler_bb
 {
 private:

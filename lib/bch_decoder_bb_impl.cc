@@ -18,9 +18,6 @@
 namespace gr {
 namespace dvbs2acm {
 
-using input_type = unsigned char;
-using output_type = unsigned char;
-
 bch_decoder_bb::sptr bch_decoder_bb::make(int debug_level)
 {
     return gnuradio::make_block_sptr<bch_decoder_bb_impl>(debug_level);
@@ -31,9 +28,7 @@ bch_decoder_bb::sptr bch_decoder_bb::make(int debug_level)
  * The private constructor
  */
 bch_decoder_bb_impl::bch_decoder_bb_impl(int debug_level)
-    : gr::block("bch_decoder_bb",
-                gr::io_signature::make(1, 1, sizeof(input_type)),
-                gr::io_signature::make(1, 1, sizeof(output_type))),
+    : FRAMESTREAM_BLOCK_DEF("bch_decoder_bb"),
       d_debug_level(debug_level),
       d_frame_cnt(0),
       d_frame_error_cnt(0),
@@ -67,44 +62,12 @@ void bch_decoder_bb_impl::forecast(int noutput_items, gr_vector_int& ninput_item
     }
 }
 
-int bch_decoder_bb_impl::general_work(int noutput_items,
-                                      gr_vector_int& ninput_items,
-                                      gr_vector_const_void_star& input_items,
-                                      gr_vector_void_star& output_items)
+int bch_decoder_bb_impl::FRAMESTREAM_GENERAL_WORK()
 {
-    auto in = static_cast<const input_type*>(input_items[0]);
-    auto out = static_cast<output_type*>(output_items[0]);
-    int consumed_total = 0;
-    int produced_total = 0;
-    dvbs2_modcod_t modcod = MC_DUMMY;
-    dvbs2_vlsnr_header_t vlsnr_header = VLSNR_DUMMY;
-
-    std::vector<tag_t> tags;
-    const uint64_t nread = this->nitems_read(0); // number of items read on port 0
-
-    // Read all tags on the input buffer
-    this->get_tags_in_range(tags, 0, nread, nread + ninput_items[0], pmt::string_to_symbol("pls"));
+    FRAMESTREAM_GENERAL_WORK_BEGIN
 
     for (tag_t tag : tags) {
-        if (tag.key == pmt::intern("pls") && tag.value->is_dict()) {
-            auto dict = tag.value;
-            if (pmt::dict_has_key(dict, pmt::intern("modcod")) &&
-                pmt::dict_has_key(dict, pmt::intern("vlsnr_header"))) {
-                auto not_found = pmt::get_PMT_NIL();
-
-                auto modcod_r = pmt::dict_ref(dict, pmt::intern("modcod"), not_found);
-                if (modcod_r == not_found) {
-                    continue;
-                }
-                modcod = (dvbs2_modcod_t)pmt::to_long(modcod_r);
-
-                auto vlsnr_header_r = pmt::dict_ref(dict, pmt::intern("vlsnr_header"), not_found);
-                if (vlsnr_header_r == not_found) {
-                    continue;
-                }
-                vlsnr_header = (dvbs2_vlsnr_header_t)pmt::to_long(vlsnr_header_r);
-            }
-        }
+        FRAMESTREAM_HANDLE_TAG
         auto params = bch_code::select(modcod, vlsnr_header);
         if (this->params != params) {
             this->params = params;
@@ -114,25 +77,13 @@ int bch_decoder_bb_impl::general_work(int noutput_items,
         if (this->params.kbch + produced_total > (unsigned int)noutput_items) {
             break;
         }
-
-        auto abs_offset = nitems_written(0);
-        add_item_tag(0, abs_offset, tag.key, tag.value);
-
-        int consumed, produced;
-        decode_bch(in, out, consumed, produced);
-
-        consumed_total += consumed;
-        produced_total += produced;
-        produce(0, produced);
+        FRAMESTREAM_PROPAGATE_TAG
+        FRAMESTREAM_PRODUCE_WORK
     }
-    consume_each(consumed_total);
-    return WORK_CALLED_PRODUCE;
+    FRAMESTREAM_GENERAL_WORK_END
 }
 
-void bch_decoder_bb_impl::decode_bch(const unsigned char* in,
-                                     unsigned char* out,
-                                     int& consumed,
-                                     int& produced)
+void bch_decoder_bb_impl::FRAMESTREAM_SPECIFIC_WORK()
 {
     auto kbch = params.kbch;
     auto nbch = params.nbch;
@@ -174,11 +125,6 @@ void bch_decoder_bb_impl::decode_bch(const unsigned char* in,
     }
     consumed = nbch;
     produced = kbch;
-    // if (output_size == nbch) {
-    //     for (unsigned int j = 0; j < nbch - kbch; j++) {
-    //         *out++ = CODE::get_be_bit(parity, j);
-    //     }
-    // }
 }
 
 } /* namespace dvbs2acm */

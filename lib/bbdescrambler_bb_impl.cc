@@ -7,14 +7,12 @@
 
 #include "bbdescrambler_bb_impl.h"
 #include "bch_code.h"
+#include "frame_stream.hh"
 #include <gnuradio/io_signature.h>
 #include <vector>
 
 namespace gr {
 namespace dvbs2acm {
-
-using input_type = unsigned char;
-using output_type = unsigned char;
 
 bbdescrambler_bb::sptr bbdescrambler_bb::make()
 {
@@ -70,25 +68,7 @@ int bbdescrambler_bb_impl::work(int noutput_items,
     this->get_tags_in_range(tags, 0, nread, nread + noutput_items, pmt::string_to_symbol("pls"));
 
     for (tag_t tag : tags) {
-        if (tag.key == pmt::intern("pls") && tag.value->is_dict()) {
-            auto dict = tag.value;
-            if (pmt::dict_has_key(dict, pmt::intern("modcod")) &&
-                pmt::dict_has_key(dict, pmt::intern("vlsnr_header"))) {
-                auto not_found = pmt::get_PMT_NIL();
-
-                auto modcod_r = pmt::dict_ref(dict, pmt::intern("modcod"), not_found);
-                if (modcod_r == not_found) {
-                    continue;
-                }
-                modcod = (dvbs2_modcod_t)pmt::to_long(modcod_r);
-
-                auto vlsnr_header_r = pmt::dict_ref(dict, pmt::intern("vlsnr_header"), not_found);
-                if (vlsnr_header_r == not_found) {
-                    continue;
-                }
-                vlsnr_header = (dvbs2_vlsnr_header_t)pmt::to_long(vlsnr_header_r);
-            }
-        }
+        FRAMESTREAM_HANDLE_TAG
         auto kbch = bch_code::select(modcod, vlsnr_header).kbch;
         if (this->kbch != kbch) {
             this->kbch = kbch;
