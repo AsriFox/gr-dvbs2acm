@@ -123,6 +123,26 @@ blocks:
     coordinate: [520, 100.0]
     rotation: 0
     state: enabled
+- name: analog_agc_xx_0
+  id: analog_agc_xx
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    gain: '1'
+    max_gain: '65536'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    rate: 1e-5
+    reference: '1'
+    type: complex
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1000, 540.0]
+    rotation: 180
+    state: true
 - name: analog_noise_source_x_0
   id: analog_noise_source_x
   parameters:
@@ -139,7 +159,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [272, 444.0]
+    coordinate: [632, 444.0]
     rotation: 0
     state: true
 - name: blocks_add_xx_0
@@ -157,8 +177,25 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [512, 392.0]
+    coordinate: [864, 392.0]
     rotation: 0
+    state: true
+- name: blocks_char_to_float_0
+  id: blocks_char_to_float
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    scale: '1'
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [672, 948.0]
+    rotation: 180
     state: true
 - name: blocks_file_source_0_0
   id: blocks_file_source
@@ -193,8 +230,8 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [120, 480.0]
-    rotation: 0
+    coordinate: [416, 832.0]
+    rotation: 180
     state: enabled
 - name: blocks_probe_rate_0_0
   id: blocks_probe_rate
@@ -212,7 +249,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [88, 596.0]
+    coordinate: [656, 836.0]
     rotation: 180
     state: enabled
 - name: blocks_throttle_0
@@ -231,8 +268,27 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [604.0, 488]
-    rotation: 270
+    coordinate: [960, 404.0]
+    rotation: 0
+    state: true
+- name: blocks_throttle_0_0
+  id: blocks_throttle
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    ignoretag: 'True'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    samples_per_second: sym_rate * 3 / 8
+    type: byte
+    vlen: '1'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [224, 332.0]
+    rotation: 0
     state: true
 - name: debug
   id: parameter
@@ -251,35 +307,133 @@ blocks:
     coordinate: [624, 4.0]
     rotation: 0
     state: true
-- name: dvbs2acm_rx_hier_0
-  id: dvbs2acm_rx_hier
+- name: dvbs2acm_bbdeheader_bb_0
+  id: dvbs2acm_bbdeheader_bb
   parameters:
     affinity: ''
-    agc_gain: '1.0'
-    agc_rate: 1e-5
-    agc_ref: '1'
     alias: ''
     comment: ''
-    debug: debug
-    goldcode: gold_code
-    ldpc_max_trials: '20'
+    debug_level: debug
     maxoutbuf: '0'
     minoutbuf: '0'
-    pl_freq_est_period: '20'
-    rolloff: RO_0_20
-    sps: sps
-    sym_sync_damping: '1.0'
-    sym_sync_interp_method: '0'
-    sym_sync_loop_bw: '0.0045'
-    sym_sync_n_subfilt: '128'
-    sym_sync_rrc_delay: '5'
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [416, 648.0]
+    coordinate: [736, 740.0]
+    rotation: 0
+    state: bypassed
+- name: dvbs2acm_bbdescrambler_bb_0
+  id: dvbs2acm_bbdescrambler_bb
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [568, 744.0]
+    rotation: 0
+    state: bypassed
+- name: dvbs2acm_bch_decoder_bb_1
+  id: dvbs2acm_bch_decoder_bb
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    debug_level: debug
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [416, 740.0]
+    rotation: 0
+    state: true
+- name: dvbs2acm_ldpc_decoder_hybrid_cb_0
+  id: dvbs2acm_ldpc_decoder_hybrid_cb
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    debug_level: debug
+    infomode: INFO_ON
+    max_trials: '25'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [208, 724.0]
+    rotation: 0
+    state: enabled
+- name: dvbs2acm_plsync_cc_0
+  id: dvbs2acm_plsync_cc
+  parameters:
+    acm_vcm: 'True'
+    affinity: ''
+    alias: ''
+    comment: ''
+    debug_level: debug
+    freq_est_period: '25'
+    gold_code: gold_code
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    multistream: 'False'
+    pls_filter_hi: '0xFFFFFFFFFFFFFFFF'
+    pls_filter_lo: '0xFFFFFFFFFFFFFFFF'
+    sps: sps
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [304, 524.0]
     rotation: 180
     state: true
+- name: dvbs2acm_rotator_cc_0
+  id: dvbs2acm_rotator_cc
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    phase_inc: '0.0'
+    tag_inc_update: 'False'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [808, 568.0]
+    rotation: 180
+    state: true
+- name: dvbs2acm_symbol_sync_cc_0
+  id: dvbs2acm_symbol_sync_cc
+  parameters:
+    affinity: ''
+    alias: ''
+    comment: ''
+    damping_factor: '1'
+    interp_method: '0'
+    loop_bw: '0.0045'
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    n_subfilt: '128'
+    rolloff: '0.2'
+    rrc_delay: '5'
+    sps: sps
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [552, 548.0]
+    rotation: 180
+    state: enabled
 - name: dvbs2acm_tx_hier_0
   id: dvbs2acm_tx_hier
   parameters:
@@ -300,9 +454,27 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [240, 300.0]
+    coordinate: [600, 300.0]
     rotation: 0
     state: true
+- name: fec_ber_bf_0
+  id: fec_ber_bf
+  parameters:
+    affinity: ''
+    alias: ''
+    berlimit: '-7.0'
+    berminerrors: '100'
+    comment: ''
+    maxoutbuf: '0'
+    minoutbuf: '0'
+    test_mode: 'False'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [1000, 672.0]
+    rotation: 0
+    state: disabled
 - name: gold_code
   id: parameter
   parameters:
@@ -422,8 +594,8 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [80, 740.0]
-    rotation: 180
+    coordinate: [200, 436.0]
+    rotation: 0
     state: enabled
 - name: qtgui_const_sink_x_1_0
   id: qtgui_const_sink_x
@@ -514,9 +686,169 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [80, 660.0]
-    rotation: 180
+    coordinate: [576, 660.0]
+    rotation: 0
     state: enabled
+- name: qtgui_number_sink_0
+  id: qtgui_number_sink
+  parameters:
+    affinity: ''
+    alias: ''
+    autoscale: 'True'
+    avg: '0'
+    color1: ("blue", "red")
+    color10: ("black", "black")
+    color2: ("black", "black")
+    color3: ("black", "black")
+    color4: ("black", "black")
+    color5: ("black", "black")
+    color6: ("black", "black")
+    color7: ("black", "black")
+    color8: ("black", "black")
+    color9: ("black", "black")
+    comment: ''
+    factor1: '1'
+    factor10: '1'
+    factor2: '1'
+    factor3: '1'
+    factor4: '1'
+    factor5: '1'
+    factor6: '1'
+    factor7: '1'
+    factor8: '1'
+    factor9: '1'
+    graph_type: qtgui.NUM_GRAPH_HORIZ
+    gui_hint: 13,0,1,1
+    label1: BER
+    label10: ''
+    label2: ''
+    label3: ''
+    label4: ''
+    label5: ''
+    label6: ''
+    label7: ''
+    label8: ''
+    label9: ''
+    max: '10'
+    min: '-10'
+    name: '""'
+    nconnections: '1'
+    type: float
+    unit1: ''
+    unit10: ''
+    unit2: ''
+    unit3: ''
+    unit4: ''
+    unit5: ''
+    unit6: ''
+    unit7: ''
+    unit8: ''
+    unit9: ''
+    update_time: '0.10'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [968, 748.0]
+    rotation: 180
+    state: disabled
+- name: qtgui_time_sink_x_0
+  id: qtgui_time_sink_x
+  parameters:
+    affinity: ''
+    alias: ''
+    alpha1: '1.0'
+    alpha10: '1.0'
+    alpha2: '1.0'
+    alpha3: '1.0'
+    alpha4: '1.0'
+    alpha5: '1.0'
+    alpha6: '1.0'
+    alpha7: '1.0'
+    alpha8: '1.0'
+    alpha9: '1.0'
+    autoscale: 'False'
+    axislabels: 'True'
+    color1: blue
+    color10: dark blue
+    color2: red
+    color3: green
+    color4: black
+    color5: cyan
+    color6: magenta
+    color7: yellow
+    color8: dark red
+    color9: dark green
+    comment: ''
+    ctrlpanel: 'False'
+    entags: 'True'
+    grid: 'False'
+    gui_hint: ''
+    label1: Signal 1
+    label10: Signal 10
+    label2: Signal 2
+    label3: Signal 3
+    label4: Signal 4
+    label5: Signal 5
+    label6: Signal 6
+    label7: Signal 7
+    label8: Signal 8
+    label9: Signal 9
+    legend: 'True'
+    marker1: '-1'
+    marker10: '-1'
+    marker2: '-1'
+    marker3: '-1'
+    marker4: '-1'
+    marker5: '-1'
+    marker6: '-1'
+    marker7: '-1'
+    marker8: '-1'
+    marker9: '-1'
+    name: '""'
+    nconnections: '1'
+    size: '64800'
+    srate: sym_rate * 3 / 8
+    stemplot: 'False'
+    style1: '1'
+    style10: '1'
+    style2: '1'
+    style3: '1'
+    style4: '1'
+    style5: '1'
+    style6: '1'
+    style7: '1'
+    style8: '1'
+    style9: '1'
+    tr_chan: '0'
+    tr_delay: '0'
+    tr_level: '0.0'
+    tr_mode: qtgui.TRIG_MODE_FREE
+    tr_slope: qtgui.TRIG_SLOPE_POS
+    tr_tag: '""'
+    type: float
+    update_time: '0.10'
+    width1: '1'
+    width10: '1'
+    width2: '1'
+    width3: '1'
+    width4: '1'
+    width5: '1'
+    width6: '1'
+    width7: '1'
+    width8: '1'
+    width9: '1'
+    ylabel: Amplitude
+    ymax: '1'
+    ymin: '-1'
+    yunit: '""'
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [456, 932.0]
+    rotation: 180
+    state: true
 - name: sps
   id: parameter
   parameters:
@@ -543,7 +875,7 @@ blocks:
     label: symbol rate in bauds
     short_id: s
     type: intx
-    value: 64800 * 8
+    value: int(64800 / 3 * 32)
   states:
     bus_sink: false
     bus_source: false
@@ -585,17 +917,58 @@ blocks:
     coordinate: [8, 100.0]
     rotation: 0
     state: enabled
+- name: virtual_sink_0
+  id: virtual_sink
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: in_bytes
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [224, 380.0]
+    rotation: 180
+    state: disabled
+- name: virtual_source_1
+  id: virtual_source
+  parameters:
+    alias: ''
+    comment: ''
+    stream_id: in_bytes
+  states:
+    bus_sink: false
+    bus_source: false
+    bus_structure: null
+    coordinate: [808, 668.0]
+    rotation: 0
+    state: disabled
 
 connections:
+- [analog_agc_xx_0, '0', dvbs2acm_rotator_cc_0, '0']
 - [analog_noise_source_x_0, '0', blocks_add_xx_0, '1']
 - [blocks_add_xx_0, '0', blocks_throttle_0, '0']
-- [blocks_file_source_0_0, '0', dvbs2acm_tx_hier_0, '0']
+- [blocks_char_to_float_0, '0', qtgui_time_sink_x_0, '0']
+- [blocks_file_source_0_0, '0', blocks_throttle_0_0, '0']
 - [blocks_probe_rate_0_0, rate, blocks_message_debug_0_0_0, print]
-- [blocks_throttle_0, '0', dvbs2acm_rx_hier_0, '0']
-- [dvbs2acm_rx_hier_0, '0', blocks_probe_rate_0_0, '0']
-- [dvbs2acm_rx_hier_0, '1', qtgui_const_sink_x_1_0, '0']
-- [dvbs2acm_rx_hier_0, '2', qtgui_const_sink_x_1, '0']
+- [blocks_throttle_0, '0', analog_agc_xx_0, '0']
+- [blocks_throttle_0_0, '0', blocks_probe_rate_0_0, '0']
+- [blocks_throttle_0_0, '0', dvbs2acm_tx_hier_0, '0']
+- [blocks_throttle_0_0, '0', virtual_sink_0, '0']
+- [dvbs2acm_bbdeheader_bb_0, '0', blocks_char_to_float_0, '0']
+- [dvbs2acm_bbdeheader_bb_0, '0', fec_ber_bf_0, '1']
+- [dvbs2acm_bbdescrambler_bb_0, '0', dvbs2acm_bbdeheader_bb_0, '0']
+- [dvbs2acm_bch_decoder_bb_1, '0', dvbs2acm_bbdescrambler_bb_0, '0']
+- [dvbs2acm_ldpc_decoder_hybrid_cb_0, '0', dvbs2acm_bch_decoder_bb_1, '0']
+- [dvbs2acm_plsync_cc_0, '0', dvbs2acm_ldpc_decoder_hybrid_cb_0, '0']
+- [dvbs2acm_plsync_cc_0, '0', qtgui_const_sink_x_1, '0']
+- [dvbs2acm_plsync_cc_0, rotator_phase_inc, dvbs2acm_rotator_cc_0, cmd]
+- [dvbs2acm_rotator_cc_0, '0', dvbs2acm_symbol_sync_cc_0, '0']
+- [dvbs2acm_symbol_sync_cc_0, '0', dvbs2acm_plsync_cc_0, '0']
+- [dvbs2acm_symbol_sync_cc_0, '0', qtgui_const_sink_x_1_0, '0']
 - [dvbs2acm_tx_hier_0, '0', blocks_add_xx_0, '0']
+- [fec_ber_bf_0, '0', qtgui_number_sink_0, '0']
+- [virtual_source_1, '0', fec_ber_bf_0, '0']
 
 metadata:
   file_format: 1

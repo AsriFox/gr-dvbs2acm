@@ -42,7 +42,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [888, 68.0]
+    coordinate: [896, 68.0]
     rotation: 0
     state: enabled
 - name: EsN0
@@ -54,7 +54,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [888, 4.0]
+    coordinate: [896, 4.0]
     rotation: 0
     state: enabled
 - name: N0
@@ -66,7 +66,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [960, 68.0]
+    coordinate: [968, 68.0]
     rotation: 0
     state: enabled
 - name: center_freq
@@ -78,7 +78,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [504, 4.0]
+    coordinate: [512, 4.0]
     rotation: 0
     state: enabled
 - name: esn0_db
@@ -90,16 +90,16 @@ blocks:
     min_len: '200'
     orient: QtCore.Qt.Horizontal
     rangeType: float
-    start: '-3'
+    start: '0'
     step: '0.1'
     stop: '20'
-    value: '10'
+    value: '20'
     widget: counter_slider
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [768, 4.0]
+    coordinate: [776, 4.0]
     rotation: 0
     state: true
 - name: rolloff
@@ -111,7 +111,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [600, 4.0]
+    coordinate: [608, 4.0]
     rotation: 0
     state: enabled
 - name: samp_rate
@@ -142,7 +142,7 @@ blocks:
   id: variable
   parameters:
     comment: ''
-    value: bitrate / 2
+    value: (bitrate * 8) / 2
   states:
     bus_sink: false
     bus_source: false
@@ -159,7 +159,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [688, 4.0]
+    coordinate: [696, 4.0]
     rotation: 0
     state: enabled
 - name: agc_gain
@@ -399,21 +399,20 @@ blocks:
     affinity: ''
     alias: ''
     comment: ''
-    constellation: MOD_8PSK
-    framesize: FECFRAME_NORMAL
+    compat_mode: COMPAT_ON
+    framesize: Normal
     goldcode: '0'
     maxoutbuf: '0'
     minoutbuf: '0'
+    modcod_normal: MC_QPSK_1_4
+    modcod_short: MC_QPSK_1_4_S
     pilots: PILOTS_ON
-    rate_1: C1_4
-    rate_2: C1_5_MEDIUM
-    rate_3: C1_4
     rolloff: RO_0_20
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [416, 100.0]
+    coordinate: [424, 100.0]
     rotation: 0
     state: true
 - name: dvbs2acm_bbscrambler_bb_0
@@ -428,7 +427,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [616, 144.0]
+    coordinate: [624, 144.0]
     rotation: 0
     state: true
 - name: dvbs2acm_bch_decoder_bb_0
@@ -440,12 +439,11 @@ blocks:
     debug_level: debug
     maxoutbuf: '0'
     minoutbuf: '0'
-    outputmode: False
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [176, 500.0]
+    coordinate: [176, 508.0]
     rotation: 180
     state: true
 - name: dvbs2acm_bch_encoder_bb_0
@@ -460,7 +458,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [768, 144.0]
+    coordinate: [776, 144.0]
     rotation: 0
     state: true
 - name: dvbs2acm_interleaver_bb_0
@@ -478,23 +476,22 @@ blocks:
     coordinate: [944, 248.0]
     rotation: 180
     state: true
-- name: dvbs2acm_ldpc_decoder_cb_0
-  id: dvbs2acm_ldpc_decoder_cb
+- name: dvbs2acm_ldpc_decoder_hybrid_cb_0
+  id: dvbs2acm_ldpc_decoder_hybrid_cb
   parameters:
     affinity: ''
     alias: ''
     comment: ''
-    debug_level: debug
-    infomode: False
+    debug_level: '0'
+    infomode: INFO_ON
     max_trials: '25'
     maxoutbuf: '0'
     minoutbuf: '0'
-    outputmode: False
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [376, 484.0]
+    coordinate: [328, 492.0]
     rotation: 180
     state: true
 - name: dvbs2acm_ldpc_encoder_bb_0
@@ -509,7 +506,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [912, 144.0]
+    coordinate: [920, 144.0]
     rotation: 0
     state: true
 - name: dvbs2acm_modulator_bc_0
@@ -533,7 +530,7 @@ blocks:
     affinity: ''
     alias: ''
     comment: ''
-    dummyframes: DUMMY_FRAMES_OFF
+    dummyframes: 'False'
     maxoutbuf: '0'
     minoutbuf: '0'
   states:
@@ -670,7 +667,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [664, 84.0]
+    coordinate: [672, 84.0]
     rotation: 0
     state: true
 - name: pl_freq_est_period
@@ -779,7 +776,7 @@ blocks:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [112, 428.0]
+    coordinate: [312, 428.0]
     rotation: 180
     state: true
 - name: qtgui_number_sink_0
@@ -938,7 +935,6 @@ connections:
 - [analog_random_uniform_source_x_0, '0', blocks_throttle_0, '0']
 - [analog_random_uniform_source_x_0, '0', virtual_sink_0, '0']
 - [blocks_add_xx_0, '0', analog_agc_xx_0, '0']
-- [blocks_add_xx_0, '0', qtgui_const_sink_x_0, '0']
 - [blocks_throttle_0, '0', dvbs2acm_bbheader_bb_0, '0']
 - [blocks_throttle_0_0, '0', blocks_add_xx_0, '0']
 - [dvbs2acm_bbdeheader_bb_0, '0', virtual_sink_0_0, '0']
@@ -948,11 +944,12 @@ connections:
 - [dvbs2acm_bch_decoder_bb_0, '0', dvbs2acm_bbdescrambler_bb_0, '0']
 - [dvbs2acm_bch_encoder_bb_0, '0', dvbs2acm_ldpc_encoder_bb_0, '0']
 - [dvbs2acm_interleaver_bb_0, '0', dvbs2acm_modulator_bc_0, '0']
-- [dvbs2acm_ldpc_decoder_cb_0, '0', dvbs2acm_bch_decoder_bb_0, '0']
+- [dvbs2acm_ldpc_decoder_hybrid_cb_0, '0', dvbs2acm_bch_decoder_bb_0, '0']
 - [dvbs2acm_ldpc_encoder_bb_0, '0', dvbs2acm_interleaver_bb_0, '0']
 - [dvbs2acm_modulator_bc_0, '0', dvbs2acm_physical_cc_0, '0']
 - [dvbs2acm_physical_cc_0, '0', fft_filter_xxx_0, '0']
-- [dvbs2acm_plsync_cc_0, '0', dvbs2acm_ldpc_decoder_cb_0, '0']
+- [dvbs2acm_plsync_cc_0, '0', dvbs2acm_ldpc_decoder_hybrid_cb_0, '0']
+- [dvbs2acm_plsync_cc_0, '0', qtgui_const_sink_x_0, '0']
 - [dvbs2acm_plsync_cc_0, rotator_phase_inc, dvbs2acm_rotator_cc_0, cmd]
 - [dvbs2acm_rotator_cc_0, '0', dvbs2acm_symbol_sync_cc_0, '0']
 - [dvbs2acm_symbol_sync_cc_0, '0', dvbs2acm_plsync_cc_0, '0']
