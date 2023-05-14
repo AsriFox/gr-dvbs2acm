@@ -23,8 +23,8 @@ add_subdirectory(bindings)
 GR_PYTHON_INSTALL(
     FILES
     __init__.py
-    tx_hier.py 
-    DESTINATION ${GR_PYTHON_DIR}/gnuradio/dvbs2acm
+    tx_hier.py
+    rx_hier.py DESTINATION ${GR_PYTHON_DIR}/gnuradio/dvbs2acm
 )
 
 ########################################################################

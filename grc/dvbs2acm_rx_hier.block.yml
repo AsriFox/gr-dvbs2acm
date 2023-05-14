@@ -1,0 +1,112 @@
+id: dvbs2acm_rx_hier
+label: DVB-S2 ACM Receiver
+category: '[DVB]/DVB-S2 ACM'
+
+parameters:
+- id: rolloff
+  label: Rolloff factor
+  dtype: enum
+  options: [RO_0_35, RO_0_25, RO_0_20, RO_0_15, RO_0_10, RO_0_05]
+  option_labels: ['0.35', '0.25', '0.20', '0.15', '0.10', '0.05']
+  hide: none
+- id: sps
+  label: Supersampling
+  dtype: real
+  default: '2'
+  hide: none
+- id: goldcode
+  label: Gold code
+  dtype: int
+  default: '0'
+  hide: none
+- id: agc_gain
+  label: AGC gain
+  dtype: real
+  default: '1'
+  hide: part
+- id: agc_rate
+  label: AGC update rate
+  dtype: real
+  default: 1e-5
+  hide: part
+- id: agc_ref
+  label: AGC reference
+  dtype: real
+  default: '1'
+  hide: part
+- id: sym_sync_damping
+  label: Sym. Sync. damping factor
+  dtype: real
+  default: '1.0'
+  hide: part
+- id: sym_sync_loop_bw
+  label: Sym. Sync. loop bandwidth
+  dtype: real
+  default: '0.0045'
+  hide: part
+- id: sym_sync_rrc_delay
+  label: RRC filter delay
+  dtype: int
+  default: '5'
+  hide: ${'part' if sym_sync_interp_method == 0 else 'all'}
+- id: sym_sync_n_subfilt
+  label: Polyphase RRC branches
+  dtype: int
+  default: '128'
+  hide: ${'part' if sym_sync_interp_method == 0 else 'all'}
+- id: sym_sync_interp_method
+  label: Sym. Sync. interpolation method
+  dtype: enum
+  options: [0, 1, 2, 3]
+  option_labels: ['Polyphase', 'Linear', 'Quadratic', 'Cubic']
+  hide: part
+- id: pl_freq_est_period
+  label: PL Freq. corr. period
+  dtype: int
+  default: '20'
+  hide: part
+- id: ldpc_max_trials
+  label: LDPC max iterations
+  dtype: int
+  default: '20'
+  hide: part
+- id: debug
+  label: Debugging level
+  dtype: int
+  default: '0'
+  hide: none
+
+inputs:
+- label: in
+  domain: stream
+  dtype: complex
+
+outputs:
+- label: out
+  domain: stream
+  dtype: byte
+- label: sym_sync_out
+  domain: stream
+  dtype: complex
+  optional: true
+- label: plsync_out
+  domain: stream
+  dtype: complex
+  optional: true
+
+templates:
+  imports: from gnuradio import dvbs2acm
+  make: |-
+    dvbs2acm.rx_hier(
+      rolloff=dvbs2acm.${rolloff}, goldcode=${goldcode}, sps=${sps}, 
+      agc_rate=${agc_rate}, agc_gain=${agc_gain}, agc_ref=${agc_ref}, 
+      sym_sync_loop_bw=${sym_sync_loop_bw}, 
+      sym_sync_damping=${sym_sync_damping}, 
+      sym_sync_rrc_delay=${sym_sync_rrc_delay},
+      sym_sync_n_subfilt=${sym_sync_n_subfilt},
+      sym_sync_interp_method=${sym_sync_interp_method},
+      pl_freq_est_period=${pl_freq_est_period}, 
+      ldpc_max_trials=${ldpc_max_trials}, 
+      debug=${debug})
+
+file_format: 1
