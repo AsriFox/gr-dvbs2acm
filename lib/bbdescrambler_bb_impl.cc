@@ -31,6 +31,7 @@ bbdescrambler_bb_impl::bbdescrambler_bb_impl()
 {
     init_bb_derandomiser();
     set_output_multiple(kbch);
+    set_tag_propagation_policy(TPP_CUSTOM);
 }
 
 void bbdescrambler_bb_impl::init_bb_derandomiser()
@@ -79,7 +80,9 @@ int bbdescrambler_bb_impl::work(int noutput_items,
             break;
         }
 
-        for (int j = 0; j < (int)kbch; j++) {
+        FRAMESTREAM_PROPAGATE_TAG
+
+        for (unsigned j = 0; j < kbch; j++) {
             *out++ = *in++ ^ bb_derandomize[j];
         }
         produced_total += kbch;

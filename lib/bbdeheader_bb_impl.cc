@@ -29,7 +29,7 @@ bbdeheader_bb::sptr bbdeheader_bb::make(int debug_level)
 bbdeheader_bb_impl::bbdeheader_bb_impl(int debug_level)
     : FRAMESTREAM_BLOCK_DEF("bbdeheader_bb"),
       d_debug_level(debug_level),
-      kbch(FRAME_SIZE_NORMAL),
+      kbch(3072),
       count(0),
       synched(false),
       spanning(false),
@@ -38,7 +38,7 @@ bbdeheader_bb_impl::bbdeheader_bb_impl(int debug_level)
       d_error_cnt(0)
 {
     build_crc8_table(crc_tab.data());
-    set_output_multiple((kbch - BB_HEADER_LENGTH_BITS) / 8 * 2);
+    set_tag_propagation_policy(TPP_DONT);
 }
 
 /*
@@ -67,7 +67,7 @@ void bbdeheader_bb_impl::FRAMESTREAM_SPECIFIC_WORK()
     auto kbch = bch_code::select(modcod, vlsnr_header).kbch;
     if (this->kbch != kbch) {
         this->kbch = kbch;
-        set_output_multiple((kbch - BB_HEADER_LENGTH_BITS) / 8 * 2);
+        set_output_multiple((kbch - BB_HEADER_LENGTH_BITS) / 8);
     }
     auto max_dfl = kbch - BB_HEADER_LENGTH_BITS;
     consumed = kbch;
