@@ -109,6 +109,13 @@ parameters:
   label: Gold Code
   dtype: int
   default: 0
+- id: compat_mode
+  label: Compatibility mode
+  dtype: enum
+  options: [COMPAT_OFF, COMPAT_ON]
+  option_labels: ['Off', 'On']
+  option_attributes:
+    val: [False, True]
 
 inputs:
 - domain: stream
@@ -133,7 +140,8 @@ templates:
       % endif
       ${pilots.val},
       dvbs2acm.${rolloff},
-      ${goldcode})
+      ${goldcode},
+      ${compat_mode.val})
   callbacks:
   - |-
     set_modcod(

@@ -37,8 +37,10 @@ public:
      * \param pilots Pilot symbols (on/off).
      * \param rolloff DVB-S2 root-raised-cosine filter roll-off factor.
      * \param goldcode PL scrambler Gold code (0 to 262141 inclusive).
+     * \param compat_mode Enable compatibility with drmpeg/gr-dvbs2 blocks.
      */
-    static sptr make(int modcod, bool pilots, dvbs2_rolloff_factor_t rolloff, int goldcode);
+    static sptr
+    make(int modcod, bool pilots, dvbs2_rolloff_factor_t rolloff, int goldcode, bool compat_mode);
 
     virtual void set_modcod(int modcod) = 0;
 };

@@ -49,7 +49,7 @@ class tx_hier(gr.hier_block2):
         ##################################################
         # Blocks
         ##################################################
-        self.dvbs2acm_bbheader_bb_0 = dvbs2acm.bbheader_bb(self.modcod, self.pilots, self.rolloff, self.goldcode)
+        self.dvbs2acm_bbheader_bb_0 = dvbs2acm.bbheader_bb(self.modcod, self.pilots, self.rolloff, self.goldcode, True)
         self.dvbs2acm_bbscrambler_bb_0 = dvbs2acm.bbscrambler_bb()
         self.dvbs2acm_bch_encoder_bb_0 = dvbs2acm.bch_encoder_bb()
         self.dvbs2acm_ldpc_encoder_bb_0 = dvbs2acm.ldpc_encoder_bb()

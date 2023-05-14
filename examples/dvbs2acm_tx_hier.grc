@@ -82,19 +82,20 @@ blocks:
     affinity: ''
     alias: ''
     comment: ''
+    compat_mode: COMPAT_ON
     framesize: Normal
     goldcode: '0'
     maxoutbuf: '0'
     minoutbuf: '0'
     modcod_normal: MC_QPSK_3_4
     modcod_short: MC_QPSK_1_4_S
-    pilots: 'True'
+    pilots: PILOTS_ON
     rolloff: RO_0_20
   states:
     bus_sink: false
     bus_source: false
     bus_structure: null
-    coordinate: [208, 140.0]
+    coordinate: [208, 132.0]
     rotation: 0
     state: true
 - name: dvbs2acm_bbscrambler_bb_0

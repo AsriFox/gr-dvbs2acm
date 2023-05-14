@@ -10,15 +10,20 @@
 #define INCLUDED_DVBS2ACM_BBHEADER_BB_IMPL_H
 
 #include "bb_header.hh"
+#include "frame_stream.hh"
 #include <gnuradio/dvbs2acm/bbheader_bb.h>
 #include <array>
 
 namespace gr {
 namespace dvbs2acm {
 
+using input_type = unsigned char;
+using output_type = unsigned char;
+
 class bbheader_bb_impl : public bbheader_bb
 {
 private:
+    bool compat_mode;
     unsigned int kbch;
     unsigned int count;
     unsigned char crc;
@@ -41,17 +46,14 @@ private:
     int gold_to_root(int);
 
 public:
-    bbheader_bb_impl(int, bool, dvbs2_rolloff_factor_t, int);
+    bbheader_bb_impl(int, bool, dvbs2_rolloff_factor_t, int, bool);
     ~bbheader_bb_impl();
 
     void forecast(int noutput_items, gr_vector_int& ninput_items_required) override;
 
     void set_modcod(int modcod) override;
 
-    int general_work(int noutput_items,
-                     gr_vector_int& ninput_items,
-                     gr_vector_const_void_star& input_items,
-                     gr_vector_void_star& output_items) override;
+    int FRAMESTREAM_GENERAL_WORK() override;
 };
 
 } // namespace dvbs2acm

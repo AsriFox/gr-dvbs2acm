@@ -16,27 +16,20 @@
 
 namespace gr {
 namespace dvbs2acm {
-using input_type = unsigned char;
-using output_type = unsigned char;
 
-bbheader_bb::sptr
-bbheader_bb::make(int modcod, bool pilots, dvbs2_rolloff_factor_t rolloff, int goldcode)
+bbheader_bb::sptr bbheader_bb::make(
+    int modcod, bool pilots, dvbs2_rolloff_factor_t rolloff, int goldcode, bool compat_mode)
 {
-    return gnuradio::make_block_sptr<bbheader_bb_impl>(modcod, pilots, rolloff, goldcode);
+    return gnuradio::make_block_sptr<bbheader_bb_impl>(modcod, pilots, rolloff, goldcode, compat_mode);
 }
 
 
 /*
  * The private constructor
  */
-bbheader_bb_impl::bbheader_bb_impl(int modcod,
-                                   bool pilots,
-                                   dvbs2_rolloff_factor_t rolloff,
-                                   int goldcode)
-    : gr::block("bbheader_bb",
-                gr::io_signature::make(1, 1, sizeof(input_type)),
-                gr::io_signature::make(1, 1, sizeof(output_type))),
-      pilots(pilots)
+bbheader_bb_impl::bbheader_bb_impl(
+    int modcod, bool pilots, dvbs2_rolloff_factor_t rolloff, int goldcode, bool compat_mode)
+    : FRAMESTREAM_BLOCK_DEF("bbheader_bb"), compat_mode(compat_mode), pilots(pilots)
 {
     set_modcod(modcod);
 
@@ -120,10 +113,7 @@ int bbheader_bb_impl::gold_to_root(int goldcode)
     return x;
 }
 
-int bbheader_bb_impl::general_work(int noutput_items,
-                                   gr_vector_int& ninput_items,
-                                   gr_vector_const_void_star& input_items,
-                                   gr_vector_void_star& output_items)
+int bbheader_bb_impl::FRAMESTREAM_GENERAL_WORK()
 {
     if (ninput_items[0] < header.dfl / 8) {
         consume_each(0);
@@ -143,11 +133,23 @@ int bbheader_bb_impl::general_work(int noutput_items,
         framesize = vlsnr_framesize(vlsnr_header);
     }
 
-    const auto tagoffset = nitems_written(0);
-    const uint64_t tagmodcod = (uint64_t(root_code) << 32) | (uint64_t(pilots) << 24) |
-                               (uint64_t(constellation) << 16) | (uint64_t(code_rate) << 8) |
-                               (uint64_t(framesize) << 1) | uint64_t(0);
-    add_item_tag(0, tagoffset, pmt::string_to_symbol("modcod"), pmt::from_uint64(tagmodcod));
+    if (compat_mode) {
+        const auto tagoffset = nitems_written(0);
+        const uint64_t tagmodcod = (uint64_t(root_code) << 32) | (uint64_t(pilots) << 24) |
+                                   (uint64_t(constellation) << 16) | (uint64_t(code_rate) << 8) |
+                                   (uint64_t(framesize) << 1) | uint64_t(0);
+        add_item_tag(0, tagoffset, pmt::string_to_symbol("modcod"), pmt::from_uint64(tagmodcod));
+    } else {
+        auto tagpls = pmt::make_dict();
+        tagpls = pmt::dict_add(tagpls, pmt::intern("modcod"), pmt::from_long(modcod));
+        tagpls = pmt::dict_add(tagpls, pmt::intern("vlsnr_header"), pmt::from_long(vlsnr_header));
+        tagpls = pmt::dict_add(tagpls, pmt::intern("pilots"), pmt::from_bool(pilots));
+        tagpls = pmt::dict_add(tagpls, pmt::intern("dummy_frame"), pmt::from_bool(false));
+        tagpls = pmt::dict_add(tagpls, pmt::intern("root_code"), pmt::from_long(root_code));
+
+        const uint64_t tagoffset = this->nitems_written(0);
+        this->add_item_tag(0, tagoffset, pmt::intern("pls"), tagpls);
+    }
 
     input_type b;
     if (framesize != FECFRAME_MEDIUM) {
