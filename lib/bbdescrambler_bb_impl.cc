@@ -30,7 +30,8 @@ bbdescrambler_bb_impl::bbdescrambler_bb_impl()
       kbch(FRAME_SIZE_NORMAL)
 {
     init_bb_derandomiser();
-    set_output_multiple(kbch);
+    // set_output_multiple(kbch);
+    set_output_multiple(FRAME_SIZE_NORMAL);
     set_tag_propagation_policy(TPP_CUSTOM);
 }
 
@@ -71,10 +72,10 @@ int bbdescrambler_bb_impl::work(int noutput_items,
     for (tag_t tag : tags) {
         FRAMESTREAM_HANDLE_TAG
         auto kbch = bch_code::select(modcod, vlsnr_header).kbch;
-        if (this->kbch != kbch) {
-            this->kbch = kbch;
-            set_output_multiple(kbch);
-        }
+        // if (this->kbch != kbch) {
+        //     this->kbch = kbch;
+        //     set_output_multiple(kbch);
+        // }
 
         if (kbch + produced_total > (unsigned int)noutput_items) {
             break;
@@ -83,7 +84,7 @@ int bbdescrambler_bb_impl::work(int noutput_items,
         FRAMESTREAM_PROPAGATE_TAG
 
         for (unsigned j = 0; j < kbch; j++) {
-            *out++ = *in++ ^ bb_derandomize[j];
+            out[produced_total + j] = in[produced_total + j] ^ bb_derandomize[j];
         }
         produced_total += kbch;
     }

@@ -24,6 +24,7 @@ list(APPEND LDPC_LIBS ldpc_decoder_generic)
 
 foreach(LDPC_LIB ${LDPC_LIBS})
   set_property(TARGET ${LDPC_LIB} PROPERTY POSITION_INDEPENDENT_CODE ON)
+  target_compile_options(${LDPC_LIB} PRIVATE -DCMAKE_BUILD_TYPE=Release)
 endforeach()
 
 set(LDPC_LIBS ${LDPC_LIBS} PARENT_SCOPE)
